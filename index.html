@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backlog Management Pro | Sistema de Gestão</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #3f37c9;
+            --accent: #4895ef;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --success: #4cc9f0;
+            --warning: #f8961e;
+            --danger: #f72585;
+            --white: #ffffff;
+            --sidebar-width: 280px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fb;
+            color: var(--dark);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Profissional */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--white);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            z-index: 100;
+            border-right: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .logo-icon {
+            color: var(--accent);
+            font-size: 1.5rem;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 1.5rem 0;
+            overflow-y: auto;
+        }
+
+        .nav-title {
+            padding: 0.5rem 1.5rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--gray);
+            font-weight: 600;
+        }
+
+        .nav-item {
+            margin: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .nav-item:hover {
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+
+        .nav-item.active {
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+
+        .nav-item.active .nav-link {
+            color: var(--primary);
+        }
+
+        .nav-item.active .nav-icon {
+            color: var(--primary);
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            font-size: 0.9375rem;
+        }
+
+        .nav-icon {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+            color: var(--gray);
+            width: 24px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            background-color: var(--primary);
+            color: white;
+            font-size: 0.6875rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 10rem;
+            font-weight: 600;
+        }
+
+        .user-panel {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9375rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-role {
+            font-size: 0.8125rem;
+            color: var(--gray);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-dropdown {
+            color: var(--gray);
+            cursor: pointer;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .content-header {
+            padding: 1.5rem;
+            background: var(--white);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+
+        .breadcrumb-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .breadcrumb-item:not(:last-child)::after {
+            content: '/';
+            margin: 0 0.5rem;
+            color: var(--gray);
+        }
+
+        .breadcrumb-link {
+            color: var(--gray);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .breadcrumb-link:hover {
+            color: var(--primary);
+        }
+
+        .content-body {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        /* Card Estilizado */
+        .card {
+            background: var(--white);
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+            border-color: rgba(67, 97, 238, 0.2);
+        }
+
+        .card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .card-tools {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Notepad Section */
+        .notepad-form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: var(--dark);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--light-gray);
+            border-radius: 0.5rem;
+            font-size: 0.9375rem;
+            transition: var(--transition);
+            background-color: var(--white);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236c757d' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 16px 12px;
+        }
+
+        .notepad-editor {
+            min-height: 300px;
+            max-height: 500px;
+            resize: vertical;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            font-size: 0.9375rem;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--light-gray);
+            color: var(--dark);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--light);
+            border-color: var(--gray);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: var(--white);
+        }
+
+        .btn-danger:hover {
+            background-color: #e51779;
+        }
+
+        .btn-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            padding: 0;
+            border-radius: 50%;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+        }
+
+        /* Dashboard Section */
+        .fc {
+            background-color: var(--white);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .fc-header-toolbar {
+            padding: 1rem;
+            margin-bottom: 0 !important;
+        }
+
+        .fc-toolbar-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .fc-button {
+            background-color: var(--white) !important;
+            border: 1px solid var(--light-gray) !important;
+            color: var(--dark) !important;
+            text-transform: capitalize !important;
+            font-weight: 500 !important;
+            transition: var(--transition) !important;
+        }
+
+        .fc-button:hover {
+            background-color: var(--light) !important;
+        }
+
+        .fc-button-primary:not(:disabled).fc-button-active {
+            background-color: var(--primary) !important;
+            border-color: var(--primary) !important;
+            color: var(--white) !important;
+        }
+
+        .fc-daygrid-event {
+            border-radius: 0.25rem !important;
+            padding: 0.25rem 0.5rem !important;
+            font-size: 0.8125rem !important;
+        }
+
+        .fc-event-main {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        /* Analytics Section */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-title {
+            font-size: 0.875rem;
+            color: var(--gray);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-change {
+            font-size: 0.8125rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .stat-change.positive {
+            color: #2ecc71;
+        }
+
+        .stat-change.negative {
+            color: #e74c3c;
+        }
+
+        /* Responsividade */
+        @media (max-width: 992px) {
+            .sidebar {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                bottom: 0;
+                z-index: 1000;
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .content-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .action-buttons {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-tasks logo-icon"></i>
+                <span>BacklogPro</span>
+            </div>
+        </div>
+        
+        <div class="nav-menu">
+            <div class="nav-title">Menu Principal</div>
+            
+            <div class="nav-item active" data-section="notes">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-edit nav-icon"></i>
+                    <span>Anotações</span>
+                </a>
+            </div>
+            
+            <div class="nav-item" data-section="dashboard">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-calendar-alt nav-icon"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+            
+            <div class="nav-item" data-section="analytics">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-chart-pie nav-icon"></i>
+                    <span>Relatórios</span>
+                    <span class="nav-badge">Novo</span>
+                </a>
+            </div>
+            
+            <div class="nav-item" data-section="team">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-users nav-icon"></i>
+                    <span>Analistas</span>
+                </a>
+            </div>
+            
+            <div class="nav-title">Configurações</div>
+            
+            <div class="nav-item" data-section="settings">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-cog nav-icon"></i>
+                    <span>Configurações</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="user-panel">
+            <div class="user-avatar">AD</div>
+            <div class="user-info">
+                <div class="user-name">Admin</div>
+                <div class="user-role">Administrador</div>
+            </div>
+            <i class="fas fa-chevron-down user-dropdown"></i>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Content Header -->
+        <div class="content-header">
+            <div>
+                <h1 class="page-title">Anotações</h1>
+                <div class="breadcrumb">
+                    <div class="breadcrumb-item">
+                        <a href="#" class="breadcrumb-link">Home</a>
+                    </div>
+                    <div class="breadcrumb-item">
+                        <span>Anotações</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-tools">
+                <button class="btn btn-outline btn-icon">
+                    <i class="fas fa-bell"></i>
+                </button>
+                <button class="btn btn-outline btn-icon" id="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Content Body -->
+        <div class="content-body">
+            <!-- Notes Section -->
+            <div class="section-content" id="notes-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Registro de Backlog Diário</h3>
+                        <div class="card-tools">
+                            <button class="btn btn-outline">
+                                <i class="fas fa-history"></i> Histórico
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body">
+                        <form id="backlog-form">
+                            <div class="notepad-form-group">
+                                <label class="form-label">Turno</label>
+                                <select class="form-control form-select" id="turno-select" required>
+                                    <option value="">Selecione o turno</option>
+                                    <option value="manha">Manhã </option>
+                                    <option value="tarde">Tarde</option>
+                                    <option value="noite">Noite</option>
+                                </select>
+                            </div>
+                            
+                            <div class="notepad-form-group">
+                                <label class="form-label">Analista</label>
+                                <select class="form-control form-select" id="analista-select" required>
+                                    <option value="">Selecione o analista</option>
+                                    <!-- Preenchido por JS -->
+                                </select>
+                            </div>
+                            
+                            <div class="notepad-form-group">
+                                <label class="form-label">Data</label>
+                                <input type="date" class="form-control" id="data-backlog" required>
+                            </div>
+                            
+                            <div class="notepad-form-group">
+                                <label class="form-label">Backlog Validado</label>
+                                <textarea class="form-control notepad-editor" id="backlog-text" placeholder="Descreva detalhadamente o backlog validado..." required></textarea>
+                            </div>
+                            
+                            <div class="action-buttons">
+                                <button type="button" class="btn btn-outline" id="clear-form">
+                                    <i class="fas fa-trash-alt"></i> Limpar
+                                </button>
+                                <button type="submit" class="btn btn-primary" id="save-backlog">
+                                    <i class="fas fa-save"></i> Salvar Backlog
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dashboard Section -->
+            <div class="section-content" id="dashboard-section" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Calendário de Validações</h3>
+                        <div class="card-tools">
+                            <div class="btn-group">
+                                <button class="btn btn-outline active" data-period="month">
+                                    <i class="fas fa-calendar-alt"></i> Mês
+                                </button>
+                                <button class="btn btn-outline" data-period="week">
+                                    <i class="fas fa-calendar-week"></i> Semana
+                                </button>
+                                <button class="btn btn-outline" data-period="day">
+                                    <i class="fas fa-calendar-day"></i> Dia
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body">
+                        <div id="calendar"></div>
+                    </div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-title">Validações Hoje</div>
+                        <div class="stat-value" id="stats-today">0</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>0% em relação a ontem</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-title">Validações no Mês</div>
+                        <div class="stat-value" id="stats-month">0</div>
+                        <div class="stat-change negative">
+                            <i class="fas fa-arrow-down"></i>
+                            <span>0% em relação ao mês passado</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-title">Analista Mais Ativo</div>
+                        <div class="stat-value" id="stats-top-analyst">N/A</div>
+                        <div class="stat-change">
+                            <i class="fas fa-user"></i>
+                            <span id="stats-top-count">0 validações</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Analytics Section -->
+            <div class="section-content" id="analytics-section" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Relatórios e Estatísticas</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>Relatórios detalhados em desenvolvimento...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Team Section -->
+            <div class="section-content" id="team-section" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Gestão de Analistas</h3>
+                        <div class="card-tools">
+                            <button class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Adicionar Analista
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p>Gestão de equipe em desenvolvimento...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Settings Section -->
+            <div class="section-content" id="settings-section" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Configurações do Sistema</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>Configurações do sistema em desenvolvimento...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/pt-br.js"></script>
+    <script>
+        // Configurações do Gist
+        const GIST_ID = 'b67e15320313e389ba29b508e067fb67';
+        const GIST_FILE = 'dates.json';
+        const GITHUB_TOKEN = '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';
+
+        // Dados dos analistas por turno
+        const analistasPorTurno = {
+            manha: ['DELANO', 'HERBETH', 'WELLIGTON', 'EDMUNDO'],
+            tarde: ['SIDNEY', 'MARCIO', 'HELIELTON', 'ROBSON'],
+            noite: ['WYLLAME', 'DARLYSON', 'MURILO']
+        };
+
+        // Elementos DOM
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const navItems = document.querySelectorAll('.nav-item');
+        const sectionContents = document.querySelectorAll('.section-content');
+        const turnoSelect = document.getElementById('turno-select');
+        const analistaSelect = document.getElementById('analista-select');
+        const dataBacklog = document.getElementById('data-backlog');
+        const backlogText = document.getElementById('backlog-text');
+        const backlogForm = document.getElementById('backlog-form');
+        const clearFormBtn = document.getElementById('clear-form');
+        const saveButton = document.getElementById('save-backlog');
+        const statsToday = document.getElementById('stats-today');
+        const statsMonth = document.getElementById('stats-month');
+        const statsTopAnalyst = document.getElementById('stats-top-analyst');
+        const statsTopCount = document.getElementById('stats-top-count');
+
+        // Inicialização
+        dataBacklog.valueAsDate = new Date();
+
+        // Atualiza lista de analistas quando muda o turno
+        turnoSelect.addEventListener('change', function() {
+            const turno = this.value;
+            analistaSelect.innerHTML = '<option value="">Selecione o analista</option>';
+            
+            if (turno && analistasPorTurno[turno]) {
+                analistasPorTurno[turno].forEach(analista => {
+                    const option = document.createElement('option');
+                    option.value = analista;
+                    option.textContent = analista;
+                    analistaSelect.appendChild(option);
+                });
+            }
+        });
+
+        // Carregar dados do Gist
+        async function loadData() {
+            try {
+                const response = await fetch(`https://api.github.com/gists/${GIST_ID}`);
+                if (!response.ok) throw new Error('Erro ao carregar dados');
+                const gistData = await response.json();
+                const content = gistData.files[GIST_FILE].content;
+                
+                // Se o Gist estiver vazio, inicializa com estrutura básica
+                if (!content || content.trim() === '') {
+                    return {
+                        meta: {
+                            sistema: "Backlog do NOC",
+                            versao: "1.0",
+                            ultima_atualizacao: null,
+                            criado_em: new Date().toISOString()
+                        },
+                        registros: []
+                    };
+                }
+                
+                return JSON.parse(content);
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                // Retorna estrutura vazia se houver erro
+                return {
+                    meta: {
+                        sistema: "Backlog do NOC",
+                        versao: "1.0",
+                        ultima_atualizacao: null,
+                        criado_em: new Date().toISOString()
+                    },
+                    registros: []
+                };
+            }
+        }
+
+        // Salvar dados no Gist
+        async function saveData(data) {
+            try {
+                const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `token ${GITHUB_TOKEN}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        files: {
+                            [GIST_FILE]: {
+                                content: JSON.stringify(data, null, 2)
+                            }
+                        }
+                    })
+                });
+                
+                if (!response.ok) throw new Error('Erro ao salvar dados');
+                return await response.json();
+            } catch (error) {
+                console.error('Erro ao salvar dados:', error);
+                throw error;
+            }
+        }
+
+        // Navegação entre seções
+        navItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Ativa o item de menu
+                navItems.forEach(nav => nav.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Mostra a seção correspondente
+                const section = this.getAttribute('data-section');
+                sectionContents.forEach(content => content.style.display = 'none');
+                document.getElementById(`${section}-section`).style.display = 'block';
+                
+                // Atualiza o título da página
+                const sectionTitle = this.querySelector('span').textContent;
+                document.querySelector('.page-title').textContent = sectionTitle;
+                
+                // Atualiza o breadcrumb
+                const breadcrumb = document.querySelector('.breadcrumb');
+                breadcrumb.innerHTML = `
+                    <div class="breadcrumb-item">
+                        <a href="#" class="breadcrumb-link">Home</a>
+                    </div>
+                    <div class="breadcrumb-item">
+                        <span>${sectionTitle}</span>
+                    </div>
+                `;
+                
+                // Inicializa componentes específicos
+                if (section === 'dashboard') {
+                    initCalendar();
+                    updateStats();
+                }
+            });
+        });
+
+        // Toggle sidebar em mobile
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('active');
+        });
+
+        // Limpar formulário
+        clearFormBtn.addEventListener('click', function() {
+            backlogForm.reset();
+            dataBacklog.valueAsDate = new Date();
+        });
+
+        // Salvar backlog
+        backlogForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const turno = turnoSelect.value;
+            const analista = analistaSelect.value;
+            const data = dataBacklog.value;
+            const texto = backlogText.value.trim();
+
+            if (!turno || !analista || !data || !texto) {
+                alert('Por favor, preencha todos os campos obrigatórios!');
+                return;
+            }
+
+            try {
+                // Mostrar estado de carregamento
+                saveButton.disabled = true;
+                saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+                
+                const backlogData = await loadData();
+                
+                const newRecord = {
+                    id: backlogData.registros.length + 1,
+                    turno,
+                    analista,
+                    data,
+                    texto,
+                    timestamp: new Date().toISOString()
+                };
+
+                backlogData.registros.push(newRecord);
+                backlogData.meta.ultima_atualizacao = new Date().toISOString();
+
+                await saveData(backlogData);
+                
+                // Feedback visual
+                saveButton.innerHTML = '<i class="fas fa-check"></i> Salvo com Sucesso!';
+                saveButton.style.backgroundColor = '#28a745';
+                
+                setTimeout(() => {
+                    saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Backlog';
+                    saveButton.style.backgroundColor = '';
+                    saveButton.disabled = false;
+                }, 2000);
+
+                // Limpa o texto mas mantém os outros campos
+                backlogText.value = '';
+                
+                // Atualiza dashboard se estiver visível
+                if (document.getElementById('dashboard-section').style.display !== 'none') {
+                    initCalendar();
+                    updateStats();
+                }
+            } catch (error) {
+                console.error('Erro ao salvar:', error);
+                alert('Erro ao salvar os dados. Verifique o console para detalhes.');
+                saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Backlog';
+                saveButton.disabled = false;
+            }
+        });
+
+        // Inicializa o calendário
+        async function initCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            const backlogData = await loadData();
+            
+            const events = backlogData.registros.map(entry => ({
+                title: `${entry.analista} (${entry.turno.toUpperCase()})`,
+                start: entry.data,
+                extendedProps: {
+                    analista: entry.analista,
+                    turno: entry.turno,
+                    texto: entry.texto
+                },
+                className: entry.turno
+            }));
+
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'pt-br',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                events: events,
+                eventClick: function(info) {
+                    const { analista, turno, texto } = info.event.extendedProps;
+                    const data = info.event.start.toLocaleDateString('pt-BR');
+                    
+                    alert(`Validação de Backlog\n\nAnalista: ${analista}\nTurno: ${turno}\nData: ${data}\n\n${texto}`);
+                }
+            });
+
+            calendar.render();
+        }
+
+        // Atualiza estatísticas
+        async function updateStats() {
+            const backlogData = await loadData();
+            const registros = backlogData.registros;
+            const today = new Date().toISOString().split('T')[0];
+            const currentMonth = new Date().getMonth() + 1;
+            const currentYear = new Date().getFullYear();
+            
+            // Filtros
+            const todayEntries = registros.filter(entry => entry.data === today);
+            const monthEntries = registros.filter(entry => {
+                const entryDate = new Date(entry.data);
+                return entryDate.getMonth() + 1 === currentMonth && entryDate.getFullYear() === currentYear;
+            });
+            
+            // Contagem por analista
+            const analystCount = {};
+            registros.forEach(entry => {
+                analystCount[entry.analista] = (analystCount[entry.analista] || 0) + 1;
+            });
+            
+            // Analista mais ativo
+            let topAnalyst = 'N/A';
+            let topCount = 0;
+            for (const [analyst, count] of Object.entries(analystCount)) {
+                if (count > topCount) {
+                    topAnalyst = analyst;
+                    topCount = count;
+                }
+            }
+            
+            // Atualiza UI
+            statsToday.textContent = todayEntries.length;
+            statsMonth.textContent = monthEntries.length;
+            statsTopAnalyst.textContent = topAnalyst;
+            statsTopCount.textContent = `${topCount} validações`;
+        }
+
+        // Inicializa a seção de anotações como padrão
+        document.querySelector('.nav-item[data-section="notes"]').click();
+    </script>
+</body>
+</html>
