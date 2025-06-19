@@ -6,6 +6,7 @@
     <title>Backlog Management Pro | Sistema de Gestão</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Splash Screen Styles - Versão com profundidade e fundo branco */
         #splash-screen {
@@ -595,19 +596,21 @@
             color: var(--danger);
         }
 
-        .stat-change.neutral {
-            color: var(--gray);
+        /* Estilos para os novos elementos do dashboard */
+        .analyst-stats-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
         }
 
-        /* Estilos para os novos relatórios de analistas */
-        .reports-grid {
+        .analyst-stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 1.5rem;
             margin-bottom: 1.5rem;
         }
 
-        .report-card {
+        .analyst-stat-card {
             background: var(--glass);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
@@ -617,30 +620,24 @@
             border: 1px solid var(--glass-border);
         }
 
-        .report-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: var(--dark);
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+        .analyst-stat-card.wide {
+            grid-column: span 2;
         }
 
-        .report-content {
-            max-height: 300px;
-            overflow-y: auto;
+        .analyst-ranking {
+            margin-top: 1rem;
         }
 
         .analyst-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.75rem;
-            margin-bottom: 0.5rem;
-            background: rgba(26, 32, 44, 0.3);
-            border-radius: 0.5rem;
-            border: 1px solid var(--glass-border);
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .analyst-item:last-child {
+            border-bottom: none;
         }
 
         .analyst-name {
@@ -651,80 +648,114 @@
         .analyst-count {
             font-weight: 600;
             color: var(--accent);
-            background: rgba(66, 133, 244, 0.2);
-            padding: 0.25rem 0.75rem;
-            border-radius: 1rem;
-            font-size: 0.875rem;
         }
 
-        .rank-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            font-weight: 700;
-            font-size: 0.875rem;
-            margin-right: 0.75rem;
+        .analyst-details {
+            margin-top: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
         }
 
-        .rank-1 {
-            background: linear-gradient(135deg, #ffd700, #ffed4e);
-            color: #b45309;
+        .analyst-detail-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--glass-border);
         }
 
-        .rank-2 {
-            background: linear-gradient(135deg, #c0c0c0, #e5e5e5);
-            color: #374151;
+        .analyst-detail-item:last-child {
+            border-bottom: none;
         }
 
-        .rank-3 {
-            background: linear-gradient(135deg, #cd7f32, #d4a574);
-            color: #451a03;
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin-top: 1.5rem;
         }
 
-        .month-selector {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
+        @media (max-width: 992px) {
+            .sidebar {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                bottom: 0;
+                z-index: 1000;
+            }
 
-        .month-selector select {
-            padding: 0.5rem;
-            border: 1px solid var(--light-gray);
-            border-radius: 0.25rem;
-            background-color: rgba(26, 32, 44, 0.5);
-            color: var(--dark);
-            font-size: 0.875rem;
-        }
+            .sidebar.active {
+                left: 0;
+            }
 
-        .empty-state {
-            text-align: center;
-            padding: 2rem;
-            color: var(--gray);
-        }
+            .main-content {
+                margin-left: 0;
+            }
 
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
+            .analyst-stat-card.wide {
+                grid-column: span 1;
+            }
         }
 
         @media (max-width: 768px) {
-            .reports-grid {
+            .content-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .form-row {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .action-buttons {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .analyst-stats-grid {
                 grid-template-columns: 1fr;
             }
-            
-            .stats-grid {
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            }
+        }
+
+        /* Classes para formatação de texto */
+        .text-bold {
+            font-weight: bold;
+        }
+
+        .text-italic {
+            font-style: italic;
+        }
+
+        .text-underline {
+            text-decoration: underline;
+        }
+
+        .text-highlight {
+            background-color: yellow;
+            color: black;
+        }
+
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--light-gray);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gray);
         }
     </style>
 </head>
 <body>
-    <!-- Splash Screen -->
+    <!-- Splash Screen Atualizado -->
     <div id="splash-screen">
         <div id="splash-logo-container">
             <img id="splash-logo" src="./logobacklog.png">
@@ -733,377 +764,454 @@
         <div class="splash-text">Carregando Sistema...</div>
     </div>
 
-    <div class="app-container" style="display: flex; min-height: 100vh;">
+    <!-- Conteúdo principal (oculto inicialmente) -->
+    <div id="main-content" style="display: none;">
         <!-- Sidebar -->
-        <nav class="sidebar">
+        <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
                     <i class="fas fa-tasks logo-icon"></i>
-                    <span>Backlog Pro</span>
+                    <span>BacklogPro</span>
                 </div>
             </div>
             
             <div class="nav-menu">
                 <div class="nav-title">Menu Principal</div>
-                <div class="nav-item active" data-section="dashboard">
-                    <a href="#" class="nav-link">
-                        <i class="fas fa-chart-pie nav-icon"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </div>
-                <div class="nav-item" data-section="backlog">
+                
+                <div class="nav-item active" data-section="notes">
                     <a href="#" class="nav-link">
                         <i class="fas fa-edit nav-icon"></i>
-                        <span>Criar Backlog</span>
+                        <span>Anotações</span>
                     </a>
                 </div>
-                <div class="nav-item" data-section="reports">
+                
+                <div class="nav-item" data-section="dashboard">
                     <a href="#" class="nav-link">
-                        <i class="fas fa-chart-bar nav-icon"></i>
-                        <span>Relatórios</span>
+                        <i class="fas fa-calendar-alt nav-icon"></i>
+                        <span>Dashboard</span>
                     </a>
                 </div>
             </div>
             
             <div class="user-panel">
-                <div class="user-avatar">U</div>
+                <div class="user-avatar">AD</div>
                 <div class="user-info">
-                    <div class="user-name">Usuário</div>
+                    <div class="user-name">Admin</div>
                     <div class="user-role">Administrador</div>
                 </div>
             </div>
-        </nav>
+        </div>
 
         <!-- Main Content -->
-        <main class="main-content">
-            <header class="content-header">
+        <div class="main-content">
+            <!-- Content Header -->
+            <div class="content-header">
                 <div>
-                    <h1 class="page-title">Dashboard</h1>
-                    <nav class="breadcrumb">
+                    <h1 class="page-title">Anotações</h1>
+                    <div class="breadcrumb">
                         <div class="breadcrumb-item">
                             <a href="#" class="breadcrumb-link">Home</a>
                         </div>
                         <div class="breadcrumb-item">
-                            <span>Dashboard</span>
+                            <span>Anotações</span>
                         </div>
-                    </nav>
+                    </div>
                 </div>
-            </header>
-
+                
+                <div class="card-tools">
+                    <button class="btn btn-outline btn-icon" id="sidebar-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Content Body -->
             <div class="content-body">
-                <!-- Dashboard Section -->
-                <div id="dashboard-section" class="section-content">
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-title">Backlogs Hoje</div>
-                            <div class="stat-value" id="stats-today">0</div>
-                            <div class="stat-change neutral">
-                                <i class="fas fa-calendar-day"></i>
-                                <span>Registros de hoje</span>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-title">Backlogs Este Mês</div>
-                            <div class="stat-value" id="stats-month">0</div>
-                            <div class="stat-change positive">
-                                <i class="fas fa-calendar-alt"></i>
-                                <span>Total mensal</span>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-title">Top Analista</div>
-                            <div class="stat-value" id="stats-top-analyst">N/A</div>
-                            <div class="stat-change" id="stats-top-count">0 validações</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-title">Total de Analistas</div>
-                            <div class="stat-value" id="stats-total-analysts">0</div>
-                            <div class="stat-change neutral">
-                                <i class="fas fa-users"></i>
-                                <span>Analistas ativos</span>
-                            </div>
-                        </div>
-                    </div>
-
+                <!-- Notes Section -->
+                <div class="section-content" id="notes-section">
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">Calendário de Validações</h3>
-                        </div>
-                        <div class="card-body">
-                            <div id="calendar"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Backlog Section -->
-                <div id="backlog-section" class="section-content" style="display: none;">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Criar Novo Backlog</h3>
+                            <h3 class="card-title">Registro de Backlog Diário</h3>
                             <div class="card-tools">
-                                <button type="button" class="btn btn-outline" id="clear-form">
-                                    <i class="fas fa-eraser"></i>
-                                    Limpar
+                                <button class="btn btn-outline">
+                                    <i class="fas fa-history"></i> Histórico
                                 </button>
                             </div>
                         </div>
+                        
                         <div class="card-body">
                             <form id="backlog-form">
                                 <div class="form-row">
                                     <div class="form-group">
-                                        <label for="analista" class="form-label">Analista *</label>
-                                        <select id="analista" class="form-control form-select" required>
+                                        <label class="form-label">Analista</label>
+                                        <select class="form-control form-select" id="analista-select" required>
                                             <option value="">Selecione o analista</option>
-                                            <option value="Ana Silva">Ana Silva</option>
-                                            <option value="Carlos Santos">Carlos Santos</option>
-                                            <option value="Fernanda Costa">Fernanda Costa</option>
-                                            <option value="João Oliveira">João Oliveira</option>
-                                            <option value="Mariana Lima">Mariana Lima</option>
-                                            <option value="Pedro Alves">Pedro Alves</option>
-                                            <option value="Sofia Rodrigues">Sofia Rodrigues</option>
-                                            <option value="Thiago Mendes">Thiago Mendes</option>
+                                            <option value="DELANO">DELANO</option>
+                                            <option value="HERBETH">HERBETH</option>
+                                            <option value="WELLIGTON">WELLIGTON</option>
+                                            <option value="EDMUNDO">EDMUNDO</option>
+                                            <option value="SIDNEY">SIDNEY</option>
+                                            <option value="MARCIO">MARCIO</option>
+                                            <option value="HELIELTON">HELIELTON</option>
+                                            <option value="ROBSON">ROBSON</option>
+                                            <option value="WYLLAME">WYLLAME</option>
+                                            <option value="DARLYSON">DARLYSON</option>
+                                            <option value="MURILO">MURILO</option>
                                         </select>
                                     </div>
+                                    
                                     <div class="form-group">
-                                        <label for="data-backlog" class="form-label">Data *</label>
-                                        <input type="date" id="data-backlog" class="form-control" required>
+                                        <label class="form-label">Data</label>
+                                        <input type="date" class="form-control" id="data-backlog" required>
                                     </div>
                                 </div>
-
+                                
                                 <div class="form-group">
-                                    <label for="backlog-text" class="form-label">Conteúdo do Backlog *</label>
+                                    <label class="form-label">Backlog Validado</label>
                                     <div class="editor-container">
                                         <div class="toolbar">
                                             <div class="toolbar-group">
-                                                <button type="button" class="toolbar-btn" data-command="bold" title="Negrito">
+                                                <button type="button" class="toolbar-btn" data-command="bold" title="Negrito (Ctrl+B)">
                                                     <i class="fas fa-bold"></i>
                                                 </button>
-                                                <button type="button" class="toolbar-btn" data-command="italic" title="Itálico">
+                                                <button type="button" class="toolbar-btn" data-command="italic" title="Itálico (Ctrl+I)">
                                                     <i class="fas fa-italic"></i>
                                                 </button>
-                                                <button type="button" class="toolbar-btn" data-command="underline" title="Sublinhado">
+                                                <button type="button" class="toolbar-btn" data-command="underline" title="Sublinhado (Ctrl+U)">
                                                     <i class="fas fa-underline"></i>
                                                 </button>
                                             </div>
+                                            
                                             <div class="toolbar-group">
-                                                <button type="button" class="toolbar-btn" data-command="justifyLeft" title="Alinhar à esquerda">
-                                                    <i class="fas fa-align-left"></i>
-                                                </button>
-                                                <button type="button" class="toolbar-btn" data-command="justifyCenter" title="Centralizar">
-                                                    <i class="fas fa-align-center"></i>
-                                                </button>
-                                                <button type="button" class="toolbar-btn" data-command="justifyRight" title="Alinhar à direita">
-                                                    <i class="fas fa-align-right"></i>
-                                                </button>
-                                            </div>
-                                            <div class="toolbar-group">
-                                                <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="Lista com marcadores">
+                                                <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="Lista não ordenada">
                                                     <i class="fas fa-list-ul"></i>
                                                 </button>
-                                                <button type="button" class="toolbar-btn" data-command="insertOrderedList" title="Lista numerada">
+                                                <button type="button" class="toolbar-btn" data-command="insertOrderedList" title="Lista ordenada">
                                                     <i class="fas fa-list-ol"></i>
                                                 </button>
                                             </div>
+                                            
                                             <div class="toolbar-group">
-                                                <input type="color" class="color-picker" id="text-color" title="Cor do texto" value="#e2e8f0">
-                                                <input type="color" class="color-picker" id="bg-color" title="Cor de fundo" value="#ffffff">
+                                                <button type="button" class="toolbar-btn" data-command="hiliteColor" data-value="yellow" title="Marcador de texto">
+                                                    <i class="fas fa-highlighter"></i>
+                                                </button>
+                                                <input type="color" class="color-picker" id="text-color" value="#e2e8f0" title="Cor do texto">
+                                                <input type="color" class="color-picker" id="bg-color" value="#1a202c" title="Cor de fundo">
+                                            </div>
+                                            
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn" data-command="undo" title="Desfazer (Ctrl+Z)">
+                                                    <i class="fas fa-undo"></i>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" data-command="redo" title="Refazer (Ctrl+Y)">
+                                                    <i class="fas fa-redo"></i>
+                                                </button>
                                             </div>
                                         </div>
-                                        <div id="backlog-text" class="editor-content" contenteditable="true" 
-                                             placeholder="Digite o conteúdo do backlog aqui..."></div>
+                                        <div class="editor-content" id="backlog-text" contenteditable="true" placeholder="Descreva detalhadamente o backlog validado..."></div>
                                     </div>
                                 </div>
-
+                                
                                 <div class="action-buttons">
-                                    <button type="submit" class="btn btn-primary" id="save-button">
-                                        <i class="fas fa-save"></i>
-                                        Salvar Backlog
+                                    <button type="button" class="btn btn-outline" id="clear-form">
+                                        <i class="fas fa-trash-alt"></i> Limpar
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" id="save-backlog">
+                                        <i class="fas fa-save"></i> Salvar Backlog
                                     </button>
                                 </div>
                             </form>
                         </div>
                     </div>
                 </div>
-
-                <!-- Reports Section -->
-                <div id="reports-section" class="section-content" style="display: none;">
-                    <div class="month-selector">
-                        <label for="report-month">Mês/Ano:</label>
-                        <select id="report-month" class="form-control">
-                            <!-- Opções serão preenchidas dinamicamente -->
-                        </select>
-                        <button type="button" class="btn btn-outline" id="refresh-reports">
-                            <i class="fas fa-sync-alt"></i>
-                            Atualizar
-                        </button>
+                
+                <!-- Dashboard Section -->
+                <div class="section-content" id="dashboard-section" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Calendário de Validações</h3>
+                            <div class="card-tools">
+                                <div class="btn-group">
+                                    <button class="btn btn-outline active" data-period="month">
+                                        <i class="fas fa-calendar-alt"></i> Mês
+                                    </button>
+                                    <button class="btn btn-outline" data-period="week">
+                                        <i class="fas fa-calendar-week"></i> Semana
+                                    </button>
+                                    <button class="btn btn-outline" data-period="day">
+                                        <i class="fas fa-calendar-day"></i> Dia
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body">
+                            <div id="calendar"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-title">Validações Hoje</div>
+                            <div class="stat-value" id="stats-today">0</div>
+                            <div class="stat-change positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span id="stats-today-change">0% em relação a ontem</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-title">Validações no Mês</div>
+                            <div class="stat-value" id="stats-month">0</div>
+                            <div class="stat-change negative">
+                                <i class="fas fa-arrow-down"></i>
+                                <span id="stats-month-change">0% em relação ao mês passado</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-title">Analista Mais Ativo</div>
+                            <div class="stat-value" id="stats-top-analyst">N/A</div>
+                            <div class="stat-change">
+                                <i class="fas fa-user"></i>
+                                <span id="stats-top-count">0 validações</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="reports-grid">
-                        <!-- Relatório de Contagem Mensal por Analista -->
-                        <div class="report-card">
-                            <div class="report-title">
-                                <i class="fas fa-chart-bar"></i>
-                                Backlogs por Analista no Mês
-                            </div>
-                            <div class="report-content" id="monthly-analyst-report">
-                                <div class="empty-state">
-                                    <i class="fas fa-chart-bar"></i>
-                                    <p>Nenhum dado disponível para o período selecionado</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Relatório dos Analistas que Menos Fizeram -->
-                        <div class="report-card">
-                            <div class="report-title">
-                                <i class="fas fa-arrow-down"></i>
-                                Analistas com Menos Backlogs
-                            </div>
-                            <div class="report-content" id="least-active-report">
-                                <div class="empty-state">
-                                    <i class="fas fa-arrow-down"></i>
-                                    <p>Nenhum dado disponível para o período selecionado</p>
-                                </div>
+                    <!-- Relatórios por Analista -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Relatórios por Analista</h3>
+                            <div class="card-tools">
+                                <select class="form-control form-select" id="month-select">
+                                    <option value="0">Todos os meses</option>
+                                    <option value="1">Janeiro</option>
+                                    <option value="2">Fevereiro</option>
+                                    <option value="3">Março</option>
+                                    <option value="4">Abril</option>
+                                    <option value="5">Maio</option>
+                                    <option value="6">Junho</option>
+                                    <option value="7">Julho</option>
+                                    <option value="8">Agosto</option>
+                                    <option value="9">Setembro</option>
+                                    <option value="10">Outubro</option>
+                                    <option value="11">Novembro</option>
+                                    <option value="12">Dezembro</option>
+                                </select>
                             </div>
                         </div>
-
-                        <!-- Relatório Top 3 do Mês -->
-                        <div class="report-card">
-                            <div class="report-title">
-                                <i class="fas fa-trophy"></i>
-                                Top 3 Analistas do Mês
-                            </div>
-                            <div class="report-content" id="top3-report">
-                                <div class="empty-state">
-                                    <i class="fas fa-trophy"></i>
-                                    <p>Nenhum dado disponível para o período selecionado</p>
+                        
+                        <div class="card-body">
+                            <div class="analyst-stats-container">
+                                <div class="analyst-stats-grid">
+                                    <!-- Top Analysts -->
+                                    <div class="analyst-stat-card">
+                                        <div class="stat-title">Top Analistas</div>
+                                        <div class="analyst-ranking" id="top-analysts"></div>
+                                    </div>
+                                    
+                                    <!-- Bottom Analysts -->
+                                    <div class="analyst-stat-card">
+                                        <div class="stat-title">Analistas com Menos Registros</div>
+                                        <div class="analyst-ranking" id="bottom-analysts"></div>
+                                    </div>
+                                    
+                                    <!-- Analyst Details -->
+                                    <div class="analyst-stat-card wide">
+                                        <div class="stat-title">Detalhes por Analista</div>
+                                        <div class="analyst-details" id="analyst-details"></div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- Relatório de Comparação Mensal -->
-                        <div class="report-card">
-                            <div class="report-title">
-                                <i class="fas fa-chart-line"></i>
-                                Comparação com Mês Anterior
-                            </div>
-                            <div class="report-content" id="comparison-report">
-                                <div class="empty-state">
-                                    <i class="fas fa-chart-line"></i>
-                                    <p>Nenhum dado disponível para comparação</p>
+                                
+                                <!-- Monthly Chart -->
+                                <div class="chart-container">
+                                    <canvas id="monthlyChart"></canvas>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </main>
+        </div>
     </div>
 
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/pt-br.js"></script>
     <script>
-        // Configuração da API JSONBin
-        const API_URL = 'https://api.jsonbin.io/v3/b/67639c8ead19ca34f8c8b6b8';
-        const MASTER_KEY = '$2a$10$yQZLNGNJJdqOGJKNJdqOGJKNJdqOGJKNJdqOGJKNJdqOGJKNJdqOGJ';
-        const ACCESS_KEY = '$2a$10$yQZLNGNJJdqOGJKNJdqOGJKNJdqOGJKNJdqOGJKNJdqOGJKNJdqOGJ';
-
-        // Elementos DOM
-        const navItems = document.querySelectorAll('.nav-item');
-        const sectionContents = document.querySelectorAll('.section-content');
-        const backlogForm = document.getElementById('backlog-form');
-        const analistaSelect = document.getElementById('analista');
-        const dataBacklog = document.getElementById('data-backlog');
-        const backlogText = document.getElementById('backlog-text');
-        const saveButton = document.getElementById('save-button');
-        const clearFormBtn = document.getElementById('clear-form');
-        const toolbarButtons = document.querySelectorAll('.toolbar-btn');
-        const textColorPicker = document.getElementById('text-color');
-        const bgColorPicker = document.getElementById('bg-color');
-        const statsToday = document.getElementById('stats-today');
-        const statsMonth = document.getElementById('stats-month');
-        const statsTopAnalyst = document.getElementById('stats-top-analyst');
-        const statsTopCount = document.getElementById('stats-top-count');
-        const statsTotalAnalysts = document.getElementById('stats-total-analysts');
-        const reportMonth = document.getElementById('report-month');
-        const refreshReportsBtn = document.getElementById('refresh-reports');
-
-        // Inicialização
+        // Mostrar splash screen e depois carregar a página após 3 segundos
         document.addEventListener('DOMContentLoaded', function() {
-            // Ocultar splash screen após carregamento
-            setTimeout(() => {
-                document.getElementById('splash-screen').style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById('splash-screen').style.display = 'none';
+            setTimeout(function() {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = '0';
+                
+                setTimeout(function() {
+                    splash.style.display = 'none';
+                    document.getElementById('main-content').style.display = 'flex';
+                    initApplication();
                 }, 500);
-            }, 2000);
+            }, 3000);
+        });
 
-            // Definir data atual
+        function initApplication() {
+            // Configurações do JSONBin
+            const BIN_ID = '68534cca8561e97a5026d94e';
+            const MASTER_KEY = '$2a$10$YMdKhRE5rs2j/addb0u2beEv8Buf0LgOpYvT5YQhwzDZqIfxBOsWK';
+            const ACCESS_KEY = '$2a$10$SpeE5.rHPveOV83qARbVqOkmjogz4ZOF6pahjv8ju7cEPDnPdt4rq';
+            const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+            // Elementos DOM
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const navItems = document.querySelectorAll('.nav-item');
+            const sectionContents = document.querySelectorAll('.section-content');
+            const analistaSelect = document.getElementById('analista-select');
+            const dataBacklog = document.getElementById('data-backlog');
+            const backlogText = document.getElementById('backlog-text');
+            const backlogForm = document.getElementById('backlog-form');
+            const clearFormBtn = document.getElementById('clear-form');
+            const saveButton = document.getElementById('save-backlog');
+            const statsToday = document.getElementById('stats-today');
+            const statsMonth = document.getElementById('stats-month');
+            const statsTopAnalyst = document.getElementById('stats-top-analyst');
+            const statsTopCount = document.getElementById('stats-top-count');
+            const statsTodayChange = document.getElementById('stats-today-change');
+            const statsMonthChange = document.getElementById('stats-month-change');
+            const textColorPicker = document.getElementById('text-color');
+            const bgColorPicker = document.getElementById('bg-color');
+            const toolbarButtons = document.querySelectorAll('.toolbar-btn');
+            const monthSelect = document.getElementById('month-select');
+            const topAnalystsList = document.getElementById('top-analysts');
+            const bottomAnalystsList = document.getElementById('bottom-analysts');
+            const analystDetails = document.getElementById('analyst-details');
+            const monthlyChartCanvas = document.getElementById('monthlyChart');
+
+            // Variáveis globais
+            let monthlyChart = null;
+            let backlogData = {
+                meta: {
+                    sistema: "Backlog do NOC",
+                    versao: "1.0",
+                    ultima_atualizacao: null,
+                    criado_em: new Date().toISOString()
+                },
+                registros: []
+            };
+
+            // Inicialização
             dataBacklog.valueAsDate = new Date();
-            
-            // Inicializar seletor de mês
-            initMonthSelector();
-            
-            // Carregar dados iniciais
-            initCalendar();
-            updateStats();
-            updateReports();
-        });
 
-        // Toolbar do editor
-        toolbarButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const command = this.getAttribute('data-command');
-                execCommand(command);
-            });
-        });
+            // Editor de texto avançado
+            function execCommand(command, value = null) {
+                document.execCommand(command, false, value);
+                backlogText.focus();
+            }
 
-        function execCommand(command, value = null) {
-            document.execCommand(command, false, value);
-            backlogText.focus();
-        }
-
-        textColorPicker.addEventListener('change', function() {
-            execCommand('foreColor', this.value);
-        });
-
-        bgColorPicker.addEventListener('change', function() {
-            execCommand('hiliteColor', this.value);
-        });
-
-        // Atualiza o estado dos botões da toolbar
-        function updateToolbarButtons() {
-            toolbarButtons.forEach(button => {
-                const command = button.getAttribute('data-command');
-                if (command === 'undo' || command === 'redo') {
-                    button.disabled = !document.queryCommandEnabled(command);
-                } else if (command === 'bold' || command === 'italic' || command === 'underline') {
-                    button.classList.toggle('active', document.queryCommandState(command));
+            // Atalhos de teclado
+            backlogText.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'b') {
+                    e.preventDefault();
+                    execCommand('bold');
+                }
+                else if (e.ctrlKey && e.key === 'i') {
+                    e.preventDefault();
+                    execCommand('italic');
+                }
+                else if (e.ctrlKey && e.key === 'u') {
+                    e.preventDefault();
+                    execCommand('underline');
+                }
+                else if (e.ctrlKey && e.key === 'z') {
+                    e.preventDefault();
+                    execCommand('undo');
+                }
+                else if (e.ctrlKey && e.key === 'y') {
+                    e.preventDefault();
+                    execCommand('redo');
                 }
             });
-        }
 
-        setInterval(updateToolbarButtons, 100);
+            // Eventos dos botões da toolbar
+            toolbarButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const command = this.getAttribute('data-command');
+                    const value = this.getAttribute('data-value');
+                    
+                    if (command === 'hiliteColor') {
+                        execCommand('hiliteColor', value);
+                    } else {
+                        execCommand(command);
+                    }
+                    
+                    updateToolbarButtons();
+                });
+            });
 
-        // Carregar dados do JSONBin
-        async function loadData() {
-            try {
-                console.log('Carregando dados do JSONBin...');
-                const response = await fetch(API_URL, {
-                    headers: {
-                        'X-Master-Key': MASTER_KEY,
-                        'X-Access-Key': ACCESS_KEY
+            // Atualiza cor do texto
+            textColorPicker.addEventListener('change', function() {
+                execCommand('foreColor', this.value);
+            });
+
+            // Atualiza cor de fundo
+            bgColorPicker.addEventListener('change', function() {
+                execCommand('hiliteColor', this.value);
+            });
+
+            // Atualiza o estado dos botões da toolbar
+            function updateToolbarButtons() {
+                toolbarButtons.forEach(button => {
+                    const command = button.getAttribute('data-command');
+                    if (command === 'undo' || command === 'redo') {
+                        button.disabled = !document.queryCommandEnabled(command);
+                    } else if (command === 'bold' || command === 'italic' || command === 'underline') {
+                        button.classList.toggle('active', document.queryCommandState(command));
                     }
                 });
-                
-                if (!response.ok) {
-                    throw new Error(`Erro HTTP: ${response.status}`);
-                }
-                
-                const jsonData = await response.json();
-                console.log('Dados carregados com sucesso:', jsonData);
-                
-                if (!jsonData.record || Object.keys(jsonData.record).length === 0) {
+            }
+
+            setInterval(updateToolbarButtons, 100);
+
+            // Carregar dados do JSONBin
+            async function loadData() {
+                try {
+                    console.log('Carregando dados do JSONBin...');
+                    const response = await fetch(API_URL, {
+                        headers: {
+                            'X-Master-Key': MASTER_KEY,
+                            'X-Access-Key': ACCESS_KEY
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Erro HTTP: ${response.status}`);
+                    }
+                    
+                    const jsonData = await response.json();
+                    console.log('Dados carregados com sucesso:', jsonData);
+                    
+                    if (!jsonData.record || Object.keys(jsonData.record).length === 0) {
+                        const initialData = {
+                            meta: {
+                                sistema: "Backlog do NOC",
+                                versao: "1.0",
+                                ultima_atualizacao: null,
+                                criado_em: new Date().toISOString()
+                            },
+                            registros: []
+                        };
+                        
+                        await saveData(initialData);
+                        backlogData = initialData;
+                        return initialData;
+                    }
+                    
+                    backlogData = jsonData.record;
+                    return jsonData.record;
+                } catch (error) {
+                    console.error('Erro ao carregar dados:', error);
+                    alert('Erro ao carregar dados. Verifique o console para detalhes.');
+                    
                     const initialData = {
                         meta: {
                             sistema: "Backlog do NOC",
@@ -1114,506 +1222,516 @@
                         registros: []
                     };
                     
-                    await saveData(initialData);
+                    backlogData = initialData;
                     return initialData;
                 }
-                
-                return jsonData.record;
-            } catch (error) {
-                console.error('Erro ao carregar dados:', error);
-                alert('Erro ao carregar dados. Verifique o console para detalhes.');
-                
-                return {
-                    meta: {
-                        sistema: "Backlog do NOC",
-                        versao: "1.0",
-                        ultima_atualizacao: null,
-                        criado_em: new Date().toISOString()
-                    },
-                    registros: []
-                };
             }
-        }
 
-        // Salvar dados no JSONBin
-        async function saveData(data) {
-            try {
-                console.log('Salvando dados no JSONBin...', data);
-                const response = await fetch(API_URL, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Master-Key': MASTER_KEY,
-                        'X-Access-Key': ACCESS_KEY
-                    },
-                    body: JSON.stringify(data)
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`Erro HTTP: ${response.status}`);
+            // Salvar dados no JSONBin
+            async function saveData(data) {
+                try {
+                    console.log('Salvando dados no JSONBin...', data);
+                    const response = await fetch(API_URL, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': MASTER_KEY,
+                            'X-Access-Key': ACCESS_KEY
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Erro HTTP: ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    console.log('Dados salvos com sucesso:', result);
+                    return result;
+                } catch (error) {
+                    console.error('Erro ao salvar dados:', error);
+                    throw error;
                 }
-                
-                const result = await response.json();
-                console.log('Dados salvos com sucesso:', result);
-                return result;
-            } catch (error) {
-                console.error('Erro ao salvar dados:', error);
-                throw error;
             }
-        }
 
-        // Verificar se o analista já salvou backlog na data selecionada
-        async function checkAnalistaBacklog(analista, data) {
-            try {
-                const backlogData = await loadData();
-                const existingEntry = backlogData.registros.find(entry => 
-                    entry.analista === analista && entry.data === data
-                );
-                return !!existingEntry;
-            } catch (error) {
-                console.error('Erro ao verificar backlog do analista:', error);
-                return false;
+            // Verificar se o analista já salvou backlog na data selecionada
+            async function checkAnalistaBacklog(analista, data) {
+                try {
+                    const existingEntry = backlogData.registros.find(entry => 
+                        entry.analista === analista && entry.data === data
+                    );
+                    return !!existingEntry;
+                } catch (error) {
+                    console.error('Erro ao verificar backlog do analista:', error);
+                    return false;
+                }
             }
-        }
 
-        // Verificar quantos analistas diferentes já salvaram backlog na data selecionada
-        async function countAnalistasDia(data) {
-            try {
-                const backlogData = await loadData();
-                const entries = backlogData.registros.filter(entry => entry.data === data);
-                const uniqueAnalistas = new Set(entries.map(entry => entry.analista));
-                return uniqueAnalistas.size;
-            } catch (error) {
-                console.error('Erro ao contar analistas do dia:', error);
-                return 0;
+            // Verificar quantos analistas diferentes já salvaram backlog na data selecionada
+            async function countAnalistasDia(data) {
+                try {
+                    const entries = backlogData.registros.filter(entry => entry.data === data);
+                    const uniqueAnalistas = new Set(entries.map(entry => entry.analista));
+                    return uniqueAnalistas.size;
+                } catch (error) {
+                    console.error('Erro ao contar analistas do dia:', error);
+                    return 0;
+                }
             }
-        }
 
-        // Navegação entre seções
-        navItems.forEach(item => {
-            item.addEventListener('click', function(e) {
+            // Navegação entre seções
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const section = this.getAttribute('data-section');
+                    sectionContents.forEach(content => content.style.display = 'none');
+                    document.getElementById(`${section}-section`).style.display = 'block';
+                    
+                    const sectionTitle = this.querySelector('span').textContent;
+                    document.querySelector('.page-title').textContent = sectionTitle;
+                    
+                    const breadcrumb = document.querySelector('.breadcrumb');
+                    breadcrumb.innerHTML = `
+                        <div class="breadcrumb-item">
+                            <a href="#" class="breadcrumb-link">Home</a>
+                        </div>
+                        <div class="breadcrumb-item">
+                            <span>${sectionTitle}</span>
+                        </div>
+                    `;
+                    
+                    if (section === 'dashboard') {
+                        initCalendar();
+                        updateStats();
+                        updateAnalystReports();
+                    }
+                });
+            });
+
+            // Toggle sidebar em mobile
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('active');
+            });
+
+            // Limpar formulário
+            clearFormBtn.addEventListener('click', function() {
+                backlogForm.reset();
+                dataBacklog.valueAsDate = new Date();
+                backlogText.innerHTML = '';
+            });
+
+            // Salvar backlog
+            backlogForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 
-                navItems.forEach(nav => nav.classList.remove('active'));
-                this.classList.add('active');
-                
-                const section = this.getAttribute('data-section');
-                sectionContents.forEach(content => content.style.display = 'none');
-                document.getElementById(`${section}-section`).style.display = 'block';
-                
-                const sectionTitle = this.querySelector('span').textContent;
-                document.querySelector('.page-title').textContent = sectionTitle;
-                
-                const breadcrumb = document.querySelector('.breadcrumb');
-                breadcrumb.innerHTML = `
-                    <div class="breadcrumb-item">
-                        <a href="#" class="breadcrumb-link">Home</a>
-                    </div>
-                    <div class="breadcrumb-item">
-                        <span>${sectionTitle}</span>
-                    </div>
-                `;
-                
-                if (section === 'dashboard') {
-                    initCalendar();
-                    updateStats();
-                } else if (section === 'reports') {
-                    updateReports();
-                }
-            });
-        });
+                const analista = analistaSelect.value;
+                const data = dataBacklog.value;
+                const texto = backlogText.innerHTML.trim();
 
-        // Limpar formulário
-        clearFormBtn.addEventListener('click', function() {
-            backlogForm.reset();
-            dataBacklog.valueAsDate = new Date();
-            backlogText.innerHTML = '';
-        });
-
-        // Salvar backlog
-        backlogForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const analista = analistaSelect.value;
-            const data = dataBacklog.value;
-            const texto = backlogText.innerHTML.trim();
-
-            if (!analista || !data || !texto) {
-                alert('Por favor, preencha todos os campos obrigatórios!');
-                return;
-            }
-
-            try {
-                const alreadySaved = await checkAnalistaBacklog(analista, data);
-                if (alreadySaved) {
-                    alert('Este analista já salvou um backlog nesta data. Apenas um registro por analista por dia é permitido.');
+                if (!analista || !data || !texto) {
+                    alert('Por favor, preencha todos os campos obrigatórios!');
                     return;
                 }
 
-                const analistasCount = await countAnalistasDia(data);
-                if (analistasCount >= 4) {
-                    alert('Limite máximo de 4 analistas diferentes por dia atingido. Não é possível salvar mais backlogs nesta data.');
-                    return;
-                }
+                try {
+                    const alreadySaved = await checkAnalistaBacklog(analista, data);
+                    if (alreadySaved) {
+                        alert('Este analista já salvou um backlog nesta data. Apenas um registro por analista por dia é permitido.');
+                        return;
+                    }
 
-                saveButton.disabled = true;
-                saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
-                
-                const backlogData = await loadData();
-                
-                const newRecord = {
-                    id: backlogData.registros.length + 1,
-                    analista,
-                    data,
-                    texto,
-                    timestamp: new Date().toISOString()
-                };
+                    const analistasCount = await countAnalistasDia(data);
+                    if (analistasCount >= 4) {
+                        alert('Limite máximo de 4 analistas diferentes por dia atingido. Não é possível salvar mais backlogs nesta data.');
+                        return;
+                    }
 
-                backlogData.registros.push(newRecord);
-                backlogData.meta.ultima_atualizacao = new Date().toISOString();
+                    saveButton.disabled = true;
+                    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+                    
+                    const newRecord = {
+                        id: backlogData.registros.length + 1,
+                        analista,
+                        data,
+                        texto,
+                        timestamp: new Date().toISOString()
+                    };
 
-                await saveData(backlogData);
-                
-                saveButton.innerHTML = '<i class="fas fa-check"></i> Salvo com Sucesso!';
-                saveButton.style.backgroundColor = '#34a853';
-                
-                setTimeout(() => {
+                    backlogData.registros.push(newRecord);
+                    backlogData.meta.ultima_atualizacao = new Date().toISOString();
+
+                    await saveData(backlogData);
+                    
+                    saveButton.innerHTML = '<i class="fas fa-check"></i> Salvo com Sucesso!';
+                    saveButton.style.backgroundColor = '#34a853';
+                    
+                    setTimeout(() => {
+                        saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Backlog';
+                        saveButton.style.backgroundColor = '';
+                        saveButton.disabled = false;
+                    }, 2000);
+
+                    backlogText.innerHTML = '';
+                    
+                    if (document.getElementById('dashboard-section').style.display !== 'none') {
+                        initCalendar();
+                        updateStats();
+                        updateAnalystReports();
+                    }
+                } catch (error) {
+                    console.error('Erro ao salvar:', error);
+                    alert('Erro ao salvar os dados. Verifique o console para detalhes.');
                     saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Backlog';
-                    saveButton.style.backgroundColor = '';
                     saveButton.disabled = false;
-                }, 2000);
-
-                backlogText.innerHTML = '';
-                
-                if (document.getElementById('dashboard-section').style.display !== 'none') {
-                    initCalendar();
-                    updateStats();
                 }
-            } catch (error) {
-                console.error('Erro ao salvar:', error);
-                alert('Erro ao salvar os dados. Verifique o console para detalhes.');
-                saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Backlog';
-                saveButton.disabled = false;
+            });
+
+            // Inicializa o calendário
+            async function initCalendar() {
+                try {
+                    const calendarEl = document.getElementById('calendar');
+                    
+                    const events = backlogData.registros.map(entry => ({
+                        title: `${entry.analista}`,
+                        start: entry.data,
+                        extendedProps: {
+                            analista: entry.analista,
+                            texto: entry.texto
+                        },
+                        className: 'completo'
+                    }));
+
+                    const calendar = new FullCalendar.Calendar(calendarEl, {
+                        initialView: 'dayGridMonth',
+                        locale: 'pt-br',
+                        headerToolbar: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                        },
+                        events: events,
+                        eventClick: function(info) {
+                            const { analista, texto } = info.event.extendedProps;
+                            const data = info.event.start.toLocaleDateString('pt-BR');
+                            
+                            const modal = document.createElement('div');
+                            modal.style.position = 'fixed';
+                            modal.style.top = '0';
+                            modal.style.left = '0';
+                            modal.style.width = '100%';
+                            modal.style.height = '100%';
+                            modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
+                            modal.style.display = 'flex';
+                            modal.style.justifyContent = 'center';
+                            modal.style.alignItems = 'center';
+                            modal.style.zIndex = '10000';
+                            
+                            const modalContent = document.createElement('div');
+                            modalContent.style.backgroundColor = 'var(--glass)';
+                            modalContent.style.padding = '2rem';
+                            modalContent.style.borderRadius = '0.5rem';
+                            modalContent.style.maxWidth = '800px';
+                            modalContent.style.width = '90%';
+                            modalContent.style.maxHeight = '80vh';
+                            modalContent.style.overflow = 'auto';
+                            modalContent.innerHTML = `
+                                <h3 style="margin-bottom: 1rem; color: var(--accent)">Validação de Backlog</h3>
+                                <p><strong>Analista:</strong> ${analista}</p>
+                                <p><strong>Data:</strong> ${data}</p>
+                                <div style="margin-top: 1rem; border-top: 1px solid var(--glass-border); padding-top: 1rem">
+                                    ${texto}
+                                </div>
+                                <button style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--accent); color: white; border: none; border-radius: 0.25rem; cursor: pointer">Fechar</button>
+                            `;
+                            
+                            modal.appendChild(modalContent);
+                            document.body.appendChild(modal);
+                            
+                            modal.querySelector('button').addEventListener('click', () => {
+                                document.body.removeChild(modal);
+                            });
+                        }
+                    });
+
+                    calendar.render();
+                } catch (error) {
+                    console.error('Erro ao inicializar calendário:', error);
+                }
             }
-        });
 
-        // Inicializa o calendário
-        async function initCalendar() {
-            try {
-                const calendarEl = document.getElementById('calendar');
-                const backlogData = await loadData();
-                
-                const events = backlogData.registros.map(entry => ({
-                    title: `${entry.analista}`,
-                    start: entry.data,
-                    extendedProps: {
-                        analista: entry.analista,
-                        texto: entry.texto
-                    },
-                    className: 'completo'
-                }));
+            // Atualiza estatísticas
+            async function updateStats() {
+                try {
+                    const registros = backlogData.registros;
+                    const today = new Date().toISOString().split('T')[0];
+                    const currentMonth = new Date().getMonth() + 1;
+                    const currentYear = new Date().getFullYear();
+                    
+                    // Filtros para hoje e ontem
+                    const todayEntries = registros.filter(entry => entry.data === today);
+                    
+                    const yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    const yesterdayStr = yesterday.toISOString().split('T')[0];
+                    const yesterdayEntries = registros.filter(entry => entry.data === yesterdayStr);
+                    
+                    // Filtros para mês atual e anterior
+                    const monthEntries = registros.filter(entry => {
+                        const entryDate = new Date(entry.data);
+                        return entryDate.getMonth() + 1 === currentMonth && entryDate.getFullYear() === currentYear;
+                    });
+                    
+                    const lastMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+                    const lastMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
+                    const lastMonthEntries = registros.filter(entry => {
+                        const entryDate = new Date(entry.data);
+                        return entryDate.getMonth() + 1 === lastMonth && entryDate.getFullYear() === lastMonthYear;
+                    });
+                    
+                    // Contagem por analista
+                    const analystCount = {};
+                    registros.forEach(entry => {
+                        analystCount[entry.analista] = (analystCount[entry.analista] || 0) + 1;
+                    });
+                    
+                    // Encontrar analista mais ativo
+                    let topAnalyst = 'N/A';
+                    let topCount = 0;
+                    for (const [analyst, count] of Object.entries(analystCount)) {
+                        if (count > topCount) {
+                            topAnalyst = analyst;
+                            topCount = count;
+                        }
+                    }
+                    
+                    // Atualizar estatísticas
+                    statsToday.textContent = todayEntries.length;
+                    statsMonth.textContent = monthEntries.length;
+                    statsTopAnalyst.textContent = topAnalyst;
+                    statsTopCount.textContent = `${topCount} validações`;
+                    
+                    // Calcular variações percentuais
+                    const todayChange = yesterdayEntries.length > 0 ? 
+                        Math.round(((todayEntries.length - yesterdayEntries.length) / yesterdayEntries.length) * 100) : 0;
+                    
+                    const monthChange = lastMonthEntries.length > 0 ? 
+                        Math.round(((monthEntries.length - lastMonthEntries.length) / lastMonthEntries.length) * 100) : 0;
+                    
+                    // Atualizar indicadores de variação
+                    statsTodayChange.textContent = `${Math.abs(todayChange)}% em relação a ontem`;
+                    statsMonthChange.textContent = `${Math.abs(monthChange)}% em relação ao mês passado`;
+                    
+                    // Atualizar classes CSS para setas e cores
+                    const todayChangeElement = statsTodayChange.parentElement;
+                    const monthChangeElement = statsMonthChange.parentElement;
+                    
+                    todayChangeElement.classList.remove('positive', 'negative');
+                    monthChangeElement.classList.remove('positive', 'negative');
+                    
+                    if (todayChange > 0) {
+                        todayChangeElement.classList.add('positive');
+                        todayChangeElement.querySelector('i').className = 'fas fa-arrow-up';
+                    } else if (todayChange < 0) {
+                        todayChangeElement.classList.add('negative');
+                        todayChangeElement.querySelector('i').className = 'fas fa-arrow-down';
+                    } else {
+                        todayChangeElement.querySelector('i').className = 'fas fa-equals';
+                    }
+                    
+                    if (monthChange > 0) {
+                        monthChangeElement.classList.add('positive');
+                        monthChangeElement.querySelector('i').className = 'fas fa-arrow-up';
+                    } else if (monthChange < 0) {
+                        monthChangeElement.classList.add('negative');
+                        monthChangeElement.querySelector('i').className = 'fas fa-arrow-down';
+                    } else {
+                        monthChangeElement.querySelector('i').className = 'fas fa-equals';
+                    }
+                } catch (error) {
+                    console.error('Erro ao atualizar estatísticas:', error);
+                }
+            }
 
-                const calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: 'dayGridMonth',
-                    locale: 'pt-br',
-                    headerToolbar: {
-                        left: 'prev,next today',
-                        center: 'title',
-                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                    },
-                    events: events,
-                    eventClick: function(info) {
-                        const { analista, texto } = info.event.extendedProps;
-                        const data = info.event.start.toLocaleDateString('pt-BR');
-                        
-                        const modal = document.createElement('div');
-                        modal.style.position = 'fixed';
-                        modal.style.top = '0';
-                        modal.style.left = '0';
-                        modal.style.width = '100%';
-                        modal.style.height = '100%';
-                        modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
-                        modal.style.display = 'flex';
-                        modal.style.justifyContent = 'center';
-                        modal.style.alignItems = 'center';
-                        modal.style.zIndex = '10000';
-                        
-                        const modalContent = document.createElement('div');
-                        modalContent.style.backgroundColor = 'var(--glass)';
-                        modalContent.style.padding = '2rem';
-                        modalContent.style.borderRadius = '0.5rem';
-                        modalContent.style.maxWidth = '800px';
-                        modalContent.style.width = '90%';
-                        modalContent.style.maxHeight = '80vh';
-                        modalContent.style.overflow = 'auto';
-                        modalContent.innerHTML = `
-                            <h3 style="margin-bottom: 1rem; color: var(--accent)">Validação de Backlog</h3>
-                            <p><strong>Analista:</strong> ${analista}</p>
-                            <p><strong>Data:</strong> ${data}</p>
-                            <div style="margin-top: 1rem; border-top: 1px solid var(--glass-border); padding-top: 1rem">
-                                ${texto}
-                            </div>
-                            <button style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--accent); color: white; border: none; border-radius: 0.25rem; cursor: pointer">Fechar</button>
-                        `;
-                        
-                        modal.appendChild(modalContent);
-                        document.body.appendChild(modal);
-                        
-                        modal.querySelector('button').addEventListener('click', () => {
-                            document.body.removeChild(modal);
+            // Atualizar relatórios de analistas
+            async function updateAnalystReports() {
+                try {
+                    const selectedMonth = parseInt(monthSelect.value);
+                    const currentYear = new Date().getFullYear();
+                    
+                    // Filtrar registros por mês selecionado
+                    const filteredRegistros = selectedMonth === 0 ? 
+                        backlogData.registros : 
+                        backlogData.registros.filter(entry => {
+                            const entryDate = new Date(entry.data);
+                            return entryDate.getMonth() + 1 === selectedMonth && entryDate.getFullYear() === currentYear;
                         });
-                    }
-                });
-
-                calendar.render();
-            } catch (error) {
-                console.error('Erro ao inicializar calendário:', error);
+                    
+                    // Contar registros por analista
+                    const analystStats = {};
+                    filteredRegistros.forEach(entry => {
+                        if (!analystStats[entry.analista]) {
+                            analystStats[entry.analista] = {
+                                count: 0,
+                                dates: []
+                            };
+                        }
+                        analystStats[entry.analista].count++;
+                        analystStats[entry.analista].dates.push(entry.data);
+                    });
+                    
+                    // Converter para array e ordenar
+                    const analystArray = Object.entries(analystStats).map(([name, stats]) => ({
+                        name,
+                        count: stats.count,
+                        dates: stats.dates
+                    }));
+                    
+                    // Ordenar por quantidade (maior para menor)
+                    analystArray.sort((a, b) => b.count - a.count);
+                    
+                    // Atualizar lista de top analistas
+                    topAnalystsList.innerHTML = '';
+                    const top5 = analystArray.slice(0, 5);
+                    top5.forEach((analyst, index) => {
+                        const item = document.createElement('div');
+                        item.className = 'analyst-item';
+                        item.innerHTML = `
+                            <div>
+                                <span class="analyst-name">${index + 1}. ${analyst.name}</span>
+                            </div>
+                            <div class="analyst-count">${analyst.count}</div>
+                        `;
+                        topAnalystsList.appendChild(item);
+                    });
+                    
+                    // Atualizar lista de analistas com menos registros
+                    bottomAnalystsList.innerHTML = '';
+                    const bottom5 = [...analystArray].reverse().slice(0, 5);
+                    bottom5.forEach((analyst, index) => {
+                        const item = document.createElement('div');
+                        item.className = 'analyst-item';
+                        item.innerHTML = `
+                            <div>
+                                <span class="analyst-name">${index + 1}. ${analyst.name}</span>
+                            </div>
+                            <div class="analyst-count">${analyst.count}</div>
+                        `;
+                        bottomAnalystsList.appendChild(item);
+                    });
+                    
+                    // Atualizar detalhes por analista
+                    analystDetails.innerHTML = '';
+                    analystArray.forEach(analyst => {
+                        const item = document.createElement('div');
+                        item.className = 'analyst-detail-item';
+                        
+                        // Contar dias únicos
+                        const uniqueDates = [...new Set(analyst.dates)];
+                        const lastDate = uniqueDates.length > 0 ? 
+                            new Date(uniqueDates[uniqueDates.length - 1]).toLocaleDateString('pt-BR') : 'N/A';
+                        
+                        item.innerHTML = `
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span class="analyst-name" style="font-weight: 600;">${analyst.name}</span>
+                                <span class="analyst-count" style="color: var(--accent); font-weight: 600;">${analyst.count} validações</span>
+                            </div>
+                            <div style="font-size: 0.875rem; color: var(--gray);">
+                                <div>Dias trabalhados: ${uniqueDates.length}</div>
+                                <div>Última validação: ${lastDate}</div>
+                            </div>
+                        `;
+                        analystDetails.appendChild(item);
+                    });
+                    
+                    // Atualizar gráfico mensal
+                    updateMonthlyChart(analystArray);
+                } catch (error) {
+                    console.error('Erro ao atualizar relatórios de analistas:', error);
+                }
             }
-        }
 
-        // Atualiza estatísticas
-        async function updateStats() {
-            try {
-                const backlogData = await loadData();
-                const registros = backlogData.registros;
-                const today = new Date().toISOString().split('T')[0];
-                const currentMonth = new Date().getMonth() + 1;
-                const currentYear = new Date().getFullYear();
-                
-                const todayEntries = registros.filter(entry => entry.data === today);
-                const monthEntries = registros.filter(entry => {
-                    const entryDate = new Date(entry.data);
-                    return entryDate.getMonth() + 1 === currentMonth && entryDate.getFullYear() === currentYear;
-                });
-                
-                const analystCount = {};
-                registros.forEach(entry => {
-                    analystCount[entry.analista] = (analystCount[entry.analista] || 0) + 1;
-                });
-                
-                let topAnalyst = 'N/A';
-                let topCount = 0;
-                for (const [analyst, count] of Object.entries(analystCount)) {
-                    if (count > topCount) {
-                        topAnalyst = analyst;
-                        topCount = count;
-                    }
+            // Atualizar gráfico mensal
+            function updateMonthlyChart(analystData) {
+                // Destruir gráfico existente se houver
+                if (monthlyChart) {
+                    monthlyChart.destroy();
                 }
                 
-                const totalAnalysts = Object.keys(analystCount).length;
+                // Preparar dados para o gráfico
+                const labels = analystData.map(analyst => analyst.name);
+                const data = analystData.map(analyst => analyst.count);
                 
-                statsToday.textContent = todayEntries.length;
-                statsMonth.textContent = monthEntries.length;
-                statsTopAnalyst.textContent = topAnalyst;
-                statsTopCount.textContent = `${topCount} validações`;
-                statsTotalAnalysts.textContent = totalAnalysts;
-            } catch (error) {
-                console.error('Erro ao atualizar estatísticas:', error);
-            }
-        }
-
-        // Inicializar seletor de mês
-        function initMonthSelector() {
-            const currentDate = new Date();
-            const currentMonth = currentDate.getMonth();
-            const currentYear = currentDate.getFullYear();
-            
-            // Gerar opções dos últimos 12 meses
-            for (let i = 0; i < 12; i++) {
-                const date = new Date(currentYear, currentMonth - i, 1);
-                const month = date.getMonth() + 1;
-                const year = date.getFullYear();
-                const monthName = date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-                
-                const option = document.createElement('option');
-                option.value = `${year}-${month.toString().padStart(2, '0')}`;
-                option.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
-                
-                if (i === 0) option.selected = true;
-                
-                reportMonth.appendChild(option);
-            }
-        }
-
-        // Atualizar relatórios
-        async function updateReports() {
-            try {
-                const backlogData = await loadData();
-                const selectedMonth = reportMonth.value;
-                const [year, month] = selectedMonth.split('-').map(Number);
-                
-                // Filtrar registros do mês selecionado
-                const monthEntries = backlogData.registros.filter(entry => {
-                    const entryDate = new Date(entry.data);
-                    return entryDate.getMonth() + 1 === month && entryDate.getFullYear() === year;
-                });
-                
-                // Calcular estatísticas por analista
-                const analystStats = {};
-                monthEntries.forEach(entry => {
-                    if (!analystStats[entry.analista]) {
-                        analystStats[entry.analista] = 0;
+                // Criar o gráfico
+                const ctx = monthlyChartCanvas.getContext('2d');
+                monthlyChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Validações por Analista',
+                            data: data,
+                            backgroundColor: 'rgba(66, 133, 244, 0.7)',
+                            borderColor: 'rgba(66, 133, 244, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    color: 'var(--dark)'
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    color: 'var(--dark)'
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: 'var(--dark)'
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(26, 32, 44, 0.9)',
+                                titleColor: 'var(--dark)',
+                                bodyColor: 'var(--dark)',
+                                borderColor: 'var(--glass-border)',
+                                borderWidth: 1
+                            }
+                        }
                     }
-                    analystStats[entry.analista]++;
                 });
-                
-                // Ordenar analistas por contagem
-                const sortedAnalysts = Object.entries(analystStats)
-                    .sort((a, b) => b[1] - a[1]);
-                
-                // Atualizar relatório mensal por analista
-                updateMonthlyAnalystReport(sortedAnalysts);
-                
-                // Atualizar relatório dos que menos fizeram
-                updateLeastActiveReport(sortedAnalysts);
-                
-                // Atualizar top 3
-                updateTop3Report(sortedAnalysts);
-                
-                // Atualizar comparação mensal
-                await updateComparisonReport(backlogData.registros, year, month);
-                
-            } catch (error) {
-                console.error('Erro ao atualizar relatórios:', error);
             }
-        }
 
-        // Atualizar relatório mensal por analista
-        function updateMonthlyAnalystReport(sortedAnalysts) {
-            const container = document.getElementById('monthly-analyst-report');
-            
-            if (sortedAnalysts.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-chart-bar"></i>
-                        <p>Nenhum backlog encontrado para o período selecionado</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            const html = sortedAnalysts.map(([analyst, count]) => `
-                <div class="analyst-item">
-                    <span class="analyst-name">${analyst}</span>
-                    <span class="analyst-count">${count}</span>
-                </div>
-            `).join('');
-            
-            container.innerHTML = html;
-        }
+            // Evento de mudança no seletor de mês
+            monthSelect.addEventListener('change', updateAnalystReports);
 
-        // Atualizar relatório dos que menos fizeram
-        function updateLeastActiveReport(sortedAnalysts) {
-            const container = document.getElementById('least-active-report');
+            // Inicializa a seção de anotações como padrão
+            document.querySelector('.nav-item[data-section="notes"]').click();
             
-            if (sortedAnalysts.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-arrow-down"></i>
-                        <p>Nenhum backlog encontrado para o período selecionado</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            // Pegar os 3 analistas com menos backlogs
-            const leastActive = sortedAnalysts.slice(-3).reverse();
-            
-            const html = leastActive.map(([analyst, count]) => `
-                <div class="analyst-item">
-                    <span class="analyst-name">${analyst}</span>
-                    <span class="analyst-count" style="background-color: rgba(234, 67, 53, 0.2); color: var(--danger);">${count}</span>
-                </div>
-            `).join('');
-            
-            container.innerHTML = html;
-        }
-
-        // Atualizar top 3
-        function updateTop3Report(sortedAnalysts) {
-            const container = document.getElementById('top3-report');
-            
-            if (sortedAnalysts.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-trophy"></i>
-                        <p>Nenhum backlog encontrado para o período selecionado</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            // Pegar os top 3
-            const top3 = sortedAnalysts.slice(0, 3);
-            
-            const html = top3.map(([analyst, count], index) => {
-                const rankClass = `rank-${index + 1}`;
-                return `
-                    <div class="analyst-item">
-                        <div style="display: flex; align-items: center;">
-                            <span class="rank-badge ${rankClass}">${index + 1}</span>
-                            <span class="analyst-name">${analyst}</span>
-                        </div>
-                        <span class="analyst-count">${count}</span>
-                    </div>
-                `;
-            }).join('');
-            
-            container.innerHTML = html;
-        }
-
-        // Atualizar comparação mensal
-        async function updateComparisonReport(allRecords, currentYear, currentMonth) {
-            const container = document.getElementById('comparison-report');
-            
-            // Calcular mês anterior
-            const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
-            const prevYear = currentMonth === 1 ? currentYear - 1 : currentYear;
-            
-            // Filtrar registros do mês atual e anterior
-            const currentMonthEntries = allRecords.filter(entry => {
-                const entryDate = new Date(entry.data);
-                return entryDate.getMonth() + 1 === currentMonth && entryDate.getFullYear() === currentYear;
+            // Carregar dados iniciais
+            loadData().then(data => {
+                console.log('Conexão com JSONBin estabelecida com sucesso!', data);
+            }).catch(error => {
+                console.error('Falha na conexão com JSONBin:', error);
             });
-            
-            const prevMonthEntries = allRecords.filter(entry => {
-                const entryDate = new Date(entry.data);
-                return entryDate.getMonth() + 1 === prevMonth && entryDate.getFullYear() === prevYear;
-            });
-            
-            const currentTotal = currentMonthEntries.length;
-            const prevTotal = prevMonthEntries.length;
-            const difference = currentTotal - prevTotal;
-            const percentChange = prevTotal > 0 ? ((difference / prevTotal) * 100).toFixed(1) : 0;
-            
-            const changeClass = difference > 0 ? 'positive' : difference < 0 ? 'negative' : 'neutral';
-            const changeIcon = difference > 0 ? 'fa-arrow-up' : difference < 0 ? 'fa-arrow-down' : 'fa-minus';
-            const changeText = difference > 0 ? 'aumento' : difference < 0 ? 'diminuição' : 'sem alteração';
-            
-            const prevMonthName = new Date(prevYear, prevMonth - 1, 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-            
-            container.innerHTML = `
-                <div class="analyst-item">
-                    <span class="analyst-name">Total Atual</span>
-                    <span class="analyst-count">${currentTotal}</span>
-                </div>
-                <div class="analyst-item">
-                    <span class="analyst-name">Total ${prevMonthName}</span>
-                    <span class="analyst-count">${prevTotal}</span>
-                </div>
-                <div class="analyst-item">
-                    <div class="stat-change ${changeClass}">
-                        <i class="fas ${changeIcon}"></i>
-                        <span>${Math.abs(difference)} (${percentChange}% ${changeText})</span>
-                    </div>
-                </div>
-            `;
         }
-
-        // Event listeners para relatórios
-        reportMonth.addEventListener('change', updateReports);
-        refreshReportsBtn.addEventListener('click', updateReports);
     </script>
 </body>
 </html>
-
