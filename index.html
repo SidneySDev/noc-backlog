@@ -7,6 +7,71 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
     <style>
+        /* Splash Screen Styles - Versão com profundidade e fundo branco */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+        
+        #splash-logo-container {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            margin-bottom: 30px;
+            perspective: 1000px;
+        }
+        
+        #splash-logo {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));
+            transform-style: preserve-3d;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotateY(0deg);
+                filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));
+            }
+            50% {
+                transform: translateY(-15px) rotateY(5deg);
+                filter: drop-shadow(0 15px 30px rgba(0,0,0,0.3));
+            }
+        }
+        
+        .splash-spinner {
+            width: 70px;
+            height: 70px;
+            border: 8px solid rgba(66, 133, 244, 0.2);
+            border-top-color: #4285f4;
+            border-radius: 50%;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .splash-text {
+            margin-top: 20px;
+            color: #333;
+            font-size: 1.2rem;
+            font-weight: 500;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
         :root {
             --primary: #1a73e8;
             --primary-dark: #1557b0;
@@ -380,8 +445,8 @@
         }
 
         .editor-content {
-            min-height: 600px; /* Aumentado em 50% (de 300px para 450px) */
-            max-height: 950px; /* Aumentado proporcionalmente */
+            min-height: 600px;
+            max-height: 900px;
             padding: 1rem;
             outline: none;
             overflow-y: auto;
@@ -606,215 +671,227 @@
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="logo">
-                <i class="fas fa-tasks logo-icon"></i>
-                <span>BacklogPro</span>
-            </div>
+    <!-- Splash Screen Atualizado -->
+    <div id="splash-screen">
+        <div id="splash-logo-container">
+            <img id="splash-logo" src="./logobacklog.png">
         </div>
-        
-        <div class="nav-menu">
-            <div class="nav-title">Menu Principal</div>
-            
-            <div class="nav-item active" data-section="notes">
-                <a href="#" class="nav-link">
-                    <i class="fas fa-edit nav-icon"></i>
-                    <span>Anotações</span>
-                </a>
-            </div>
-            
-            <div class="nav-item" data-section="dashboard">
-                <a href="#" class="nav-link">
-                    <i class="fas fa-calendar-alt nav-icon"></i>
-                    <span>Dashboard</span>
-                </a>
-            </div>
-        </div>
-        
-        <div class="user-panel">
-            <div class="user-avatar">AD</div>
-            <div class="user-info">
-                <div class="user-name">Admin</div>
-                <div class="user-role">Administrador</div>
-            </div>
-        </div>
+        <div class="splash-spinner"></div>
+        <div class="splash-text">Carregando Sistema...</div>
     </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <!-- Content Header -->
-        <div class="content-header">
-            <div>
-                <h1 class="page-title">Anotações</h1>
-                <div class="breadcrumb">
-                    <div class="breadcrumb-item">
-                        <a href="#" class="breadcrumb-link">Home</a>
-                    </div>
-                    <div class="breadcrumb-item">
-                        <span>Anotações</span>
-                    </div>
+    <!-- Conteúdo principal (oculto inicialmente) -->
+    <div id="main-content" style="display: none;">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-tasks logo-icon"></i>
+                    <span>BacklogPro</span>
                 </div>
             </div>
             
-            <div class="card-tools">
-                <button class="btn btn-outline btn-icon" id="sidebar-toggle">
-                    <i class="fas fa-bars"></i>
-                </button>
+            <div class="nav-menu">
+                <div class="nav-title">Menu Principal</div>
+                
+                <div class="nav-item active" data-section="notes">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-edit nav-icon"></i>
+                        <span>Anotações</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item" data-section="dashboard">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-calendar-alt nav-icon"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="user-panel">
+                <div class="user-avatar">AD</div>
+                <div class="user-info">
+                    <div class="user-name">Admin</div>
+                    <div class="user-role">Administrador</div>
+                </div>
             </div>
         </div>
-        
-        <!-- Content Body -->
-        <div class="content-body">
-            <!-- Notes Section -->
-            <div class="section-content" id="notes-section">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Registro de Backlog Diário</h3>
-                        <div class="card-tools">
-                            <button class="btn btn-outline">
-                                <i class="fas fa-history"></i> Histórico
-                            </button>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Content Header -->
+            <div class="content-header">
+                <div>
+                    <h1 class="page-title">Anotações</h1>
+                    <div class="breadcrumb">
+                        <div class="breadcrumb-item">
+                            <a href="#" class="breadcrumb-link">Home</a>
                         </div>
-                    </div>
-                    
-                    <div class="card-body">
-                        <form id="backlog-form">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label class="form-label">Analista</label>
-                                    <select class="form-control form-select" id="analista-select" required>
-                                        <option value="">Selecione o analista</option>
-                                        <option value="DELANO">DELANO</option>
-                                        <option value="HERBETH">HERBETH</option>
-                                        <option value="WELLIGTON">WELLIGTON</option>
-                                        <option value="EDMUNDO">EDMUNDO</option>
-                                        <option value="SIDNEY">SIDNEY</option>
-                                        <option value="MARCIO">MARCIO</option>
-                                        <option value="HELIELTON">HELIELTON</option>
-                                        <option value="ROBSON">ROBSON</option>
-                                        <option value="WYLLAME">WYLLAME</option>
-                                        <option value="DARLYSON">DARLYSON</option>
-                                        <option value="MURILO">MURILO</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label class="form-label">Data</label>
-                                    <input type="date" class="form-control" id="data-backlog" required>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">Backlog Validado</label>
-                                <div class="editor-container">
-                                    <div class="toolbar">
-                                        <div class="toolbar-group">
-                                            <button type="button" class="toolbar-btn" data-command="bold" title="Negrito (Ctrl+B)">
-                                                <i class="fas fa-bold"></i>
-                                            </button>
-                                            <button type="button" class="toolbar-btn" data-command="italic" title="Itálico (Ctrl+I)">
-                                                <i class="fas fa-italic"></i>
-                                            </button>
-                                            <button type="button" class="toolbar-btn" data-command="underline" title="Sublinhado (Ctrl+U)">
-                                                <i class="fas fa-underline"></i>
-                                            </button>
-                                        </div>
-                                        
-                                        <div class="toolbar-group">
-                                            <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="Lista não ordenada">
-                                                <i class="fas fa-list-ul"></i>
-                                            </button>
-                                            <button type="button" class="toolbar-btn" data-command="insertOrderedList" title="Lista ordenada">
-                                                <i class="fas fa-list-ol"></i>
-                                            </button>
-                                        </div>
-                                        
-                                        <div class="toolbar-group">
-                                            <button type="button" class="toolbar-btn" data-command="hiliteColor" data-value="yellow" title="Marcador de texto">
-                                                <i class="fas fa-highlighter"></i>
-                                            </button>
-                                            <input type="color" class="color-picker" id="text-color" value="#e2e8f0" title="Cor do texto">
-                                            <input type="color" class="color-picker" id="bg-color" value="#1a202c" title="Cor de fundo">
-                                        </div>
-                                        
-                                        <div class="toolbar-group">
-                                            <button type="button" class="toolbar-btn" data-command="undo" title="Desfazer (Ctrl+Z)">
-                                                <i class="fas fa-undo"></i>
-                                            </button>
-                                            <button type="button" class="toolbar-btn" data-command="redo" title="Refazer (Ctrl+Y)">
-                                                <i class="fas fa-redo"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="editor-content" id="backlog-text" contenteditable="true" placeholder="Descreva detalhadamente o backlog validado..."></div>
-                                </div>
-                            </div>
-                            
-                            <div class="action-buttons">
-                                <button type="button" class="btn btn-outline" id="clear-form">
-                                    <i class="fas fa-trash-alt"></i> Limpar
-                                </button>
-                                <button type="submit" class="btn btn-primary" id="save-backlog">
-                                    <i class="fas fa-save"></i> Salvar Backlog
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Dashboard Section -->
-            <div class="section-content" id="dashboard-section" style="display: none;">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Calendário de Validações</h3>
-                        <div class="card-tools">
-                            <div class="btn-group">
-                                <button class="btn btn-outline active" data-period="month">
-                                    <i class="fas fa-calendar-alt"></i> Mês
-                                </button>
-                                <button class="btn btn-outline" data-period="week">
-                                    <i class="fas fa-calendar-week"></i> Semana
-                                </button>
-                                <button class="btn btn-outline" data-period="day">
-                                    <i class="fas fa-calendar-day"></i> Dia
-                                </button>
-                            </div>
+                        <div class="breadcrumb-item">
+                            <span>Anotações</span>
                         </div>
-                    </div>
-                    
-                    <div class="card-body">
-                        <div id="calendar"></div>
                     </div>
                 </div>
                 
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-title">Validações Hoje</div>
-                        <div class="stat-value" id="stats-today">0</div>
-                        <div class="stat-change positive">
-                            <i class="fas fa-arrow-up"></i>
-                            <span>0% em relação a ontem</span>
+                <div class="card-tools">
+                    <button class="btn btn-outline btn-icon" id="sidebar-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Content Body -->
+            <div class="content-body">
+                <!-- Notes Section -->
+                <div class="section-content" id="notes-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Registro de Backlog Diário</h3>
+                            <div class="card-tools">
+                                <button class="btn btn-outline">
+                                    <i class="fas fa-history"></i> Histórico
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body">
+                            <form id="backlog-form">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label">Analista</label>
+                                        <select class="form-control form-select" id="analista-select" required>
+                                            <option value="">Selecione o analista</option>
+                                            <option value="DELANO">DELANO</option>
+                                            <option value="HERBETH">HERBETH</option>
+                                            <option value="WELLIGTON">WELLIGTON</option>
+                                            <option value="EDMUNDO">EDMUNDO</option>
+                                            <option value="SIDNEY">SIDNEY</option>
+                                            <option value="MARCIO">MARCIO</option>
+                                            <option value="HELIELTON">HELIELTON</option>
+                                            <option value="ROBSON">ROBSON</option>
+                                            <option value="WYLLAME">WYLLAME</option>
+                                            <option value="DARLYSON">DARLYSON</option>
+                                            <option value="MURILO">MURILO</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Data</label>
+                                        <input type="date" class="form-control" id="data-backlog" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Backlog Validado</label>
+                                    <div class="editor-container">
+                                        <div class="toolbar">
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn" data-command="bold" title="Negrito (Ctrl+B)">
+                                                    <i class="fas fa-bold"></i>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" data-command="italic" title="Itálico (Ctrl+I)">
+                                                    <i class="fas fa-italic"></i>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" data-command="underline" title="Sublinhado (Ctrl+U)">
+                                                    <i class="fas fa-underline"></i>
+                                                </button>
+                                            </div>
+                                            
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="Lista não ordenada">
+                                                    <i class="fas fa-list-ul"></i>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" data-command="insertOrderedList" title="Lista ordenada">
+                                                    <i class="fas fa-list-ol"></i>
+                                                </button>
+                                            </div>
+                                            
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn" data-command="hiliteColor" data-value="yellow" title="Marcador de texto">
+                                                    <i class="fas fa-highlighter"></i>
+                                                </button>
+                                                <input type="color" class="color-picker" id="text-color" value="#e2e8f0" title="Cor do texto">
+                                                <input type="color" class="color-picker" id="bg-color" value="#1a202c" title="Cor de fundo">
+                                            </div>
+                                            
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn" data-command="undo" title="Desfazer (Ctrl+Z)">
+                                                    <i class="fas fa-undo"></i>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" data-command="redo" title="Refazer (Ctrl+Y)">
+                                                    <i class="fas fa-redo"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="editor-content" id="backlog-text" contenteditable="true" placeholder="Descreva detalhadamente o backlog validado..."></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="action-buttons">
+                                    <button type="button" class="btn btn-outline" id="clear-form">
+                                        <i class="fas fa-trash-alt"></i> Limpar
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" id="save-backlog">
+                                        <i class="fas fa-save"></i> Salvar Backlog
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Dashboard Section -->
+                <div class="section-content" id="dashboard-section" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Calendário de Validações</h3>
+                            <div class="card-tools">
+                                <div class="btn-group">
+                                    <button class="btn btn-outline active" data-period="month">
+                                        <i class="fas fa-calendar-alt"></i> Mês
+                                    </button>
+                                    <button class="btn btn-outline" data-period="week">
+                                        <i class="fas fa-calendar-week"></i> Semana
+                                    </button>
+                                    <button class="btn btn-outline" data-period="day">
+                                        <i class="fas fa-calendar-day"></i> Dia
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body">
+                            <div id="calendar"></div>
                         </div>
                     </div>
                     
-                    <div class="stat-card">
-                        <div class="stat-title">Validações no Mês</div>
-                        <div class="stat-value" id="stats-month">0</div>
-                        <div class="stat-change negative">
-                            <i class="fas fa-arrow-down"></i>
-                            <span>0% em relação ao mês passado</span>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-title">Validações Hoje</div>
+                            <div class="stat-value" id="stats-today">0</div>
+                            <div class="stat-change positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>0% em relação a ontem</span>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-title">Analista Mais Ativo</div>
-                        <div class="stat-value" id="stats-top-analyst">N/A</div>
-                        <div class="stat-change">
-                            <i class="fas fa-user"></i>
-                            <span id="stats-top-count">0 validações</span>
+                        
+                        <div class="stat-card">
+                            <div class="stat-title">Validações no Mês</div>
+                            <div class="stat-value" id="stats-month">0</div>
+                            <div class="stat-change negative">
+                                <i class="fas fa-arrow-down"></i>
+                                <span>0% em relação ao mês passado</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-title">Analista Mais Ativo</div>
+                            <div class="stat-value" id="stats-top-analyst">N/A</div>
+                            <div class="stat-change">
+                                <i class="fas fa-user"></i>
+                                <span id="stats-top-count">0 validações</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -826,132 +903,158 @@
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/pt-br.js"></script>
     <script>
-        // Configurações do JSONBin
-        const BIN_ID = '68534cca8561e97a5026d94e';
-        const MASTER_KEY = '$2a$10$YMdKhRE5rs2j/addb0u2beEv8Buf0LgOpYvT5YQhwzDZqIfxBOsWK';
-        const ACCESS_KEY = '$2a$10$SpeE5.rHPveOV83qARbVqOkmjogz4ZOF6pahjv8ju7cEPDnPdt4rq';
-        const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
-
-        // Elementos DOM
-        const sidebar = document.getElementById('sidebar');
-        const sidebarToggle = document.getElementById('sidebar-toggle');
-        const navItems = document.querySelectorAll('.nav-item');
-        const sectionContents = document.querySelectorAll('.section-content');
-        const analistaSelect = document.getElementById('analista-select');
-        const dataBacklog = document.getElementById('data-backlog');
-        const backlogText = document.getElementById('backlog-text');
-        const backlogForm = document.getElementById('backlog-form');
-        const clearFormBtn = document.getElementById('clear-form');
-        const saveButton = document.getElementById('save-backlog');
-        const statsToday = document.getElementById('stats-today');
-        const statsMonth = document.getElementById('stats-month');
-        const statsTopAnalyst = document.getElementById('stats-top-analyst');
-        const statsTopCount = document.getElementById('stats-top-count');
-        const textColorPicker = document.getElementById('text-color');
-        const bgColorPicker = document.getElementById('bg-color');
-        const toolbarButtons = document.querySelectorAll('.toolbar-btn');
-
-        // Inicialização
-        dataBacklog.valueAsDate = new Date();
-
-        // Editor de texto avançado
-        function execCommand(command, value = null) {
-            document.execCommand(command, false, value);
-            backlogText.focus();
-        }
-
-        // Atalhos de teclado
-        backlogText.addEventListener('keydown', function(e) {
-            // Ctrl+B - Negrito
-            if (e.ctrlKey && e.key === 'b') {
-                e.preventDefault();
-                execCommand('bold');
-            }
-            // Ctrl+I - Itálico
-            else if (e.ctrlKey && e.key === 'i') {
-                e.preventDefault();
-                execCommand('italic');
-            }
-            // Ctrl+U - Sublinhado
-            else if (e.ctrlKey && e.key === 'u') {
-                e.preventDefault();
-                execCommand('underline');
-            }
-            // Ctrl+Z - Desfazer
-            else if (e.ctrlKey && e.key === 'z') {
-                e.preventDefault();
-                execCommand('undo');
-            }
-            // Ctrl+Y - Refazer
-            else if (e.ctrlKey && e.key === 'y') {
-                e.preventDefault();
-                execCommand('redo');
-            }
+        // Mostrar splash screen e depois carregar a página após 3 segundos
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = '0';
+                
+                setTimeout(function() {
+                    splash.style.display = 'none';
+                    document.getElementById('main-content').style.display = 'flex';
+                    initApplication();
+                }, 500);
+            }, 3000);
         });
 
-        // Eventos dos botões da toolbar
-        toolbarButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const command = this.getAttribute('data-command');
-                const value = this.getAttribute('data-value');
-                
-                if (command === 'hiliteColor') {
-                    execCommand('hiliteColor', value);
-                } else {
-                    execCommand(command);
+        function initApplication() {
+            // Configurações do JSONBin
+            const BIN_ID = '68534cca8561e97a5026d94e';
+            const MASTER_KEY = '$2a$10$YMdKhRE5rs2j/addb0u2beEv8Buf0LgOpYvT5YQhwzDZqIfxBOsWK';
+            const ACCESS_KEY = '$2a$10$SpeE5.rHPveOV83qARbVqOkmjogz4ZOF6pahjv8ju7cEPDnPdt4rq';
+            const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+            // Elementos DOM
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const navItems = document.querySelectorAll('.nav-item');
+            const sectionContents = document.querySelectorAll('.section-content');
+            const analistaSelect = document.getElementById('analista-select');
+            const dataBacklog = document.getElementById('data-backlog');
+            const backlogText = document.getElementById('backlog-text');
+            const backlogForm = document.getElementById('backlog-form');
+            const clearFormBtn = document.getElementById('clear-form');
+            const saveButton = document.getElementById('save-backlog');
+            const statsToday = document.getElementById('stats-today');
+            const statsMonth = document.getElementById('stats-month');
+            const statsTopAnalyst = document.getElementById('stats-top-analyst');
+            const statsTopCount = document.getElementById('stats-top-count');
+            const textColorPicker = document.getElementById('text-color');
+            const bgColorPicker = document.getElementById('bg-color');
+            const toolbarButtons = document.querySelectorAll('.toolbar-btn');
+
+            // Inicialização
+            dataBacklog.valueAsDate = new Date();
+
+            // Editor de texto avançado
+            function execCommand(command, value = null) {
+                document.execCommand(command, false, value);
+                backlogText.focus();
+            }
+
+            // Atalhos de teclado
+            backlogText.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'b') {
+                    e.preventDefault();
+                    execCommand('bold');
                 }
-                
-                // Atualiza o estado ativo dos botões
-                updateToolbarButtons();
+                else if (e.ctrlKey && e.key === 'i') {
+                    e.preventDefault();
+                    execCommand('italic');
+                }
+                else if (e.ctrlKey && e.key === 'u') {
+                    e.preventDefault();
+                    execCommand('underline');
+                }
+                else if (e.ctrlKey && e.key === 'z') {
+                    e.preventDefault();
+                    execCommand('undo');
+                }
+                else if (e.ctrlKey && e.key === 'y') {
+                    e.preventDefault();
+                    execCommand('redo');
+                }
             });
-        });
 
-        // Atualiza cor do texto
-        textColorPicker.addEventListener('change', function() {
-            execCommand('foreColor', this.value);
-        });
-
-        // Atualiza cor de fundo
-        bgColorPicker.addEventListener('change', function() {
-            execCommand('hiliteColor', this.value);
-        });
-
-        // Atualiza o estado dos botões da toolbar
-        function updateToolbarButtons() {
+            // Eventos dos botões da toolbar
             toolbarButtons.forEach(button => {
-                const command = button.getAttribute('data-command');
-                if (command === 'undo' || command === 'redo') {
-                    button.disabled = !document.queryCommandEnabled(command);
-                } else if (command === 'bold' || command === 'italic' || command === 'underline') {
-                    button.classList.toggle('active', document.queryCommandState(command));
-                }
+                button.addEventListener('click', function() {
+                    const command = this.getAttribute('data-command');
+                    const value = this.getAttribute('data-value');
+                    
+                    if (command === 'hiliteColor') {
+                        execCommand('hiliteColor', value);
+                    } else {
+                        execCommand(command);
+                    }
+                    
+                    updateToolbarButtons();
+                });
             });
-        }
 
-        // Atualiza a toolbar periodicamente
-        setInterval(updateToolbarButtons, 100);
+            // Atualiza cor do texto
+            textColorPicker.addEventListener('change', function() {
+                execCommand('foreColor', this.value);
+            });
 
-        // Carregar dados do JSONBin
-        async function loadData() {
-            try {
-                console.log('Carregando dados do JSONBin...');
-                const response = await fetch(API_URL, {
-                    headers: {
-                        'X-Master-Key': MASTER_KEY,
-                        'X-Access-Key': ACCESS_KEY
+            // Atualiza cor de fundo
+            bgColorPicker.addEventListener('change', function() {
+                execCommand('hiliteColor', this.value);
+            });
+
+            // Atualiza o estado dos botões da toolbar
+            function updateToolbarButtons() {
+                toolbarButtons.forEach(button => {
+                    const command = button.getAttribute('data-command');
+                    if (command === 'undo' || command === 'redo') {
+                        button.disabled = !document.queryCommandEnabled(command);
+                    } else if (command === 'bold' || command === 'italic' || command === 'underline') {
+                        button.classList.toggle('active', document.queryCommandState(command));
                     }
                 });
-                
-                if (!response.ok) {
-                    throw new Error(`Erro HTTP: ${response.status}`);
-                }
-                
-                const jsonData = await response.json();
-                console.log('Dados carregados com sucesso:', jsonData);
-                
-                // Se o bin estiver vazio, inicializa com estrutura básica
-                if (!jsonData.record || Object.keys(jsonData.record).length === 0) {
-                    const initialData = {
+            }
+
+            setInterval(updateToolbarButtons, 100);
+
+            // Carregar dados do JSONBin
+            async function loadData() {
+                try {
+                    console.log('Carregando dados do JSONBin...');
+                    const response = await fetch(API_URL, {
+                        headers: {
+                            'X-Master-Key': MASTER_KEY,
+                            'X-Access-Key': ACCESS_KEY
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Erro HTTP: ${response.status}`);
+                    }
+                    
+                    const jsonData = await response.json();
+                    console.log('Dados carregados com sucesso:', jsonData);
+                    
+                    if (!jsonData.record || Object.keys(jsonData.record).length === 0) {
+                        const initialData = {
+                            meta: {
+                                sistema: "Backlog do NOC",
+                                versao: "1.0",
+                                ultima_atualizacao: null,
+                                criado_em: new Date().toISOString()
+                            },
+                            registros: []
+                        };
+                        
+                        await saveData(initialData);
+                        return initialData;
+                    }
+                    
+                    return jsonData.record;
+                } catch (error) {
+                    console.error('Erro ao carregar dados:', error);
+                    alert('Erro ao carregar dados. Verifique o console para detalhes.');
+                    
+                    return {
                         meta: {
                             sistema: "Backlog do NOC",
                             versao: "1.0",
@@ -960,325 +1063,287 @@
                         },
                         registros: []
                     };
+                }
+            }
+
+            // Salvar dados no JSONBin
+            async function saveData(data) {
+                try {
+                    console.log('Salvando dados no JSONBin...', data);
+                    const response = await fetch(API_URL, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': MASTER_KEY,
+                            'X-Access-Key': ACCESS_KEY
+                        },
+                        body: JSON.stringify(data)
+                    });
                     
-                    // Salva a estrutura inicial
-                    await saveData(initialData);
-                    return initialData;
+                    if (!response.ok) {
+                        throw new Error(`Erro HTTP: ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    console.log('Dados salvos com sucesso:', result);
+                    return result;
+                } catch (error) {
+                    console.error('Erro ao salvar dados:', error);
+                    throw error;
                 }
-                
-                return jsonData.record;
-            } catch (error) {
-                console.error('Erro ao carregar dados:', error);
-                alert('Erro ao carregar dados. Verifique o console para detalhes.');
-                
-                // Retorna estrutura vazia se houver erro
-                return {
-                    meta: {
-                        sistema: "Backlog do NOC",
-                        versao: "1.0",
-                        ultima_atualizacao: null,
-                        criado_em: new Date().toISOString()
-                    },
-                    registros: []
-                };
             }
-        }
 
-        // Salvar dados no JSONBin
-        async function saveData(data) {
-            try {
-                console.log('Salvando dados no JSONBin...', data);
-                const response = await fetch(API_URL, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Master-Key': MASTER_KEY,
-                        'X-Access-Key': ACCESS_KEY
-                    },
-                    body: JSON.stringify(data)
+            // Verificar se o analista já salvou backlog na data selecionada
+            async function checkAnalistaBacklog(analista, data) {
+                try {
+                    const backlogData = await loadData();
+                    const existingEntry = backlogData.registros.find(entry => 
+                        entry.analista === analista && entry.data === data
+                    );
+                    return !!existingEntry;
+                } catch (error) {
+                    console.error('Erro ao verificar backlog do analista:', error);
+                    return false;
+                }
+            }
+
+            // Verificar quantos analistas diferentes já salvaram backlog na data selecionada
+            async function countAnalistasDia(data) {
+                try {
+                    const backlogData = await loadData();
+                    const entries = backlogData.registros.filter(entry => entry.data === data);
+                    const uniqueAnalistas = new Set(entries.map(entry => entry.analista));
+                    return uniqueAnalistas.size;
+                } catch (error) {
+                    console.error('Erro ao contar analistas do dia:', error);
+                    return 0;
+                }
+            }
+
+            // Navegação entre seções
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const section = this.getAttribute('data-section');
+                    sectionContents.forEach(content => content.style.display = 'none');
+                    document.getElementById(`${section}-section`).style.display = 'block';
+                    
+                    const sectionTitle = this.querySelector('span').textContent;
+                    document.querySelector('.page-title').textContent = sectionTitle;
+                    
+                    const breadcrumb = document.querySelector('.breadcrumb');
+                    breadcrumb.innerHTML = `
+                        <div class="breadcrumb-item">
+                            <a href="#" class="breadcrumb-link">Home</a>
+                        </div>
+                        <div class="breadcrumb-item">
+                            <span>${sectionTitle}</span>
+                        </div>
+                    `;
+                    
+                    if (section === 'dashboard') {
+                        initCalendar();
+                        updateStats();
+                    }
                 });
-                
-                if (!response.ok) {
-                    throw new Error(`Erro HTTP: ${response.status}`);
-                }
-                
-                const result = await response.json();
-                console.log('Dados salvos com sucesso:', result);
-                return result;
-            } catch (error) {
-                console.error('Erro ao salvar dados:', error);
-                throw error;
-            }
-        }
+            });
 
-        // Verificar se o analista já salvou backlog na data selecionada
-        async function checkAnalistaBacklog(analista, data) {
-            try {
-                const backlogData = await loadData();
-                const existingEntry = backlogData.registros.find(entry => 
-                    entry.analista === analista && entry.data === data
-                );
-                return !!existingEntry;
-            } catch (error) {
-                console.error('Erro ao verificar backlog do analista:', error);
-                return false;
-            }
-        }
+            // Toggle sidebar em mobile
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('active');
+            });
 
-        // Verificar quantos analistas diferentes já salvaram backlog na data selecionada
-        async function countAnalistasDia(data) {
-            try {
-                const backlogData = await loadData();
-                const entries = backlogData.registros.filter(entry => entry.data === data);
-                const uniqueAnalistas = new Set(entries.map(entry => entry.analista));
-                return uniqueAnalistas.size;
-            } catch (error) {
-                console.error('Erro ao contar analistas do dia:', error);
-                return 0;
-            }
-        }
+            // Limpar formulário
+            clearFormBtn.addEventListener('click', function() {
+                backlogForm.reset();
+                dataBacklog.valueAsDate = new Date();
+                backlogText.innerHTML = '';
+            });
 
-        // Navegação entre seções
-        navItems.forEach(item => {
-            item.addEventListener('click', function(e) {
+            // Salvar backlog
+            backlogForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 
-                // Ativa o item de menu
-                navItems.forEach(nav => nav.classList.remove('active'));
-                this.classList.add('active');
-                
-                // Mostra a seção correspondente
-                const section = this.getAttribute('data-section');
-                sectionContents.forEach(content => content.style.display = 'none');
-                document.getElementById(`${section}-section`).style.display = 'block';
-                
-                // Atualiza o título da página
-                const sectionTitle = this.querySelector('span').textContent;
-                document.querySelector('.page-title').textContent = sectionTitle;
-                
-                // Atualiza o breadcrumb
-                const breadcrumb = document.querySelector('.breadcrumb');
-                breadcrumb.innerHTML = `
-                    <div class="breadcrumb-item">
-                        <a href="#" class="breadcrumb-link">Home</a>
-                    </div>
-                    <div class="breadcrumb-item">
-                        <span>${sectionTitle}</span>
-                    </div>
-                `;
-                
-                // Inicializa componentes específicos
-                if (section === 'dashboard') {
-                    initCalendar();
-                    updateStats();
+                const analista = analistaSelect.value;
+                const data = dataBacklog.value;
+                const texto = backlogText.innerHTML.trim();
+
+                if (!analista || !data || !texto) {
+                    alert('Por favor, preencha todos os campos obrigatórios!');
+                    return;
+                }
+
+                try {
+                    const alreadySaved = await checkAnalistaBacklog(analista, data);
+                    if (alreadySaved) {
+                        alert('Este analista já salvou um backlog nesta data. Apenas um registro por analista por dia é permitido.');
+                        return;
+                    }
+
+                    const analistasCount = await countAnalistasDia(data);
+                    if (analistasCount >= 4) {
+                        alert('Limite máximo de 4 analistas diferentes por dia atingido. Não é possível salvar mais backlogs nesta data.');
+                        return;
+                    }
+
+                    saveButton.disabled = true;
+                    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+                    
+                    const backlogData = await loadData();
+                    
+                    const newRecord = {
+                        id: backlogData.registros.length + 1,
+                        analista,
+                        data,
+                        texto,
+                        timestamp: new Date().toISOString()
+                    };
+
+                    backlogData.registros.push(newRecord);
+                    backlogData.meta.ultima_atualizacao = new Date().toISOString();
+
+                    await saveData(backlogData);
+                    
+                    saveButton.innerHTML = '<i class="fas fa-check"></i> Salvo com Sucesso!';
+                    saveButton.style.backgroundColor = '#34a853';
+                    
+                    setTimeout(() => {
+                        saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Backlog';
+                        saveButton.style.backgroundColor = '';
+                        saveButton.disabled = false;
+                    }, 2000);
+
+                    backlogText.innerHTML = '';
+                    
+                    if (document.getElementById('dashboard-section').style.display !== 'none') {
+                        initCalendar();
+                        updateStats();
+                    }
+                } catch (error) {
+                    console.error('Erro ao salvar:', error);
+                    alert('Erro ao salvar os dados. Verifique o console para detalhes.');
+                    saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Backlog';
+                    saveButton.disabled = false;
                 }
             });
-        });
 
-        // Toggle sidebar em mobile
-        sidebarToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('active');
-        });
+            // Inicializa o calendário
+            async function initCalendar() {
+                try {
+                    const calendarEl = document.getElementById('calendar');
+                    const backlogData = await loadData();
+                    
+                    const events = backlogData.registros.map(entry => ({
+                        title: `${entry.analista}`,
+                        start: entry.data,
+                        extendedProps: {
+                            analista: entry.analista,
+                            texto: entry.texto
+                        },
+                        className: 'completo'
+                    }));
 
-        // Limpar formulário
-        clearFormBtn.addEventListener('click', function() {
-            backlogForm.reset();
-            dataBacklog.valueAsDate = new Date();
-            backlogText.innerHTML = '';
-        });
+                    const calendar = new FullCalendar.Calendar(calendarEl, {
+                        initialView: 'dayGridMonth',
+                        locale: 'pt-br',
+                        headerToolbar: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                        },
+                        events: events,
+                        eventClick: function(info) {
+                            const { analista, texto } = info.event.extendedProps;
+                            const data = info.event.start.toLocaleDateString('pt-BR');
+                            
+                            const modal = document.createElement('div');
+                            modal.style.position = 'fixed';
+                            modal.style.top = '0';
+                            modal.style.left = '0';
+                            modal.style.width = '100%';
+                            modal.style.height = '100%';
+                            modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
+                            modal.style.display = 'flex';
+                            modal.style.justifyContent = 'center';
+                            modal.style.alignItems = 'center';
+                            modal.style.zIndex = '10000';
+                            
+                            const modalContent = document.createElement('div');
+                            modalContent.style.backgroundColor = 'var(--glass)';
+                            modalContent.style.padding = '2rem';
+                            modalContent.style.borderRadius = '0.5rem';
+                            modalContent.style.maxWidth = '800px';
+                            modalContent.style.width = '90%';
+                            modalContent.style.maxHeight = '80vh';
+                            modalContent.style.overflow = 'auto';
+                            modalContent.innerHTML = `
+                                <h3 style="margin-bottom: 1rem; color: var(--accent)">Validação de Backlog</h3>
+                                <p><strong>Analista:</strong> ${analista}</p>
+                                <p><strong>Data:</strong> ${data}</p>
+                                <div style="margin-top: 1rem; border-top: 1px solid var(--glass-border); padding-top: 1rem">
+                                    ${texto}
+                                </div>
+                                <button style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--accent); color: white; border: none; border-radius: 0.25rem; cursor: pointer">Fechar</button>
+                            `;
+                            
+                            modal.appendChild(modalContent);
+                            document.body.appendChild(modal);
+                            
+                            modal.querySelector('button').addEventListener('click', () => {
+                                document.body.removeChild(modal);
+                            });
+                        }
+                    });
 
-        // Salvar backlog
-        backlogForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const analista = analistaSelect.value;
-            const data = dataBacklog.value;
-            const texto = backlogText.innerHTML.trim();
-
-            if (!analista || !data || !texto) {
-                alert('Por favor, preencha todos os campos obrigatórios!');
-                return;
+                    calendar.render();
+                } catch (error) {
+                    console.error('Erro ao inicializar calendário:', error);
+                }
             }
 
-            try {
-                // Verificar regras antes de salvar
-                const alreadySaved = await checkAnalistaBacklog(analista, data);
-                if (alreadySaved) {
-                    alert('Este analista já salvou um backlog nesta data. Apenas um registro por analista por dia é permitido.');
-                    return;
-                }
-
-                const analistasCount = await countAnalistasDia(data);
-                if (analistasCount >= 4) {
-                    alert('Limite máximo de 4 analistas diferentes por dia atingido. Não é possível salvar mais backlogs nesta data.');
-                    return;
-                }
-
-                // Mostrar estado de carregamento
-                saveButton.disabled = true;
-                saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
-                
-                const backlogData = await loadData();
-                
-                const newRecord = {
-                    id: backlogData.registros.length + 1,
-                    analista,
-                    data,
-                    texto,
-                    timestamp: new Date().toISOString()
-                };
-
-                backlogData.registros.push(newRecord);
-                backlogData.meta.ultima_atualizacao = new Date().toISOString();
-
-                await saveData(backlogData);
-                
-                // Feedback visual
-                saveButton.innerHTML = '<i class="fas fa-check"></i> Salvo com Sucesso!';
-                saveButton.style.backgroundColor = '#34a853';
-                
-                setTimeout(() => {
-                    saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Backlog';
-                    saveButton.style.backgroundColor = '';
-                    saveButton.disabled = false;
-                }, 2000);
-
-                // Limpa o texto mas mantém os outros campos
-                backlogText.innerHTML = '';
-                
-                // Atualiza dashboard se estiver visível
-                if (document.getElementById('dashboard-section').style.display !== 'none') {
-                    initCalendar();
-                    updateStats();
-                }
-            } catch (error) {
-                console.error('Erro ao salvar:', error);
-                alert('Erro ao salvar os dados. Verifique o console para detalhes.');
-                saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Backlog';
-                saveButton.disabled = false;
-            }
-        });
-
-        // Inicializa o calendário
-        async function initCalendar() {
-            try {
-                const calendarEl = document.getElementById('calendar');
-                const backlogData = await loadData();
-                
-                const events = backlogData.registros.map(entry => ({
-                    title: `${entry.analista}`,
-                    start: entry.data,
-                    extendedProps: {
-                        analista: entry.analista,
-                        texto: entry.texto
-                    },
-                    className: 'completo'
-                }));
-
-                const calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: 'dayGridMonth',
-                    locale: 'pt-br',
-                    headerToolbar: {
-                        left: 'prev,next today',
-                        center: 'title',
-                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                    },
-                    events: events,
-                    eventClick: function(info) {
-                        const { analista, texto } = info.event.extendedProps;
-                        const data = info.event.start.toLocaleDateString('pt-BR');
-                        
-                        // Cria um modal para mostrar o conteúdo formatado
-                        const modal = document.createElement('div');
-                        modal.style.position = 'fixed';
-                        modal.style.top = '0';
-                        modal.style.left = '0';
-                        modal.style.width = '100%';
-                        modal.style.height = '100%';
-                        modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
-                        modal.style.display = 'flex';
-                        modal.style.justifyContent = 'center';
-                        modal.style.alignItems = 'center';
-                        modal.style.zIndex = '10000';
-                        
-                        const modalContent = document.createElement('div');
-                        modalContent.style.backgroundColor = 'var(--glass)';
-                        modalContent.style.padding = '2rem';
-                        modalContent.style.borderRadius = '0.5rem';
-                        modalContent.style.maxWidth = '800px';
-                        modalContent.style.width = '90%';
-                        modalContent.style.maxHeight = '80vh';
-                        modalContent.style.overflow = 'auto';
-                        modalContent.innerHTML = `
-                            <h3 style="margin-bottom: 1rem; color: var(--accent)">Validação de Backlog</h3>
-                            <p><strong>Analista:</strong> ${analista}</p>
-                            <p><strong>Data:</strong> ${data}</p>
-                            <div style="margin-top: 1rem; border-top: 1px solid var(--glass-border); padding-top: 1rem">
-                                ${texto}
-                            </div>
-                            <button style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--accent); color: white; border: none; border-radius: 0.25rem; cursor: pointer">Fechar</button>
-                        `;
-                        
-                        modal.appendChild(modalContent);
-                        document.body.appendChild(modal);
-                        
-                        // Fecha o modal ao clicar no botão
-                        modal.querySelector('button').addEventListener('click', () => {
-                            document.body.removeChild(modal);
-                        });
+            // Atualiza estatísticas
+            async function updateStats() {
+                try {
+                    const backlogData = await loadData();
+                    const registros = backlogData.registros;
+                    const today = new Date().toISOString().split('T')[0];
+                    const currentMonth = new Date().getMonth() + 1;
+                    const currentYear = new Date().getFullYear();
+                    
+                    const todayEntries = registros.filter(entry => entry.data === today);
+                    const monthEntries = registros.filter(entry => {
+                        const entryDate = new Date(entry.data);
+                        return entryDate.getMonth() + 1 === currentMonth && entryDate.getFullYear() === currentYear;
+                    });
+                    
+                    const analystCount = {};
+                    registros.forEach(entry => {
+                        analystCount[entry.analista] = (analystCount[entry.analista] || 0) + 1;
+                    });
+                    
+                    let topAnalyst = 'N/A';
+                    let topCount = 0;
+                    for (const [analyst, count] of Object.entries(analystCount)) {
+                        if (count > topCount) {
+                            topAnalyst = analyst;
+                            topCount = count;
+                        }
                     }
-                });
-
-                calendar.render();
-            } catch (error) {
-                console.error('Erro ao inicializar calendário:', error);
-            }
-        }
-
-        // Atualiza estatísticas
-        async function updateStats() {
-            try {
-                const backlogData = await loadData();
-                const registros = backlogData.registros;
-                const today = new Date().toISOString().split('T')[0];
-                const currentMonth = new Date().getMonth() + 1;
-                const currentYear = new Date().getFullYear();
-                
-                // Filtros
-                const todayEntries = registros.filter(entry => entry.data === today);
-                const monthEntries = registros.filter(entry => {
-                    const entryDate = new Date(entry.data);
-                    return entryDate.getMonth() + 1 === currentMonth && entryDate.getFullYear() === currentYear;
-                });
-                
-                // Contagem por analista
-                const analystCount = {};
-                registros.forEach(entry => {
-                    analystCount[entry.analista] = (analystCount[entry.analista] || 0) + 1;
-                });
-                
-                // Analista mais ativo
-                let topAnalyst = 'N/A';
-                let topCount = 0;
-                for (const [analyst, count] of Object.entries(analystCount)) {
-                    if (count > topCount) {
-                        topAnalyst = analyst;
-                        topCount = count;
-                    }
+                    
+                    statsToday.textContent = todayEntries.length;
+                    statsMonth.textContent = monthEntries.length;
+                    statsTopAnalyst.textContent = topAnalyst;
+                    statsTopCount.textContent = `${topCount} validações`;
+                } catch (error) {
+                    console.error('Erro ao atualizar estatísticas:', error);
                 }
-                
-                // Atualiza UI
-                statsToday.textContent = todayEntries.length;
-                statsMonth.textContent = monthEntries.length;
-                statsTopAnalyst.textContent = topAnalyst;
-                statsTopCount.textContent = `${topCount} validações`;
-            } catch (error) {
-                console.error('Erro ao atualizar estatísticas:', error);
             }
-        }
 
-        // Inicializa a seção de anotações como padrão
-        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializa a seção de anotações como padrão
             document.querySelector('.nav-item[data-section="notes"]').click();
             
             // Teste inicial da conexão com JSONBin
@@ -1287,7 +1352,7 @@
             }).catch(error => {
                 console.error('Falha na conexão com JSONBin:', error);
             });
-        });
+        }
     </script>
 </body>
 </html>
