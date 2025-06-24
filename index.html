@@ -1,1748 +1,1873 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Backlog Management Pro | Sistema de Gestão</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css"
+    />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        #monthlyChart {
-          background: rgba(255, 255, 255, 0.1); /* fundo semi-transparente */
-          backdrop-filter: blur(10px);          /* efeito de desfoque */
-          -webkit-backdrop-filter: blur(10px);  /* suporte para Safari */
-          border-radius: 16px;
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-          padding: 16px;
-        }
-        /* Splash Screen Styles - Versão com profundidade e fundo branco */
-        #splash-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: white;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.5s ease-out;
-        }
-        
-        #splash-logo-container {
-            position: relative;
-            width: 220px;
-            height: 220px;
-            margin-bottom: 30px;
-            perspective: 1000px;
-        }
-        
-        #splash-logo {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));
-            transform-style: preserve-3d;
-            animation: float 3s ease-in-out infinite;
-        }
-        
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0) rotateY(0deg);
-                filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));
-            }
-            50% {
-                transform: translateY(-15px) rotateY(5deg);
-                filter: drop-shadow(0 15px 30px rgba(0,0,0,0.3));
-            }
-        }
-        
-        .splash-spinner {
-            width: 70px;
-            height: 70px;
-            border: 8px solid rgba(66, 133, 244, 0.2);
-            border-top-color: #4285f4;
-            border-radius: 50%;
-            animation: spin 1s ease-in-out infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .splash-text {
-            margin-top: 20px;
-            color: #333;
-            font-size: 1.2rem;
-            font-weight: 500;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
-
-        :root {
-            --primary: #1a73e8;
-            --primary-dark: #1557b0;
-            --secondary: #0d47a1;
-            --accent: #4285f4;
-            --light: #2d3748;
-            --dark: #e2e8f0;
-            --gray: #a0aec0;
-            --light-gray: #4a5568;
-            --success: #34a853;
-            --warning: #fbbc05;
-            --danger: #ea4335;
-            --white: rgba(26, 32, 44, 0.8);
-            --sidebar-width: 280px;
-            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            --glass: rgba(26, 32, 44, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.1);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-
-        body {
-            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
-            color: var(--dark);
-            line-height: 1.6;
-            display: row;
-            min-height: 100vh;
-        }
-
-        .sidebar {
-            width: var(--sidebar-width);
-            background: var(--glass);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            display: flex;
-            flex-direction: column;
-            transition: var(--transition);
-            z-index: 100;
-            border-right: 1px solid var(--glass-border);
-        }
-
-        .sidebar-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--glass-border);
-            display: flex;
-            align-items: center;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--dark);
-        }
-
-        .logo-icon {
-            color: var(--accent);
-            font-size: 1.5rem;
-        }
-
-        .nav-menu {
-            flex: 1;
-            padding: 0 0;
-            overflow-y: auto;
-        }
-
-        .nav-title {
-            padding: 0.5rem 1.5rem;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--gray);
-            font-weight: 600;
-        }
-
-        .nav-item {
-            margin: 0.25rem 0.75rem;
-            border-radius: 0.5rem;
-            transition: var(--transition);
-        }
-
-        .nav-item:hover {
-            background-color: rgba(66, 133, 244, 0.1);
-        }
-
-        .nav-item.active {
-            background-color: rgba(66, 133, 244, 0.2);
-        }
-
-        .nav-item.active .nav-link {
-            color: var(--accent);
-        }
-
-        .nav-item.active .nav-icon {
-            color: var(--accent);
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            padding: 0.75rem 1rem;
-            text-decoration: none;
-            color: var(--dark);
-            font-weight: 500;
-            font-size: 0.9375rem;
-        }
-
-        .nav-icon {
-            margin-right: 0.75rem;
-            font-size: 1.1rem;
-            color: var(--gray);
-            width: 24px;
-            display: flex;
-            justify-content: center;
-        }
-
-        .user-panel {
-            padding: 1rem 1.5rem;
-            border-top: 1px solid var(--glass-border);
-            display: flex;
-            align-items: center;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--accent);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            margin-right: 0.75rem;
-            flex-shrink: 0;
-        }
-
-        .user-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .user-name {
-            font-weight: 600;
-            font-size: 0.9375rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            color: var(--dark);
-        }
-
-        .user-role {
-            font-size: 0.8125rem;
-            color: var(--gray);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-        }
-
-        .content-header {
-            padding: 1.5rem;
-            background: var(--glass);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--glass-border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .page-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--dark);
-        }
-
-        .breadcrumb {
-            display: flex;
-            align-items: center;
-            font-size: 0.875rem;
-            color: var(--gray);
-        }
-
-        .breadcrumb-item {
-            display: flex;
-            align-items: center;
-        }
-
-        .breadcrumb-item:not(:last-child)::after {
-            content: '/';
-            margin: 0 0.5rem;
-            color: var(--gray);
-        }
-
-        .breadcrumb-link {
-            color: var(--gray);
-            text-decoration: none;
-            transition: var(--transition);
-        }
-
-        .breadcrumb-link:hover {
-            color: var(--accent);
-        }
-
-        .content-body {
-            flex: 1;
-            padding: 1.5rem;
-            overflow-y: auto;
-        }
-
-        .card {
-            background: var(--glass);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--glass-border);
-            margin-bottom: 1.5rem;
-            transition: var(--transition);
-        }
-
-        .card:hover {
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
-            border-color: rgba(66, 133, 244, 0.3);
-        }
-
-        .card-header {
-            padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid var(--glass-border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .card-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: var(--dark);
-        }
-
-        .card-tools {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .card-body {
-            padding: 1.5rem;
-            min-height: 700px;
-        }
-
-        .form-row {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1.25rem;
-        }
-
-        .form-group {
-            flex: 1;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            font-size: 0.875rem;
-            color: var(--dark);
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--light-gray);
-            border-radius: 0.5rem;
-            font-size: 0.9375rem;
-            transition: var(--transition);
-            background-color: rgba(26, 32, 44, 0.5);
-            color: var(--dark);
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.15);
-            background-color: rgba(26, 32, 44, 0.7);
-        }
-
-        .form-select {
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23a0aec0' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 0.75rem center;
-            background-size: 16px 12px;
-        }
-
-        .editor-container {
-            border: 1px solid var(--light-gray);
-            border-radius: 0.5rem;
-            overflow: hidden;
-            background-color: rgba(26, 32, 44, 0.7);
-            width: 100%;
-        }
-
-        .toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.25rem;
-            padding: 0.5rem;
-            background-color: rgba(26, 32, 44, 0.9);
-            border-bottom: 1px solid var(--light-gray);
-        }
-
-        .toolbar-group {
-            display: flex;
-            gap: 0.25rem;
-            padding-right: 0.5rem;
-            border-right: 1px solid var(--light-gray);
-            margin-right: 0.5rem;
-        }
-
-        .toolbar-group:last-child {
-            border-right: none;
-            margin-right: 0;
-        }
-
-        .toolbar-btn {
-            background: none;
-            border: none;
-            color: var(--gray);
-            width: 32px;
-            height: 32px;
-            border-radius: 0.25rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: var(--transition);
-        }
-
-        .toolbar-btn:hover {
-            background-color: rgba(66, 133, 244, 0.2);
-            color: var(--accent);
-        }
-
-        .toolbar-btn.active {
-            background-color: rgba(66, 133, 244, 0.3);
-            color: var(--accent);
-        }
-
-        .color-picker {
-            width: 32px;
-            height: 32px;
-            padding: 0;
-            border: none;
-            cursor: pointer;
-            background: none;
-        }
-
-        .editor-content {
-            min-height: 600px;
-            max-height: 900px;
-            padding: 1rem;
-            outline: none;
-            overflow-y: auto;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.75rem 1.25rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            font-size: 0.9375rem;
-            cursor: pointer;
-            transition: var(--transition);
-            border: none;
-            gap: 0.5rem;
-        }
-
-        .btn-primary {
-            background-color: var(--accent);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background-color: var(--primary);
-            transform: translateY(-1px);
-        }
-
-        .btn-outline {
-            background-color: transparent;
-            border: 1px solid var(--light-gray);
-            color: var(--dark);
-        }
-
-        .btn-outline:hover {
-            background-color: rgba(66, 133, 244, 0.1);
-            border-color: var(--accent);
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 0.75rem;
-            justify-content: flex-end;
-            margin-top: 1rem;
-        }
-
-        .fc {
-            background-color: var(--glass);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 0.75rem;
-            overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--glass-border);
-            color: var(--dark);
-        }
-
-        .fc-header-toolbar {
-            padding: 1rem;
-            margin-bottom: 0 !important;
-        }
-
-        .fc-toolbar-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--dark);
-        }
-
-        .fc-button {
-            background-color: var(--glass) !important;
-            border: 1px solid var(--light-gray) !important;
-            color: var(--dark) !important;
-            text-transform: capitalize !important;
-            font-weight: 500 !important;
-            transition: var(--transition) !important;
-        }
-
-        .fc-button:hover {
-            background-color: rgba(66, 133, 244, 0.1) !important;
-        }
-
-        .fc-button-primary:not(:disabled).fc-button-active {
-            background-color: var(--accent) !important;
-            border-color: var(--accent) !important;
-            color: white !important;
-        }
-
-        .fc-daygrid-event {
-            border-radius: 0.25rem !important;
-            padding: 0.25rem 0.5rem !important;
-            font-size: 0.8125rem !important;
-            background-color: rgba(66, 133, 244, 0.2) !important;
-            border: none !important;
-        }
-
-        .fc-event-main {
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .stat-card {
-            background: var(--glass);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--glass-border);
-        }
-
-        .stat-title {
-            font-size: 0.875rem;
-            color: var(--gray);
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-
-        .stat-value {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--dark);
-            margin-bottom: 0.25rem;
-        }
-
-        .stat-change {
-            font-size: 0.8125rem;
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-
-        .stat-change.positive {
-            color: var(--success);
-        }
-
-        .stat-change.negative {
-            color: var(--danger);
-        }
-
-        /* Estilos para os novos elementos do dashboard */
-        .analyst-stats-container {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .analyst-stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .analyst-stat-card {
-            background: var(--glass);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--glass-border);
-        }
-
-        .analyst-stat-card.wide {
-            grid-column: span 2;
-        }
-
-        .analyst-ranking {
-            margin-top: 1rem;
-        }
-
-        .analyst-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid var(--glass-border);
-        }
-
-        .analyst-item:last-child {
-            border-bottom: none;
-        }
-
-        .analyst-name {
-            font-weight: 500;
-            color: var(--dark);
-        }
-
-        .analyst-count {
-            font-weight: 600;
-            color: var(--accent);
-        }
-
-        .analyst-details {
-            margin-top: 1rem;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .analyst-detail-item {
-            padding: 0.75rem 0;
-            border-bottom: 1px solid var(--glass-border);
-        }
-
-        .analyst-detail-item:last-child {
-            border-bottom: none;
-        }
-
-        .chart-container {
-            width: 100%;
-            height: 400px;
-            margin-top: 1.5rem;
-        }
-
-        @media (max-width: 992px) {
-            .sidebar {
-                position: fixed;
-                left: -100%;
-                top: 0;
-                bottom: 0;
-                z-index: 1000;
-            }
-
-            .sidebar.active {
-                left: 0;
-            }
-
-            .main-content {
-                margin-left: 0;
-            }
-
-            .analyst-stat-card.wide {
-                grid-column: span 1;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .content-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
-            }
-
-            .form-row {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .action-buttons {
-                width: 100%;
-                justify-content: space-between;
-            }
-
-            .analyst-stats-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Classes para formatação de texto */
-        .text-bold {
-            font-weight: bold;
-        }
-
-        .text-italic {
-            font-style: italic;
-        }
-
-        .text-underline {
-            text-decoration: underline;
-        }
-
-        .text-highlight {
-            background-color: yellow;
-            color: black;
-        }
-
-        /* Scrollbar personalizada */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: var(--light-gray);
-            border-radius: 10px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--gray);
-        }
+      #monthlyChart {
+        background: rgba(255, 255, 255, 0.1); /* fundo semi-transparente */
+        backdrop-filter: blur(10px);          /* efeito de desfoque */
+        -webkit-backdrop-filter: blur(10px);  /* suporte para Safari */
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        padding: 16px;
+      }
+      /* Splash Screen Styles - Versão com profundidade e fundo branco */
+      #splash-screen {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: white;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          z-index: 9999;
+          transition: opacity 0.5s ease-out;
+      }
+
+      #splash-logo-container {
+          position: relative;
+          width: 220px;
+          height: 220px;
+          margin-bottom: 30px;
+          perspective: 1000px;
+      }
+
+      #splash-logo {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));
+          transform-style: preserve-3d;
+          animation: float 3s ease-in-out infinite;
+      }
+
+      @keyframes float {
+          0%, 100% {
+              transform: translateY(0) rotateY(0deg);
+              filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));
+          }
+          50% {
+              transform: translateY(-15px) rotateY(5deg);
+              filter: drop-shadow(0 15px 30px rgba(0,0,0,0.3));
+          }
+      }
+
+      .splash-spinner {
+          width: 70px;
+          height: 70px;
+          border: 8px solid rgba(66, 133, 244, 0.2);
+          border-top-color: #4285f4;
+          border-radius: 50%;
+          animation: spin 1s ease-in-out infinite;
+      }
+
+      @keyframes spin {
+          to { transform: rotate(360deg); }
+      }
+
+      .splash-text {
+          margin-top: 20px;
+          color: #333;
+          font-size: 1.2rem;
+          font-weight: 500;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      }
+
+      :root {
+          --primary: #1a73e8;
+          --primary-dark: #1557b0;
+          --secondary: #0d47a1;
+          --accent: #4285f4;
+          --light: #2d3748;
+          --dark: #e2e8f0;
+          --gray: #a0aec0;
+          --light-gray: #4a5568;
+          --success: #34a853;
+          --warning: #fbbc05;
+          --danger: #ea4335;
+          --white: rgba(26, 32, 44, 0.8);
+          --sidebar-width: 280px;
+          --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+          --glass: rgba(26, 32, 44, 0.7);
+          --glass-border: rgba(255, 255, 255, 0.1);
+      }
+
+      * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+
+      body {
+          background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+          color: var(--dark);
+          line-height: 1.6;
+          display: row;
+          min-height: 100vh;
+      }
+
+      .sidebar {
+          width: var(--sidebar-width);
+          background: var(--glass);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          display: flex;
+          flex-direction: column;
+          transition: var(--transition);
+          z-index: 100;
+          border-right: 1px solid var(--glass-border);
+      }
+
+      .sidebar-header {
+          padding: 1.5rem;
+          border-bottom: 1px solid var(--glass-border);
+          display: flex;
+          align-items: center;
+      }
+
+      .logo {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: var(--dark);
+      }
+
+      .logo-icon {
+          color: var(--accent);
+          font-size: 1.5rem;
+      }
+
+      .nav-menu {
+          flex: 1;
+          padding: 0 0;
+          overflow-y: auto;
+      }
+
+      .nav-title {
+          padding: 0.5rem 1.5rem;
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          color: var(--gray);
+          font-weight: 600;
+      }
+
+      .nav-item {
+          margin: 0.25rem 0.75rem;
+          border-radius: 0.5rem;
+          transition: var(--transition);
+      }
+
+      .nav-item:hover {
+          background-color: rgba(66, 133, 244, 0.1);
+      }
+
+      .nav-item.active {
+          background-color: rgba(66, 133, 244, 0.2);
+      }
+
+      .nav-item.active .nav-link {
+          color: var(--accent);
+      }
+
+      .nav-item.active .nav-icon {
+          color: var(--accent);
+      }
+
+      .nav-link {
+          display: flex;
+          align-items: center;
+          padding: 0.75rem 1rem;
+          text-decoration: none;
+          color: var(--dark);
+          font-weight: 500;
+          font-size: 0.9375rem;
+      }
+
+      .nav-icon {
+          margin-right: 0.75rem;
+          font-size: 1.1rem;
+          color: var(--gray);
+          width: 24px;
+          display: flex;
+          justify-content: center;
+      }
+
+      .user-panel {
+          padding: 1rem 1.5rem;
+          border-top: 1px solid var(--glass-border);
+          display: flex;
+          align-items: center;
+      }
+
+      .user-avatar {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background-color: var(--accent);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: 600;
+          margin-right: 0.75rem;
+          flex-shrink: 0;
+      }
+
+      .user-info {
+          flex: 1;
+          min-width: 0;
+      }
+
+      .user-name {
+          font-weight: 600;
+          font-size: 0.9375rem;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          color: var(--dark);
+      }
+
+      .user-role {
+          font-size: 0.8125rem;
+          color: var(--gray);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+      }
+
+      .main-content {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+      }
+
+      .content-header {
+          padding: 1.5rem;
+          background: var(--glass);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border-bottom: 1px solid var(--glass-border);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+      }
+
+      .page-title {
+          font-size: 1.5rem;
+          font-weight: 600;
+          color: var(--dark);
+      }
+
+      .breadcrumb {
+          display: flex;
+          align-items: center;
+          font-size: 0.875rem;
+          color: var(--gray);
+      }
+
+      .breadcrumb-item {
+          display: flex;
+          align-items: center;
+      }
+
+      .breadcrumb-item:not(:last-child)::after {
+          content: '/';
+          margin: 0 0.5rem;
+          color: var(--gray);
+      }
+
+      .breadcrumb-link {
+          color: var(--gray);
+          text-decoration: none;
+          transition: var(--transition);
+      }
+
+      .breadcrumb-link:hover {
+          color: var(--accent);
+      }
+
+      .content-body {
+          flex: 1;
+          padding: 1.5rem;
+          overflow-y: auto;
+      }
+
+      .card {
+          background: var(--glass);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border-radius: 0.75rem;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          border: 1px solid var(--glass-border);
+          margin-bottom: 1.5rem;
+          transition: var(--transition);
+      }
+
+      .card:hover {
+          box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+          border-color: rgba(66, 133, 244, 0.3);
+      }
+
+      .card-header {
+          padding: 1.25rem 1.5rem;
+          border-bottom: 1px solid var(--glass-border);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+      }
+
+      .card-title {
+          font-size: 1.125rem;
+          font-weight: 600;
+          color: var(--dark);
+      }
+
+      .card-tools {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+      }
+
+      .card-body {
+          padding: 1.5rem;
+          min-height: 700px;
+      }
+
+      .form-row {
+          display: flex;
+          gap: 1rem;
+          margin-bottom: 1.25rem;
+      }
+
+      .form-group {
+          flex: 1;
+      }
+
+      .form-label {
+          display: block;
+          margin-bottom: 0.5rem;
+          font-weight: 500;
+          font-size: 0.875rem;
+          color: var(--dark);
+      }
+
+      .form-control {
+          width: 100%;
+          padding: 0.75rem 1rem;
+          border: 1px solid var(--light-gray);
+          border-radius: 0.5rem;
+          font-size: 0.9375rem;
+          transition: var(--transition);
+          background-color: rgba(26, 32, 44, 0.5);
+          color: var(--dark);
+      }
+
+      .form-control:focus {
+          outline: none;
+          border-color: var(--accent);
+          box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.15);
+          background-color: rgba(26, 32, 44, 0.7);
+      }
+
+      .form-select {
+          appearance: none;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23a0aec0' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: right 0.75rem center;
+          background-size: 16px 12px;
+      }
+
+      .editor-container {
+          border: 1px solid var(--light-gray);
+          border-radius: 0.5rem;
+          overflow: hidden;
+          background-color: rgba(26, 32, 44, 0.7);
+          width: 100%;
+      }
+
+      .toolbar {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.25rem;
+          padding: 0.5rem;
+          background-color: rgba(26, 32, 44, 0.9);
+          border-bottom: 1px solid var(--light-gray);
+      }
+
+      .toolbar-group {
+          display: flex;
+          gap: 0.25rem;
+          padding-right: 0.5rem;
+          border-right: 1px solid var(--light-gray);
+          margin-right: 0.5rem;
+      }
+
+      .toolbar-group:last-child {
+          border-right: none;
+          margin-right: 0;
+      }
+
+      .toolbar-btn {
+          background: none;
+          border: none;
+          color: var(--gray);
+          width: 32px;
+          height: 32px;
+          border-radius: 0.25rem;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: var(--transition);
+      }
+
+      .toolbar-btn:hover {
+          background-color: rgba(66, 133, 244, 0.2);
+          color: var(--accent);
+      }
+
+      .toolbar-btn.active {
+          background-color: rgba(66, 133, 244, 0.3);
+          color: var(--accent);
+      }
+
+      .color-picker {
+          width: 32px;
+          height: 32px;
+          padding: 0;
+          border: none;
+          cursor: pointer;
+          background: none;
+      }
+
+      .editor-content {
+          min-height: 600px;
+          max-height: 900px;
+          padding: 1rem;
+          outline: none;
+          overflow-y: auto;
+      }
+
+      .btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0.75rem 1.25rem;
+          border-radius: 0.5rem;
+          font-weight: 500;
+          font-size: 0.9375rem;
+          cursor: pointer;
+          transition: var(--transition);
+          border: none;
+          gap: 0.5rem;
+      }
+
+      .btn-primary {
+          background-color: var(--accent);
+          color: white;
+      }
+
+      .btn-primary:hover {
+          background-color: var(--primary);
+          transform: translateY(-1px);
+      }
+
+      .btn-outline {
+          background-color: transparent;
+          border: 1px solid var(--light-gray);
+          color: var(--dark);
+      }
+
+      .btn-outline:hover {
+          background-color: rgba(66, 133, 244, 0.1);
+          border-color: var(--accent);
+      }
+
+      .action-buttons {
+          display: flex;
+          gap: 0.75rem;
+          justify-content: flex-end;
+          margin-top: 1rem;
+      }
+
+      .fc {
+          background-color: var(--glass);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border-radius: 0.75rem;
+          overflow: hidden;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          border: 1px solid var(--glass-border);
+          color: var(--dark);
+      }
+
+      .fc-header-toolbar {
+          padding: 1rem;
+          margin-bottom: 0 !important;
+      }
+
+      .fc-toolbar-title {
+          font-size: 1.25rem;
+          font-weight: 600;
+          color: var(--dark);
+      }
+
+      .fc-button {
+          background-color: var(--glass) !important;
+          border: 1px solid var(--light-gray) !important;
+          color: var(--dark) !important;
+          text-transform: capitalize !important;
+          font-weight: 500 !important;
+          transition: var(--transition) !important;
+      }
+
+      .fc-button:hover {
+          background-color: rgba(66, 133, 244, 0.1) !important;
+      }
+
+      .fc-button-primary:not(:disabled).fc-button-active {
+          background-color: var(--accent) !important;
+          border-color: var(--accent) !important;
+          color: white !important;
+      }
+
+      .fc-daygrid-event {
+          border-radius: 0.25rem !important;
+          padding: 0.25rem 0.5rem !important;
+          font-size: 0.8125rem !important;
+          background-color: rgba(66, 133, 244, 0.2) !important;
+          border: none !important;
+      }
+
+      .fc-event-main {
+          display: flex;
+          align-items: center;
+          gap: 0.25rem;
+      }
+
+      .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+          gap: 1.5rem;
+          margin-bottom: 1.5rem;
+      }
+
+      .stat-card {
+          background: var(--glass);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border-radius: 0.75rem;
+          padding: 1.5rem;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          border: 1px solid var(--glass-border);
+      }
+
+      .stat-title {
+          font-size: 0.875rem;
+          color: var(--gray);
+          margin-bottom: 0.5rem;
+          font-weight: 500;
+      }
+
+      .stat-value {
+          font-size: 1.75rem;
+          font-weight: 700;
+          color: var(--dark);
+          margin-bottom: 0.25rem;
+      }
+
+      .stat-change {
+          font-size: 0.8125rem;
+          display: flex;
+          align-items: center;
+          gap: 0.25rem;
+      }
+
+      .stat-change.positive {
+          color: var(--success);
+      }
+
+      .stat-change.negative {
+          color: var(--danger);
+      }
+
+      /* Estilos para os novos elementos do dashboard */
+      .analyst-stats-container {
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+      }
+
+      .analyst-stats-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 1.5rem;
+          margin-bottom: 1.5rem;
+      }
+
+      .analyst-stat-card {
+          background: var(--glass);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border-radius: 0.75rem;
+          padding: 1.5rem;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          border: 1px solid var(--glass-border);
+      }
+
+      .analyst-stat-card.wide {
+          grid-column: span 2;
+      }
+
+      .analyst-ranking {
+          margin-top: 1rem;
+      }
+
+      .analyst-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.75rem 0;
+          border-bottom: 1px solid var(--glass-border);
+      }
+
+      .analyst-item:last-child {
+          border-bottom: none;
+      }
+
+      .analyst-name {
+          font-weight: 500;
+          color: var(--dark);
+      }
+
+      .analyst-count {
+          font-weight: 600;
+          color: var(--accent);
+      }
+
+      .analyst-details {
+          margin-top: 1rem;
+          max-height: 300px;
+          overflow-y: auto;
+      }
+
+      .analyst-detail-item {
+          padding: 0.75rem 0;
+          border-bottom: 1px solid var(--glass-border);
+      }
+
+      .analyst-detail-item:last-child {
+          border-bottom: none;
+      }
+
+      .chart-container {
+          width: 100%;
+          height: 400px;
+          margin-top: 1.5rem;
+      }
+
+      @media (max-width: 992px) {
+          .sidebar {
+              position: fixed;
+              left: -100%;
+              top: 0;
+              bottom: 0;
+              z-index: 1000;
+          }
+
+          .sidebar.active {
+              left: 0;
+          }
+
+          .main-content {
+              margin-left: 0;
+          }
+
+          .analyst-stat-card.wide {
+              grid-column: span 1;
+          }
+      }
+
+      @media (max-width: 768px) {
+          .content-header {
+              flex-direction: column;
+              align-items: flex-start;
+              gap: 1rem;
+          }
+
+          .form-row {
+              flex-direction: column;
+              gap: 1rem;
+          }
+
+          .action-buttons {
+              width: 100%;
+              justify-content: space-between;
+          }
+
+          .analyst-stats-grid {
+              grid-template-columns: 1fr;
+          }
+      }
+
+      /* Classes para formatação de texto */
+      .text-bold {
+          font-weight: bold;
+      }
+
+      .text-italic {
+          font-style: italic;
+      }
+
+      .text-underline {
+          text-decoration: underline;
+      }
+
+      .text-highlight {
+          background-color: yellow;
+          color: black;
+      }
+
+      /* Scrollbar personalizada */
+      ::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.1);
+          border-radius: 10px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+          background: var(--light-gray);
+          border-radius: 10px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+          background: var(--gray);
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <!-- Splash Screen Atualizado -->
     <div id="splash-screen">
-        <div id="splash-logo-container">
-            <img id="splash-logo" src="./logobacklog.png">
-        </div>
-        <div class="splash-spinner"></div>
-        <div class="splash-text">Carregando Sistema...</div>
+      <div id="splash-logo-container">
+        <img id="splash-logo" src="./logobacklog.png" />
+      </div>
+      <div class="splash-spinner"></div>
+      <div class="splash-text">Carregando Sistema...</div>
     </div>
 
     <!-- Conteúdo principal (oculto inicialmente) -->
     <div id="main-content" style="display: none;">
-        <!-- Sidebar -->
-        <div class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <div class="logo">
-                    <i class="fas fa-tasks logo-icon"></i>
-                    <span>BacklogPro</span>
-                </div>
-            </div>
-            
-            <div class="nav-menu">
-                <div class="nav-title">Menu Principal</div>
-                
-                <div class="nav-item active" data-section="notes">
-                    <a href="#" class="nav-link">
-                        <i class="fas fa-edit nav-icon"></i>
-                        <span>Anotações</span>
-                    </a>
-                </div>
-                
-                <div class="nav-item" data-section="dashboard">
-                    <a href="#" class="nav-link">
-                        <i class="fas fa-calendar-alt nav-icon"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </div>
-            </div>
-            
-            <div class="user-panel">
-                <div class="user-avatar">AD</div>
-                <div class="user-info">
-                    <div class="user-name">Admin</div>
-                    <div class="user-role">Administrador</div>
-                </div>
-            </div>
+      <!-- Sidebar -->
+      <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <div class="logo">
+            <i class="fas fa-tasks logo-icon"></i>
+            <span>BacklogPro</span>
+          </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Content Header -->
-            <div class="content-header">
-                <div>
-                    <h1 class="page-title">Anotações</h1>
-                    <div class="breadcrumb">
-                        <div class="breadcrumb-item">
-                            <a href="#" class="breadcrumb-link">Home</a>
-                        </div>
-                        <div class="breadcrumb-item">
-                            <span>Anotações</span>
-                        </div>
-                    </div>
-                </div>
-                
+        <div class="nav-menu">
+          <div class="nav-title">Menu Principal</div>
+
+          <div class="nav-item active" data-section="notes">
+            <a href="#" class="nav-link">
+              <i class="fas fa-edit nav-icon"></i>
+              <span>Anotações</span>
+            </a>
+          </div>
+
+          <div class="nav-item" data-section="dashboard">
+            <a href="#" class="nav-link">
+              <i class="fas fa-calendar-alt nav-icon"></i>
+              <span>Dashboard</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="user-panel">
+          <div class="user-avatar">AD</div>
+          <div class="user-info">
+            <div class="user-name">Admin</div>
+            <div class="user-role">Administrador</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <!-- Content Header -->
+        <div class="content-header">
+          <div>
+            <h1 class="page-title">Anotações</h1>
+            <div class="breadcrumb">
+              <div class="breadcrumb-item">
+                <a href="#" class="breadcrumb-link">Home</a>
+              </div>
+              <div class="breadcrumb-item">
+                <span>Anotações</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-tools">
+            <button class="btn btn-outline btn-icon" id="sidebar-toggle">
+              <i class="fas fa-bars"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Content Body -->
+        <div class="content-body">
+          <!-- Notes Section -->
+          <div class="section-content" id="notes-section">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Registro de Backlog Diário</h3>
                 <div class="card-tools">
-                    <button class="btn btn-outline btn-icon" id="sidebar-toggle">
-                        <i class="fas fa-bars"></i>
-                    </button>
+                  <button class="btn btn-outline">
+                    <i class="fas fa-history"></i> Histórico
+                  </button>
                 </div>
-            </div>
-            
-            <!-- Content Body -->
-            <div class="content-body">
-                <!-- Notes Section -->
-                <div class="section-content" id="notes-section">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Registro de Backlog Diário</h3>
-                            <div class="card-tools">
-                                <button class="btn btn-outline">
-                                    <i class="fas fa-history"></i> Histórico
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="card-body">
-                            <form id="backlog-form">
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label class="form-label">Analista</label>
-                                        <select class="form-control form-select" id="analista-select" required>
-                                            <option value="">Selecione o analista</option>
-                                            <option value="DELANO">DELANO</option>
-                                            <option value="HERBETH">HERBETH</option>
-                                            <option value="WELLIGTON">WELLIGTON</option>
-                                            <option value="EDMUNDO">EDMUNDO</option>
-                                            <option value="SIDNEY">SIDNEY</option>
-                                            <option value="MARCIO">MARCIO</option>
-                                            <option value="HELIELTON">HELIELTON</option>
-                                            <option value="ROBSON">ROBSON</option>
-                                            <option value="WYLLAME">WYLLAME</option>
-                                            <option value="DARLYSON">DARLYSON</option>
-                                            <option value="MURILO">MURILO</option>
-                                            <option value="ONOFRE">ONOFRE</option>
-                                            <option value="LYNNA">LYNNA</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Data</label>
-                                        <input type="date" class="form-control" id="data-backlog" required>
-                                    </div>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label class="form-label">Backlog Validado</label>
-                                    <div class="editor-container">
-                                        <div class="toolbar">
-                                            <div class="toolbar-group">
-                                                <button type="button" class="toolbar-btn" data-command="bold" title="Negrito (Ctrl+B)">
-                                                    <i class="fas fa-bold"></i>
-                                                </button>
-                                                <button type="button" class="toolbar-btn" data-command="italic" title="Itálico (Ctrl+I)">
-                                                    <i class="fas fa-italic"></i>
-                                                </button>
-                                                <button type="button" class="toolbar-btn" data-command="underline" title="Sublinhado (Ctrl+U)">
-                                                    <i class="fas fa-underline"></i>
-                                                </button>
-                                            </div>
-                                            
-                                            <div class="toolbar-group">
-                                                <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="Lista não ordenada">
-                                                    <i class="fas fa-list-ul"></i>
-                                                </button>
-                                                <button type="button" class="toolbar-btn" data-command="insertOrderedList" title="Lista ordenada">
-                                                    <i class="fas fa-list-ol"></i>
-                                                </button>
-                                            </div>
-                                            
-                                            <div class="toolbar-group">
-                                                <button type="button" class="toolbar-btn" data-command="hiliteColor" data-value="yellow" title="Marcador de texto">
-                                                    <i class="fas fa-highlighter"></i>
-                                                </button>
-                                                <input type="color" class="color-picker" id="text-color" value="#e2e8f0" title="Cor do texto">
-                                                <input type="color" class="color-picker" id="bg-color" value="#1a202c" title="Cor de fundo">
-                                            </div>
-                                            
-                                            <div class="toolbar-group">
-                                                <button type="button" class="toolbar-btn" data-command="undo" title="Desfazer (Ctrl+Z)">
-                                                    <i class="fas fa-undo"></i>
-                                                </button>
-                                                <button type="button" class="toolbar-btn" data-command="redo" title="Refazer (Ctrl+Y)">
-                                                    <i class="fas fa-redo"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div class="editor-content" id="backlog-text" contenteditable="true" placeholder="Descreva detalhadamente o backlog validado..."></div>
-                                    </div>
-                                </div>
-                                
-                                <div class="action-buttons">
-                                    <button type="button" class="btn btn-outline" id="clear-form">
-                                        <i class="fas fa-trash-alt"></i> Limpar
-                                    </button>
-                                    <button type="submit" class="btn btn-primary" id="save-backlog">
-                                        <i class="fas fa-save"></i> Salvar Backlog
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Dashboard Section -->
-                <div class="section-content" id="dashboard-section" style="display: none;">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Calendário de Validações</h3>
-                            <div class="card-tools">
-                                <div class="btn-group">
-                                    <button class="btn btn-outline active" data-period="month">
-                                        <i class="fas fa-calendar-alt"></i> Mês
-                                    </button>
-                                    <button class="btn btn-outline" data-period="week">
-                                        <i class="fas fa-calendar-week"></i> Semana
-                                    </button>
-                                    <button class="btn btn-outline" data-period="day">
-                                        <i class="fas fa-calendar-day"></i> Dia
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="card-body">
-                            <div id="calendar"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-title">Validações Hoje</div>
-                            <div class="stat-value" id="stats-today">0</div>
-                            <div class="stat-change positive">
-                                <i class="fas fa-arrow-up"></i>
-                                <span id="stats-today-change">0% em relação a ontem</span>
-                            </div>
-                        </div>
-                        
-                        <div class="stat-card">
-                            <div class="stat-title">Validações no Mês</div>
-                            <div class="stat-value" id="stats-month">0</div>
-                            <div class="stat-change negative">
-                                <i class="fas fa-arrow-down"></i>
-                                <span id="stats-month-change">0% em relação ao mês passado</span>
-                            </div>
-                        </div>
-                        
-                        <div class="stat-card">
-                            <div class="stat-title">Analista Mais Ativo</div>
-                            <div class="stat-value" id="stats-top-analyst">N/A</div>
-                            <div class="stat-change">
-                                <i class="fas fa-user"></i>
-                                <span id="stats-top-count">0 validações</span>
-                            </div>
-                        </div>
+              </div>
+
+              <div class="card-body">
+                <form id="backlog-form">
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label class="form-label">Analista</label>
+                      <select
+                        class="form-control form-select"
+                        id="analista-select"
+                        required
+                      >
+                        <option value="">Selecione o analista</option>
+                        <option value="DELANO">DELANO</option>
+                        <option value="HERBETH">HERBETH</option>
+                        <option value="WELLIGTON">WELLIGTON</option>
+                        <option value="EDMUNDO">EDMUNDO</option>
+                        <option value="SIDNEY">SIDNEY</option>
+                        <option value="MARCIO">MARCIO</option>
+                        <option value="HELIELTON">HELIELTON</option>
+                        <option value="ROBSON">ROBSON</option>
+                        <option value="WYLLAME">WYLLAME</option>
+                        <option value="DARLYSON">DARLYSON</option>
+                        <option value="MURILO">MURILO</option>
+                        <option value="ONOFRE">ONOFRE</option>
+                        <option value="LYNNA">LYNNA</option>
+                      </select>
                     </div>
 
-                    <!-- Relatórios por Analista -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Relatórios por Analista</h3>
-                            <div class="card-tools">
-                                <select class="form-control form-select" id="month-select">
-                                    <option value="0">Todos os meses</option>
-                                    <option value="1">Janeiro</option>
-                                    <option value="2">Fevereiro</option>
-                                    <option value="3">Março</option>
-                                    <option value="4">Abril</option>
-                                    <option value="5">Maio</option>
-                                    <option value="6">Junho</option>
-                                    <option value="7">Julho</option>
-                                    <option value="8">Agosto</option>
-                                    <option value="9">Setembro</option>
-                                    <option value="10">Outubro</option>
-                                    <option value="11">Novembro</option>
-                                    <option value="12">Dezembro</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="card-body">
-                            <div class="analyst-stats-container">
-                                <div class="analyst-stats-grid">
-                                    <!-- Top Analysts -->
-                                    <div class="analyst-stat-card">
-                                        <div class="stat-title">Top Analistas</div>
-                                        <div class="analyst-ranking" id="top-analysts"></div>
-                                    </div>
-                                    
-                                    <!-- Bottom Analysts -->
-                                    <div class="analyst-stat-card">
-                                        <div class="stat-title">Analistas com Menos Registros</div>
-                                        <div class="analyst-ranking" id="bottom-analysts"></div>
-                                    </div>
-                                    
-                                    <!-- Analyst Details -->
-                                    <div class="analyst-stat-card wide">
-                                        <div class="stat-title">Detalhes por Analista</div>
-                                        <div class="analyst-details" id="analyst-details"></div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Monthly Chart -->
-                                <div class="chart-container">
-                                    <canvas id="monthlyChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="form-group">
+                      <label class="form-label">Data</label>
+                      <input
+                        type="date"
+                        class="form-control"
+                        id="data-backlog"
+                        required
+                      />
                     </div>
-                </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Backlog Validado</label>
+                    <div class="editor-container">
+                      <div class="toolbar">
+                        <div class="toolbar-group">
+                          <button
+                            type="button"
+                            class="toolbar-btn"
+                            data-command="bold"
+                            title="Negrito (Ctrl+B)"
+                          >
+                            <i class="fas fa-bold"></i>
+                          </button>
+                          <button
+                            type="button"
+                            class="toolbar-btn"
+                            data-command="italic"
+                            title="Itálico (Ctrl+I)"
+                          >
+                            <i class="fas fa-italic"></i>
+                          </button>
+                          <button
+                            type="button"
+                            class="toolbar-btn"
+                            data-command="underline"
+                            title="Sublinhado (Ctrl+U)"
+                          >
+                            <i class="fas fa-underline"></i>
+                          </button>
+                        </div>
+
+                        <div class="toolbar-group">
+                          <button
+                            type="button"
+                            class="toolbar-btn"
+                            data-command="insertUnorderedList"
+                            title="Lista não ordenada"
+                          >
+                            <i class="fas fa-list-ul"></i>
+                          </button>
+                          <button
+                            type="button"
+                            class="toolbar-btn"
+                            data-command="insertOrderedList"
+                            title="Lista ordenada"
+                          >
+                            <i class="fas fa-list-ol"></i>
+                          </button>
+                        </div>
+
+                        <div class="toolbar-group">
+                          <button
+                            type="button"
+                            class="toolbar-btn"
+                            data-command="hiliteColor"
+                            data-value="yellow"
+                            title="Marcador de texto"
+                          >
+                            <i class="fas fa-highlighter"></i>
+                          </button>
+                          <input
+                            type="color"
+                            class="color-picker"
+                            id="text-color"
+                            value="#e2e8f0"
+                            title="Cor do texto"
+                          />
+                          <input
+                            type="color"
+                            class="color-picker"
+                            id="bg-color"
+                            value="#1a202c"
+                            title="Cor de fundo"
+                          />
+                        </div>
+
+                        <div class="toolbar-group">
+                          <button
+                            type="button"
+                            class="toolbar-btn"
+                            data-command="undo"
+                            title="Desfazer (Ctrl+Z)"
+                          >
+                            <i class="fas fa-undo"></i>
+                          </button>
+                          <button
+                            type="button"
+                            class="toolbar-btn"
+                            data-command="redo"
+                            title="Refazer (Ctrl+Y)"
+                          >
+                            <i class="fas fa-redo"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <div
+                        class="editor-content"
+                        id="backlog-text"
+                        contenteditable="true"
+                        placeholder="Descreva detalhadamente o backlog validado..."
+                      ></div>
+                    </div>
+                  </div>
+
+                  <div class="action-buttons">
+                    <button
+                      type="button"
+                      class="btn btn-outline"
+                      id="clear-form"
+                    >
+                      <i class="fas fa-trash-alt"></i> Limpar
+                    </button>
+                    <button
+                      type="submit"
+                      class="btn btn-primary"
+                      id="save-backlog"
+                    >
+                      <i class="fas fa-save"></i> Salvar Backlog
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
+          </div>
+
+          <!-- Dashboard Section -->
+          <div
+            class="section-content"
+            id="dashboard-section"
+            style="display: none;"
+          >
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Calendário de Validações</h3>
+                <div class="card-tools">
+                  <div class="btn-group">
+                    <button class="btn btn-outline active" data-period="month">
+                      <i class="fas fa-calendar-alt"></i> Mês
+                    </button>
+                    <button class="btn btn-outline" data-period="week">
+                      <i class="fas fa-calendar-week"></i> Semana
+                    </button>
+                    <button class="btn btn-outline" data-period="day">
+                      <i class="fas fa-calendar-day"></i> Dia
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card-body">
+                <div id="calendar"></div>
+              </div>
+            </div>
+
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-title">Validações Hoje</div>
+                <div class="stat-value" id="stats-today">0</div>
+                <div class="stat-change positive">
+                  <i class="fas fa-arrow-up"></i>
+                  <span id="stats-today-change">0% em relação a ontem</span>
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-title">Validações no Mês</div>
+                <div class="stat-value" id="stats-month">0</div>
+                <div class="stat-change negative">
+                  <i class="fas fa-arrow-down"></i>
+                  <span id="stats-month-change"
+                    >0% em relação ao mês passado</span
+                  >
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-title">Analista Mais Ativo</div>
+                <div class="stat-value" id="stats-top-analyst">N/A</div>
+                <div class="stat-change">
+                  <i class="fas fa-user"></i>
+                  <span id="stats-top-count">0 validações</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Relatórios por Analista -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Relatórios por Analista</h3>
+                <div class="card-tools">
+                  <select class="form-control form-select" id="month-select">
+                    <option value="0">Todos os meses</option>
+                    <option value="1">Janeiro</option>
+                    <option value="2">Fevereiro</option>
+                    <option value="3">Março</option>
+                    <option value="4">Abril</option>
+                    <option value="5">Maio</option>
+                    <option value="6">Junho</option>
+                    <option value="7">Julho</option>
+                    <option value="8">Agosto</option>
+                    <option value="9">Setembro</option>
+                    <option value="10">Outubro</option>
+                    <option value="11">Novembro</option>
+                    <option value="12">Dezembro</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="card-body">
+                <div class="analyst-stats-container">
+                  <div class="analyst-stats-grid">
+                    <!-- Top Analysts -->
+                    <div class="analyst-stat-card">
+                      <div class="stat-title">Top Analistas</div>
+                      <div class="analyst-ranking" id="top-analysts"></div>
+                    </div>
+
+                    <!-- Bottom Analysts -->
+                    <div class="analyst-stat-card">
+                      <div class="stat-title">
+                        Analistas com Menos Registros
+                      </div>
+                      <div class="analyst-ranking" id="bottom-analysts"></div>
+                    </div>
+
+                    <!-- Analyst Details -->
+                    <div class="analyst-stat-card wide">
+                      <div class="stat-title">Detalhes por Analista</div>
+                      <div class="analyst-details" id="analyst-details"></div>
+                    </div>
+                  </div>
+
+                  <!-- Monthly Chart -->
+                  <div class="chart-container">
+                    <canvas id="monthlyChart"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/pt-br.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/date-fns/1.30.1/date_fns.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/date-fns-tz/1.0.10/date_fns_tz.min.js"></script>
     <script>
-        // Mostrar splash screen e depois carregar a página após 3 segundos
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() {
-                const splash = document.getElementById('splash-screen');
-                splash.style.opacity = '0';
-                
-                setTimeout(function() {
-                    splash.style.display = 'none';
-                    document.getElementById('main-content').style.display = 'flex';
-                    initApplication();
-                }, 500);
-            }, 3000);
-        });
+      // Mostrar splash screen e depois carregar a página após 3 segundos
+      document.addEventListener('DOMContentLoaded', function() {
+          setTimeout(function() {
+              const splash = document.getElementById('splash-screen');
+              splash.style.opacity = '0';
 
-        function initApplication() {
-            // Configurações do JSONBin
-            const BIN_ID = '685632118960c979a5ae30ac';
-            const MASTER_KEY = '$2a$10$YMdKhRE5rs2j/addb0u2beEv8Buf0LgOpYvT5YQhwzDZqIfxBOsWK';
-            const ACCESS_KEY = '$2a$10$SpeE5.rHPveOV83qARbVqOkmjogz4ZOF6pahjv8ju7cEPDnPdt4rq';
-            const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+              setTimeout(function() {
+                  splash.style.display = 'none';
+                  document.getElementById('main-content').style.display = 'flex';
+                  initApplication();
+              }, 500);
+          }, 3000);
+      });
 
-            // Elementos DOM
-            const sidebar = document.getElementById('sidebar');
-            const sidebarToggle = document.getElementById('sidebar-toggle');
-            const navItems = document.querySelectorAll('.nav-item');
-            const sectionContents = document.querySelectorAll('.section-content');
-            const analistaSelect = document.getElementById('analista-select');
-            const dataBacklog = document.getElementById('data-backlog');
-            const backlogText = document.getElementById('backlog-text');
-            const backlogForm = document.getElementById('backlog-form');
-            const clearFormBtn = document.getElementById('clear-form');
-            const saveButton = document.getElementById('save-backlog');
-            const statsToday = document.getElementById('stats-today');
-            const statsMonth = document.getElementById('stats-month');
-            const statsTopAnalyst = document.getElementById('stats-top-analyst');
-            const statsTopCount = document.getElementById('stats-top-count');
-            const statsTodayChange = document.getElementById('stats-today-change');
-            const statsMonthChange = document.getElementById('stats-month-change');
-            const textColorPicker = document.getElementById('text-color');
-            const bgColorPicker = document.getElementById('bg-color');
-            const toolbarButtons = document.querySelectorAll('.toolbar-btn');
-            const monthSelect = document.getElementById('month-select');
-            const topAnalystsList = document.getElementById('top-analysts');
-            const bottomAnalystsList = document.getElementById('bottom-analysts');
-            const analystDetails = document.getElementById('analyst-details');
-            const monthlyChartCanvas = document.getElementById('monthlyChart');
+      const now = new Date();
+      const saoPauloTime = dateFnsTz.utcToZonedTime(now, 'America/Sao_Paulo');
+      const formattedDate = dateFnsTz.format(saoPauloTime, 'yyyy-MM-dd', { timeZone: 'America/Sao_Paulo' });
 
-            // Variáveis globais
-            let monthlyChart = null;
-            let backlogData = {
-                meta: {
-                    sistema: "Backlog do NOC",
-                    versao: "1.0",
-                    ultima_atualizacao: null,
-                    criado_em: new Date().toISOString()
-                },
-                registros: []
-            };
+      function initApplication() {
+          // Configurações do JSONBin
+          const BIN_ID = '685632118960c979a5ae30ac';
+          const MASTER_KEY = '$2a$10$YMdKhRE5rs2j/addb0u2beEv8Buf0LgOpYvT5YQhwzDZqIfxBOsWK';
+          const ACCESS_KEY = '$2a$10$SpeE5.rHPveOV83qARbVqOkmjogz4ZOF6pahjv8ju7cEPDnPdt4rq';
+          const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
-            // Inicialização
-            dataBacklog.valueAsDate = new Date();
+          // Elementos DOM
+          const sidebar = document.getElementById('sidebar');
+          const sidebarToggle = document.getElementById('sidebar-toggle');
+          const navItems = document.querySelectorAll('.nav-item');
+          const sectionContents = document.querySelectorAll('.section-content');
+          const analistaSelect = document.getElementById('analista-select');
+          const dataBacklog = document.getElementById('data-backlog');
+          const backlogText = document.getElementById('backlog-text');
+          const backlogForm = document.getElementById('backlog-form');
+          const clearFormBtn = document.getElementById('clear-form');
+          const saveButton = document.getElementById('save-backlog');
+          const statsToday = document.getElementById('stats-today');
+          const statsMonth = document.getElementById('stats-month');
+          const statsTopAnalyst = document.getElementById('stats-top-analyst');
+          const statsTopCount = document.getElementById('stats-top-count');
+          const statsTodayChange = document.getElementById('stats-today-change');
+          const statsMonthChange = document.getElementById('stats-month-change');
+          const textColorPicker = document.getElementById('text-color');
+          const bgColorPicker = document.getElementById('bg-color');
+          const toolbarButtons = document.querySelectorAll('.toolbar-btn');
+          const monthSelect = document.getElementById('month-select');
+          const topAnalystsList = document.getElementById('top-analysts');
+          const bottomAnalystsList = document.getElementById('bottom-analysts');
+          const analystDetails = document.getElementById('analyst-details');
+          const monthlyChartCanvas = document.getElementById('monthlyChart');
 
-            // Editor de texto avançado
-            function execCommand(command, value = null) {
-                document.execCommand(command, false, value);
-                backlogText.focus();
+          // Variáveis globais
+          let monthlyChart = null;
+          let backlogData = {
+              meta: {
+                  sistema: "Backlog do NOC",
+                  versao: "1.0",
+                  ultima_atualizacao: null,
+                  criado_em: new Date().toISOString()
+              },
+              registros: []
+          };
+
+          function formatSaoPauloDate(dateString) {
+              const date = new Date(dateString);
+              // Ajusta para UTC-3
+              const offset = date.getTimezoneOffset() + 180;
+              const saoPauloTime = new Date(date.getTime() + offset * 60 * 1000);
+
+              return saoPauloTime.toLocaleDateString('pt-BR', {
+                  timeZone: 'America/Sao_Paulo',
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric'
+              });
+          }
+
+          // Função para formatar a data no formato YYYY-MM-DD (fuso de São Paulo)
+            function getSaoPauloDateString() {
+                const now = new Date();
+                const offset = now.getTimezoneOffset() + 180; // Ajuste para UTC-3 (180 minutos)
+                const saoPauloTime = new Date(now.getTime() + offset * 60 * 1000);
+                return saoPauloTime.toISOString().split('T')[0];
             }
 
-            // Atalhos de teclado
-            backlogText.addEventListener('keydown', function(e) {
-                if (e.ctrlKey && e.key === 'b') {
-                    e.preventDefault();
-                    execCommand('bold');
-                }
-                else if (e.ctrlKey && e.key === 'i') {
-                    e.preventDefault();
-                    execCommand('italic');
-                }
-                else if (e.ctrlKey && e.key === 'u') {
-                    e.preventDefault();
-                    execCommand('underline');
-                }
-                else if (e.ctrlKey && e.key === 'z') {
-                    e.preventDefault();
-                    execCommand('undo');
-                }
-                else if (e.ctrlKey && e.key === 'y') {
-                    e.preventDefault();
-                    execCommand('redo');
-                }
-            });
+            dataBacklog.value = getSaoPauloDateString();
 
-            // Eventos dos botões da toolbar
-            toolbarButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const command = this.getAttribute('data-command');
-                    const value = this.getAttribute('data-value');
-                    
-                    if (command === 'hiliteColor') {
-                        execCommand('hiliteColor', value);
-                    } else {
-                        execCommand(command);
-                    }
-                    
-                    updateToolbarButtons();
-                });
-            });
+          // Editor de texto avançado
+          function execCommand(command, value = null) {
+              document.execCommand(command, false, value);
+              backlogText.focus();
+          }
 
-            // Atualiza cor do texto
-            textColorPicker.addEventListener('change', function() {
-                execCommand('foreColor', this.value);
-            });
+          // Atalhos de teclado
+          backlogText.addEventListener('keydown', function(e) {
+              if (e.ctrlKey && e.key === 'b') {
+                  e.preventDefault();
+                  execCommand('bold');
+              }
+              else if (e.ctrlKey && e.key === 'i') {
+                  e.preventDefault();
+                  execCommand('italic');
+              }
+              else if (e.ctrlKey && e.key === 'u') {
+                  e.preventDefault();
+                  execCommand('underline');
+              }
+              else if (e.ctrlKey && e.key === 'z') {
+                  e.preventDefault();
+                  execCommand('undo');
+              }
+              else if (e.ctrlKey && e.key === 'y') {
+                  e.preventDefault();
+                  execCommand('redo');
+              }
+          });
 
-            // Atualiza cor de fundo
-            bgColorPicker.addEventListener('change', function() {
-                execCommand('hiliteColor', this.value);
-            });
+          // Eventos dos botões da toolbar
+          toolbarButtons.forEach(button => {
+              button.addEventListener('click', function() {
+                  const command = this.getAttribute('data-command');
+                  const value = this.getAttribute('data-value');
 
-            // Atualiza o estado dos botões da toolbar
-            function updateToolbarButtons() {
-                toolbarButtons.forEach(button => {
-                    const command = button.getAttribute('data-command');
-                    if (command === 'undo' || command === 'redo') {
-                        button.disabled = !document.queryCommandEnabled(command);
-                    } else if (command === 'bold' || command === 'italic' || command === 'underline') {
-                        button.classList.toggle('active', document.queryCommandState(command));
-                    }
-                });
-            }
+                  if (command === 'hiliteColor') {
+                      execCommand('hiliteColor', value);
+                  } else {
+                      execCommand(command);
+                  }
 
-            setInterval(updateToolbarButtons, 100);
+                  updateToolbarButtons();
+              });
+          });
 
-            // Carregar dados do JSONBin
-            async function loadData() {
-                try {
-                    console.log('Carregando dados do JSONBin...');
-                    const response = await fetch(API_URL, {
-                        headers: {
-                            'X-Master-Key': MASTER_KEY,
-                            'X-Access-Key': ACCESS_KEY
-                        }
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error(`Erro HTTP: ${response.status}`);
-                    }
-                    
-                    const jsonData = await response.json();
-                    console.log('Dados carregados com sucesso:', jsonData);
-                    
-                    if (!jsonData.record || Object.keys(jsonData.record).length === 0) {
-                        const initialData = {
-                            meta: {
-                                sistema: "Backlog do NOC",
-                                versao: "1.0",
-                                ultima_atualizacao: null,
-                                criado_em: new Date().toISOString()
-                            },
-                            registros: []
-                        };
-                        
-                        await saveData(initialData);
-                        backlogData = initialData;
-                        return initialData;
-                    }
-                    
-                    backlogData = jsonData.record;
-                    return jsonData.record;
-                } catch (error) {
-                    console.error('Erro ao carregar dados:', error);
-                    alert('Erro ao carregar dados. Verifique o console para detalhes.');
-                    
-                    const initialData = {
-                        meta: {
-                            sistema: "Backlog do NOC",
-                            versao: "1.0",
-                            ultima_atualizacao: null,
-                            criado_em: new Date().toISOString()
-                        },
-                        registros: []
-                    };
-                    
-                    backlogData = initialData;
-                    return initialData;
-                }
-            }
+          // Atualiza cor do texto
+          textColorPicker.addEventListener('change', function() {
+              execCommand('foreColor', this.value);
+          });
 
-            // Salvar dados no JSONBin
-            async function saveData(data) {
-                try {
-                    console.log('Salvando dados no JSONBin...', data);
-                    const response = await fetch(API_URL, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Master-Key': MASTER_KEY,
-                            'X-Access-Key': ACCESS_KEY
-                        },
-                        body: JSON.stringify(data)
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error(`Erro HTTP: ${response.status}`);
-                    }
-                    
-                    const result = await response.json();
-                    console.log('Dados salvos com sucesso:', result);
-                    return result;
-                } catch (error) {
-                    console.error('Erro ao salvar dados:', error);
-                    throw error;
-                }
-            }
+          // Atualiza cor de fundo
+          bgColorPicker.addEventListener('change', function() {
+              execCommand('hiliteColor', this.value);
+          });
 
-            // Verificar se o analista já salvou backlog na data selecionada
-            async function checkAnalistaBacklog(analista, data) {
-                try {
-                    const existingEntry = backlogData.registros.find(entry => 
-                        entry.analista === analista && entry.data === data
-                    );
-                    return !!existingEntry;
-                } catch (error) {
-                    console.error('Erro ao verificar backlog do analista:', error);
-                    return false;
-                }
-            }
+          // Atualiza o estado dos botões da toolbar
+          function updateToolbarButtons() {
+              toolbarButtons.forEach(button => {
+                  const command = button.getAttribute('data-command');
+                  if (command === 'undo' || command === 'redo') {
+                      button.disabled = !document.queryCommandEnabled(command);
+                  } else if (command === 'bold' || command === 'italic' || command === 'underline') {
+                      button.classList.toggle('active', document.queryCommandState(command));
+                  }
+              });
+          }
 
-            // Verificar quantos analistas diferentes já salvaram backlog na data selecionada
-            async function countAnalistasDia(data) {
-                try {
-                    const entries = backlogData.registros.filter(entry => entry.data === data);
-                    const uniqueAnalistas = new Set(entries.map(entry => entry.analista));
-                    return uniqueAnalistas.size;
-                } catch (error) {
-                    console.error('Erro ao contar analistas do dia:', error);
-                    return 0;
-                }
-            }
+          setInterval(updateToolbarButtons, 100);
 
-            // Navegação entre seções
-            navItems.forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    navItems.forEach(nav => nav.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    const section = this.getAttribute('data-section');
-                    sectionContents.forEach(content => content.style.display = 'none');
-                    document.getElementById(`${section}-section`).style.display = 'block';
-                    
-                    const sectionTitle = this.querySelector('span').textContent;
-                    document.querySelector('.page-title').textContent = sectionTitle;
-                    
-                    const breadcrumb = document.querySelector('.breadcrumb');
-                    breadcrumb.innerHTML = `
-                        <div class="breadcrumb-item">
-                            <a href="#" class="breadcrumb-link">Home</a>
-                        </div>
-                        <div class="breadcrumb-item">
-                            <span>${sectionTitle}</span>
-                        </div>
-                    `;
-                    
-                    if (section === 'dashboard') {
-                        initCalendar();
-                        updateStats();
-                        updateAnalystReports();
-                    }
-                });
-            });
+          // Carregar dados do JSONBin
+          async function loadData() {
+              try {
+                  console.log('Carregando dados do JSONBin...');
+                  const response = await fetch(API_URL, {
+                      headers: {
+                          'X-Master-Key': MASTER_KEY,
+                          'X-Access-Key': ACCESS_KEY
+                      }
+                  });
 
-            // Toggle sidebar em mobile
-            sidebarToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('active');
-            });
+                  if (!response.ok) {
+                      throw new Error(`Erro HTTP: ${response.status}`);
+                  }
 
-            // Limpar formulário
-            clearFormBtn.addEventListener('click', function() {
-                backlogForm.reset();
-                dataBacklog.valueAsDate = new Date();
-                backlogText.innerHTML = '';
-            });
+                  const jsonData = await response.json();
+                  console.log('Dados carregados com sucesso:', jsonData);
 
-            // Salvar backlog
-            backlogForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                const analista = analistaSelect.value;
-                const data = dataBacklog.value;
-                const texto = backlogText.innerHTML.trim();
+                  if (!jsonData.record || Object.keys(jsonData.record).length === 0) {
+                      const initialData = {
+                          meta: {
+                              sistema: "Backlog do NOC",
+                              versao: "1.0",
+                              ultima_atualizacao: null,
+                              criado_em: new Date().toISOString()
+                          },
+                          registros: []
+                      };
 
-                if (!analista || !data || !texto) {
-                    alert('Por favor, preencha todos os campos obrigatórios!');
-                    return;
-                }
+                      await saveData(initialData);
+                      backlogData = initialData;
+                      return initialData;
+                  }
 
-                try {
-                    const alreadySaved = await checkAnalistaBacklog(analista, data);
-                    if (alreadySaved) {
-                        alert('Este analista já salvou um backlog nesta data. Apenas um registro por analista por dia é permitido.');
-                        return;
-                    }
+                  backlogData = jsonData.record;
+                  return jsonData.record;
+              } catch (error) {
+                  console.error('Erro ao carregar dados:', error);
+                  alert('Erro ao carregar dados. Verifique o console para detalhes.');
 
-                    const analistasCount = await countAnalistasDia(data);
-                    if (analistasCount >= 4) {
-                        alert('Limite máximo de 4 analistas diferentes por dia atingido. Não é possível salvar mais backlogs nesta data.');
-                        return;
-                    }
+                  const initialData = {
+                      meta: {
+                          sistema: "Backlog do NOC",
+                          versao: "1.0",
+                          ultima_atualizacao: null,
+                          criado_em: new Date().toISOString()
+                      },
+                      registros: []
+                  };
 
-                    saveButton.disabled = true;
-                    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
-                    
-                    const newRecord = {
-                        id: backlogData.registros.length + 1,
-                        analista,
-                        data,
-                        texto,
-                        timestamp: new Date().toISOString()
-                    };
+                  backlogData = initialData;
+                  return initialData;
+              }
+          }
 
-                    backlogData.registros.push(newRecord);
-                    backlogData.meta.ultima_atualizacao = new Date().toISOString();
+          // Salvar dados no JSONBin
+          async function saveData(data) {
+              try {
+                  console.log('Salvando dados no JSONBin...', data);
+                  const response = await fetch(API_URL, {
+                      method: 'PUT',
+                      headers: {
+                          'Content-Type': 'application/json',
+                          'X-Master-Key': MASTER_KEY,
+                          'X-Access-Key': ACCESS_KEY
+                      },
+                      body: JSON.stringify(data)
+                  });
 
-                    await saveData(backlogData);
-                    
-                    saveButton.innerHTML = '<i class="fas fa-check"></i> Salvo com Sucesso!';
-                    saveButton.style.backgroundColor = '#34a853';
-                    
-                    setTimeout(() => {
-                        saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Backlog';
-                        saveButton.style.backgroundColor = '';
-                        saveButton.disabled = false;
-                    }, 2000);
+                  if (!response.ok) {
+                      throw new Error(`Erro HTTP: ${response.status}`);
+                  }
 
-                    backlogText.innerHTML = '';
-                    
-                    if (document.getElementById('dashboard-section').style.display !== 'none') {
-                        initCalendar();
-                        updateStats();
-                        updateAnalystReports();
-                    }
-                } catch (error) {
-                    console.error('Erro ao salvar:', error);
-                    alert('Erro ao salvar os dados. Verifique o console para detalhes.');
-                    saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Backlog';
-                    saveButton.disabled = false;
-                }
-            });
+                  const result = await response.json();
+                  console.log('Dados salvos com sucesso:', result);
+                  return result;
+              } catch (error) {
+                  console.error('Erro ao salvar dados:', error);
+                  throw error;
+              }
+          }
 
-            // Inicializa o calendário
-            async function initCalendar() {
-                try {
-                    const calendarEl = document.getElementById('calendar');
-                    
-                    const events = backlogData.registros.map(entry => ({
-                        title: `${entry.analista}`,
-                        start: entry.data,
-                        extendedProps: {
-                            analista: entry.analista,
-                            texto: entry.texto
-                        },
-                        className: 'completo'
-                    }));
+          // Verificar se o analista já salvou backlog na data selecionada
+          async function checkAnalistaBacklog(analista, data) {
+              try {
+                  const existingEntry = backlogData.registros.find(entry =>
+                      entry.analista === analista && entry.data === data
+                  );
+                  return !!existingEntry;
+              } catch (error) {
+                  console.error('Erro ao verificar backlog do analista:', error);
+                  return false;
+              }
+          }
 
-                    const calendar = new FullCalendar.Calendar(calendarEl, {
-                        initialView: 'dayGridMonth',
-                        locale: 'pt-br',
-                        headerToolbar: {
-                            left: 'prev,next today',
-                            center: 'title',
-                            right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                        },
-                        events: events,
-                        eventClick: function(info) {
-                            const { analista, texto } = info.event.extendedProps;
-                            const data = info.event.start.toLocaleDateString('pt-BR');
-                            
-                            const modal = document.createElement('div');
-                            modal.style.position = 'fixed';
-                            modal.style.top = '0';
-                            modal.style.left = '0';
-                            modal.style.width = '100%';
-                            modal.style.height = '100%';
-                            modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
-                            modal.style.display = 'flex';
-                            modal.style.justifyContent = 'center';
-                            modal.style.alignItems = 'center';
-                            modal.style.zIndex = '10000';
-                            
-                            const modalContent = document.createElement('div');
-                            modalContent.style.backgroundColor = 'var(--glass)';
-                            modalContent.style.padding = '2rem';
-                            modalContent.style.borderRadius = '0.5rem';
-                            modalContent.style.maxWidth = '800px';
-                            modalContent.style.width = '90%';
-                            modalContent.style.maxHeight = '80vh';
-                            modalContent.style.overflow = 'auto';
-                            modalContent.innerHTML = `
-                                <h3 style="margin-bottom: 1rem; color: var(--accent)">Validação de Backlog</h3>
-                                <p><strong>Analista:</strong> ${analista}</p>
-                                <p><strong>Data:</strong> ${data}</p>
-                                <div style="margin-top: 1rem; border-top: 1px solid var(--glass-border); padding-top: 1rem">
-                                    ${texto}
-                                </div>
-                                <button style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--accent); color: white; border: none; border-radius: 0.25rem; cursor: pointer">Fechar</button>
-                            `;
-                            
-                            modal.appendChild(modalContent);
-                            document.body.appendChild(modal);
-                            
-                            modal.querySelector('button').addEventListener('click', () => {
-                                document.body.removeChild(modal);
-                            });
-                        }
-                    });
+          // Verificar quantos analistas diferentes já salvaram backlog na data selecionada
+          async function countAnalistasDia(data) {
+              try {
+                  const entries = backlogData.registros.filter(entry => entry.data === data);
+                  const uniqueAnalistas = new Set(entries.map(entry => entry.analista));
+                  return uniqueAnalistas.size;
+              } catch (error) {
+                  console.error('Erro ao contar analistas do dia:', error);
+                  return 0;
+              }
+          }
 
-                    calendar.render();
-                } catch (error) {
-                    console.error('Erro ao inicializar calendário:', error);
-                }
-            }
+          // Navegação entre seções
+          navItems.forEach(item => {
+              item.addEventListener('click', function(e) {
+                  e.preventDefault();
 
-            // Atualiza estatísticas
-            async function updateStats() {
-                try {
-                    const registros = backlogData.registros;
-                    const today = new Date().toISOString().split('T')[0];
-                    const currentMonth = new Date().getMonth() + 1;
-                    const currentYear = new Date().getFullYear();
-                    
-                    // Filtros para hoje e ontem
-                    const todayEntries = registros.filter(entry => entry.data === today);
-                    
-                    const yesterday = new Date();
-                    yesterday.setDate(yesterday.getDate() - 1);
-                    const yesterdayStr = yesterday.toISOString().split('T')[0];
-                    const yesterdayEntries = registros.filter(entry => entry.data === yesterdayStr);
-                    
-                    // Filtros para mês atual e anterior
-                    const monthEntries = registros.filter(entry => {
-                        const entryDate = new Date(entry.data);
-                        return entryDate.getMonth() + 1 === currentMonth && entryDate.getFullYear() === currentYear;
-                    });
-                    
-                    const lastMonth = currentMonth === 1 ? 12 : currentMonth - 1;
-                    const lastMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
-                    const lastMonthEntries = registros.filter(entry => {
-                        const entryDate = new Date(entry.data);
-                        return entryDate.getMonth() + 1 === lastMonth && entryDate.getFullYear() === lastMonthYear;
-                    });
-                    
-                    // Contagem por analista
-                    const analystCount = {};
-                    registros.forEach(entry => {
-                        analystCount[entry.analista] = (analystCount[entry.analista] || 0) + 1;
-                    });
-                    
-                    // Encontrar analista mais ativo
-                    let topAnalyst = 'N/A';
-                    let topCount = 0;
-                    for (const [analyst, count] of Object.entries(analystCount)) {
-                        if (count > topCount) {
-                            topAnalyst = analyst;
-                            topCount = count;
-                        }
-                    }
-                    
-                    // Atualizar estatísticas
-                    statsToday.textContent = todayEntries.length;
-                    statsMonth.textContent = monthEntries.length;
-                    statsTopAnalyst.textContent = topAnalyst;
-                    statsTopCount.textContent = `${topCount} validações`;
-                    
-                    // Calcular variações percentuais
-                    const todayChange = yesterdayEntries.length > 0 ? 
-                        Math.round(((todayEntries.length - yesterdayEntries.length) / yesterdayEntries.length) * 100) : 0;
-                    
-                    const monthChange = lastMonthEntries.length > 0 ? 
-                        Math.round(((monthEntries.length - lastMonthEntries.length) / lastMonthEntries.length) * 100) : 0;
-                    
-                    // Atualizar indicadores de variação
-                    statsTodayChange.textContent = `${Math.abs(todayChange)}% em relação a ontem`;
-                    statsMonthChange.textContent = `${Math.abs(monthChange)}% em relação ao mês passado`;
-                    
-                    // Atualizar classes CSS para setas e cores
-                    const todayChangeElement = statsTodayChange.parentElement;
-                    const monthChangeElement = statsMonthChange.parentElement;
-                    
-                    todayChangeElement.classList.remove('positive', 'negative');
-                    monthChangeElement.classList.remove('positive', 'negative');
-                    
-                    if (todayChange > 0) {
-                        todayChangeElement.classList.add('positive');
-                        todayChangeElement.querySelector('i').className = 'fas fa-arrow-up';
-                    } else if (todayChange < 0) {
-                        todayChangeElement.classList.add('negative');
-                        todayChangeElement.querySelector('i').className = 'fas fa-arrow-down';
-                    } else {
-                        todayChangeElement.querySelector('i').className = 'fas fa-equals';
-                    }
-                    
-                    if (monthChange > 0) {
-                        monthChangeElement.classList.add('positive');
-                        monthChangeElement.querySelector('i').className = 'fas fa-arrow-up';
-                    } else if (monthChange < 0) {
-                        monthChangeElement.classList.add('negative');
-                        monthChangeElement.querySelector('i').className = 'fas fa-arrow-down';
-                    } else {
-                        monthChangeElement.querySelector('i').className = 'fas fa-equals';
-                    }
-                } catch (error) {
-                    console.error('Erro ao atualizar estatísticas:', error);
-                }
-            }
+                  navItems.forEach(nav => nav.classList.remove('active'));
+                  this.classList.add('active');
 
-            // Atualizar relatórios de analistas
-            async function updateAnalystReports() {
-                try {
-                    const selectedMonth = parseInt(monthSelect.value);
-                    const currentYear = new Date().getFullYear();
-                    
-                    // Filtrar registros por mês selecionado
-                    const filteredRegistros = selectedMonth === 0 ? 
-                        backlogData.registros : 
-                        backlogData.registros.filter(entry => {
-                            const entryDate = new Date(entry.data);
-                            return entryDate.getMonth() + 1 === selectedMonth && entryDate.getFullYear() === currentYear;
-                        });
-                    
-                    // Contar registros por analista
-                    const analystStats = {};
-                    filteredRegistros.forEach(entry => {
-                        if (!analystStats[entry.analista]) {
-                            analystStats[entry.analista] = {
-                                count: 0,
-                                dates: []
-                            };
-                        }
-                        analystStats[entry.analista].count++;
-                        analystStats[entry.analista].dates.push(entry.data);
-                    });
-                    
-                    // Converter para array e ordenar
-                    const analystArray = Object.entries(analystStats).map(([name, stats]) => ({
-                        name,
-                        count: stats.count,
-                        dates: stats.dates
-                    }));
-                    
-                    // Ordenar por quantidade (maior para menor)
-                    analystArray.sort((a, b) => b.count - a.count);
-                    
-                    // Atualizar lista de top analistas
-                    topAnalystsList.innerHTML = '';
-                    const top5 = analystArray.slice(0, 5);
-                    top5.forEach((analyst, index) => {
-                        const item = document.createElement('div');
-                        item.className = 'analyst-item';
-                        item.innerHTML = `
-                            <div>
-                                <span class="analyst-name">${index + 1}. ${analyst.name}</span>
-                            </div>
-                            <div class="analyst-count">${analyst.count}</div>
-                        `;
-                        topAnalystsList.appendChild(item);
-                    });
-                    
-                    // Atualizar lista de analistas com menos registros
-                    bottomAnalystsList.innerHTML = '';
-                    const bottom5 = [...analystArray].reverse().slice(0, 5);
-                    bottom5.forEach((analyst, index) => {
-                        const item = document.createElement('div');
-                        item.className = 'analyst-item';
-                        item.innerHTML = `
-                            <div>
-                                <span class="analyst-name">${index + 1}. ${analyst.name}</span>
-                            </div>
-                            <div class="analyst-count">${analyst.count}</div>
-                        `;
-                        bottomAnalystsList.appendChild(item);
-                    });
-                    
-                    // Atualizar detalhes por analista
-                    analystDetails.innerHTML = '';
-                    analystArray.forEach(analyst => {
-                        const item = document.createElement('div');
-                        item.className = 'analyst-detail-item';
-                        
-                        // Contar dias únicos
-                        const uniqueDates = [...new Set(analyst.dates)];
-                        const lastDate = uniqueDates.length > 0 ? 
-                            new Date(uniqueDates[uniqueDates.length - 1]).toLocaleDateString('pt-BR') : 'N/A';
-                        
-                        item.innerHTML = `
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                <span class="analyst-name" style="font-weight: 600;">${analyst.name}</span>
-                                <span class="analyst-count" style="color: var(--accent); font-weight: 600;">${analyst.count} validações</span>
-                            </div>
-                            <div style="font-size: 0.875rem; color: var(--gray);">
-                                <div>Dias trabalhados: ${uniqueDates.length}</div>
-                                <div>Última validação: ${lastDate}</div>
-                            </div>
-                        `;
-                        analystDetails.appendChild(item);
-                    });
-                    
-                    // Atualizar gráfico mensal
-                    updateMonthlyChart(analystArray);
-                } catch (error) {
-                    console.error('Erro ao atualizar relatórios de analistas:', error);
-                }
-            }
+                  const section = this.getAttribute('data-section');
+                  sectionContents.forEach(content => content.style.display = 'none');
+                  document.getElementById(`${section}-section`).style.display = 'block';
 
-            // Atualizar gráfico mensal
-            function updateMonthlyChart(analystData) {
-                // Destruir gráfico existente se houver
-                if (monthlyChart) {
-                    monthlyChart.destroy();
-                }
-                
-                // Preparar dados para o gráfico
-                const labels = analystData.map(analyst => analyst.name);
-                const data = analystData.map(analyst => analyst.count);
-                
-                // Criar o gráfico
-                const ctx = monthlyChartCanvas.getContext('2d');
-                monthlyChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Validações por Analista',
-                            data: data,
-                            backgroundColor: 'rgba(66, 133, 244, 0.7)',
-                            borderColor: 'rgba(66, 133, 244, 1)',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    color: 'var(--dark)'
-                                },
-                                grid: {
-                                    color: 'rgba(255, 255, 255, 0.1)'
-                                }
-                            },
-                            x: {
-                                ticks: {
-                                    color: 'var(--dark)'
-                                },
-                                grid: {
-                                    color: 'rgba(255, 255, 255, 0.1)'
-                                }
-                            }
-                        },
-                        plugins: {
-                            legend: {
-                                labels: {
-                                    color: 'var(--dark)'
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: 'rgba(26, 32, 44, 0.9)',
-                                titleColor: 'var(--dark)',
-                                bodyColor: 'var(--dark)',
-                                borderColor: 'var(--glass-border)',
-                                borderWidth: 1
-                            }
-                        }
-                    }
-                });
-            }
+                  const sectionTitle = this.querySelector('span').textContent;
+                  document.querySelector('.page-title').textContent = sectionTitle;
 
-            // Evento de mudança no seletor de mês
-            monthSelect.addEventListener('change', updateAnalystReports);
+                  const breadcrumb = document.querySelector('.breadcrumb');
+                  breadcrumb.innerHTML = `
+                      <div class="breadcrumb-item">
+                          <a href="#" class="breadcrumb-link">Home</a>
+                      </div>
+                      <div class="breadcrumb-item">
+                          <span>${sectionTitle}</span>
+                      </div>
+                  `;
 
-            // Inicializa a seção de anotações como padrão
-            document.querySelector('.nav-item[data-section="notes"]').click();
-            
-            // Carregar dados iniciais
-            loadData().then(data => {
-                console.log('Conexão com JSONBin estabelecida com sucesso!', data);
-            }).catch(error => {
-                console.error('Falha na conexão com JSONBin:', error);
-            });
-        }
+                  if (section === 'dashboard') {
+                      initCalendar();
+                      updateStats();
+                      updateAnalystReports();
+                  }
+              });
+          });
+
+          // Toggle sidebar em mobile
+          sidebarToggle.addEventListener('click', function() {
+              sidebar.classList.toggle('active');
+          });
+
+          // Limpar formulário
+          clearFormBtn.addEventListener('click', function() {
+              backlogForm.reset();
+              dataBacklog.valueAsDate = new Date();
+              backlogText.innerHTML = '';
+          });
+
+          // Salvar backlog
+          backlogForm.addEventListener('submit', async function(e) {
+              e.preventDefault();
+
+              const analista = analistaSelect.value;
+              const data = dataBacklog.value;
+              const texto = backlogText.innerHTML.trim();
+
+              if (!analista || !data || !texto) {
+                  alert('Por favor, preencha todos os campos obrigatórios!');
+                  return;
+              }
+
+              try {
+                  const alreadySaved = await checkAnalistaBacklog(analista, data);
+                  if (alreadySaved) {
+                      alert('Este analista já salvou um backlog nesta data. Apenas um registro por analista por dia é permitido.');
+                      return;
+                  }
+
+                  const analistasCount = await countAnalistasDia(data);
+                  if (analistasCount >= 4) {
+                      alert('Limite máximo de 4 analistas diferentes por dia atingido. Não é possível salvar mais backlogs nesta data.');
+                      return;
+                  }
+
+                  saveButton.disabled = true;
+                  saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+
+                // Função para obter a data/hora atual no fuso de São Paulo
+                  function getSaoPauloDateTime() {
+                      const now = new Date();
+                      // Ajusta para UTC-3 (São Paulo)
+                      const offset = -3 * 60; // -3 horas em minutos
+                      const saoPauloTime = new Date(now.getTime() + offset * 60 * 1000);
+                      return saoPauloTime.toISOString();
+                  }
+
+                  const newRecord = {
+                      id: backlogData.registros.length + 1,
+                      analista,
+                      data,
+                      texto,
+                      timestamp: getSaoPauloDateTime()
+                  };
+
+                  backlogData.registros.push(newRecord);
+                  backlogData.meta.ultima_atualizacao = new Date().toISOString();
+
+                  await saveData(backlogData);
+
+                  saveButton.innerHTML = '<i class="fas fa-check"></i> Salvo com Sucesso!';
+                  saveButton.style.backgroundColor = '#34a853';
+
+                  setTimeout(() => {
+                      saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Backlog';
+                      saveButton.style.backgroundColor = '';
+                      saveButton.disabled = false;
+                  }, 2000);
+
+                  backlogText.innerHTML = '';
+
+                  if (document.getElementById('dashboard-section').style.display !== 'none') {
+                      initCalendar();
+                      updateStats();
+                      updateAnalystReports();
+                  }
+              } catch (error) {
+                  console.error('Erro ao salvar:', error);
+                  alert('Erro ao salvar os dados. Verifique o console para detalhes.');
+                  saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Backlog';
+                  saveButton.disabled = false;
+              }
+          });
+
+          // Inicializa o calendário
+          async function initCalendar() {
+              try {
+                  const calendarEl = document.getElementById('calendar');
+
+                  const events = backlogData.registros.map(entry => ({
+                      title: `${entry.analista}`,
+                      start: entry.data,
+                      extendedProps: {
+                          analista: entry.analista,
+                          texto: entry.texto
+                      },
+                      className: 'completo'
+                  }));
+
+                  const calendar = new FullCalendar.Calendar(calendarEl, {
+                      initialView: 'dayGridMonth',
+                      locale: 'pt-br',
+                      headerToolbar: {
+                          left: 'prev,next today',
+                          center: 'title',
+                          right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                      },
+                      events: events,
+                      eventClick: function(info) {
+                          const { analista, texto } = info.event.extendedProps;
+                          const data = formatSaoPauloDate(info.event.start);
+
+                          const modal = document.createElement('div');
+                          modal.style.position = 'fixed';
+                          modal.style.top = '0';
+                          modal.style.left = '0';
+                          modal.style.width = '100%';
+                          modal.style.height = '100%';
+                          modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
+                          modal.style.display = 'flex';
+                          modal.style.justifyContent = 'center';
+                          modal.style.alignItems = 'center';
+                          modal.style.zIndex = '10000';
+
+                          const modalContent = document.createElement('div');
+                          modalContent.style.backgroundColor = 'var(--glass)';
+                          modalContent.style.padding = '2rem';
+                          modalContent.style.borderRadius = '0.5rem';
+                          modalContent.style.maxWidth = '800px';
+                          modalContent.style.width = '90%';
+                          modalContent.style.maxHeight = '80vh';
+                          modalContent.style.overflow = 'auto';
+                          modalContent.innerHTML = `
+                              <h3 style="margin-bottom: 1rem; color: var(--accent)">Validação de Backlog</h3>
+                              <p><strong>Analista:</strong> ${analista}</p>
+                              <p><strong>Data:</strong> ${data}</p>
+                              <div style="margin-top: 1rem; border-top: 1px solid var(--glass-border); padding-top: 1rem">
+                                  ${texto}
+                              </div>
+                              <button style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--accent); color: white; border: none; border-radius: 0.25rem; cursor: pointer">Fechar</button>
+                          `;
+
+                          modal.appendChild(modalContent);
+                          document.body.appendChild(modal);
+
+                          modal.querySelector('button').addEventListener('click', () => {
+                              document.body.removeChild(modal);
+                          });
+                      }
+                  });
+
+                  calendar.render();
+              } catch (error) {
+                  console.error('Erro ao inicializar calendário:', error);
+              }
+          }
+
+          // Atualiza estatísticas
+          async function updateStats() {
+              try {
+                  const registros = backlogData.registros;
+                  const today = new Date().toISOString().split('T')[0];
+                  const currentMonth = new Date().getMonth() + 1;
+                  const currentYear = new Date().getFullYear();
+
+                  // Filtros para hoje e ontem
+                  const todayEntries = registros.filter(entry => entry.data === today);
+
+                  const yesterday = new Date();
+                  yesterday.setDate(yesterday.getDate() - 1);
+                  const yesterdayStr = yesterday.toISOString().split('T')[0];
+                  const yesterdayEntries = registros.filter(entry => entry.data === yesterdayStr);
+
+                  // Filtros para mês atual e anterior
+                  const monthEntries = registros.filter(entry => {
+                      const entryDate = new Date(entry.data);
+                      return entryDate.getMonth() + 1 === currentMonth && entryDate.getFullYear() === currentYear;
+                  });
+
+                  const lastMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+                  const lastMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
+                  const lastMonthEntries = registros.filter(entry => {
+                      const entryDate = new Date(entry.data);
+                      return entryDate.getMonth() + 1 === lastMonth && entryDate.getFullYear() === lastMonthYear;
+                  });
+
+                  // Contagem por analista
+                  const analystCount = {};
+                  registros.forEach(entry => {
+                      analystCount[entry.analista] = (analystCount[entry.analista] || 0) + 1;
+                  });
+
+                  // Encontrar analista mais ativo
+                  let topAnalyst = 'N/A';
+                  let topCount = 0;
+                  for (const [analyst, count] of Object.entries(analystCount)) {
+                      if (count > topCount) {
+                          topAnalyst = analyst;
+                          topCount = count;
+                      }
+                  }
+
+                  // Atualizar estatísticas
+                  statsToday.textContent = todayEntries.length;
+                  statsMonth.textContent = monthEntries.length;
+                  statsTopAnalyst.textContent = topAnalyst;
+                  statsTopCount.textContent = `${topCount} validações`;
+
+                  // Calcular variações percentuais
+                  const todayChange = yesterdayEntries.length > 0 ?
+                      Math.round(((todayEntries.length - yesterdayEntries.length) / yesterdayEntries.length) * 100) : 0;
+
+                  const monthChange = lastMonthEntries.length > 0 ?
+                      Math.round(((monthEntries.length - lastMonthEntries.length) / lastMonthEntries.length) * 100) : 0;
+
+                  // Atualizar indicadores de variação
+                  statsTodayChange.textContent = `${Math.abs(todayChange)}% em relação a ontem`;
+                  statsMonthChange.textContent = `${Math.abs(monthChange)}% em relação ao mês passado`;
+
+                  // Atualizar classes CSS para setas e cores
+                  const todayChangeElement = statsTodayChange.parentElement;
+                  const monthChangeElement = statsMonthChange.parentElement;
+
+                  todayChangeElement.classList.remove('positive', 'negative');
+                  monthChangeElement.classList.remove('positive', 'negative');
+
+                  if (todayChange > 0) {
+                      todayChangeElement.classList.add('positive');
+                      todayChangeElement.querySelector('i').className = 'fas fa-arrow-up';
+                  } else if (todayChange < 0) {
+                      todayChangeElement.classList.add('negative');
+                      todayChangeElement.querySelector('i').className = 'fas fa-arrow-down';
+                  } else {
+                      todayChangeElement.querySelector('i').className = 'fas fa-equals';
+                  }
+
+                  if (monthChange > 0) {
+                      monthChangeElement.classList.add('positive');
+                      monthChangeElement.querySelector('i').className = 'fas fa-arrow-up';
+                  } else if (monthChange < 0) {
+                      monthChangeElement.classList.add('negative');
+                      monthChangeElement.querySelector('i').className = 'fas fa-arrow-down';
+                  } else {
+                      monthChangeElement.querySelector('i').className = 'fas fa-equals';
+                  }
+              } catch (error) {
+                  console.error('Erro ao atualizar estatísticas:', error);
+              }
+          }
+
+          // Atualizar relatórios de analistas
+          async function updateAnalystReports() {
+              try {
+                  const selectedMonth = parseInt(monthSelect.value);
+                  const currentYear = new Date().getFullYear();
+
+                  // Filtrar registros por mês selecionado
+                  const filteredRegistros = selectedMonth === 0 ?
+                      backlogData.registros :
+                      backlogData.registros.filter(entry => {
+                          const entryDate = new Date(entry.data);
+                          return entryDate.getMonth() + 1 === selectedMonth && entryDate.getFullYear() === currentYear;
+                      });
+
+                  // Contar registros por analista
+                  const analystStats = {};
+                  filteredRegistros.forEach(entry => {
+                      if (!analystStats[entry.analista]) {
+                          analystStats[entry.analista] = {
+                              count: 0,
+                              dates: []
+                          };
+                      }
+                      analystStats[entry.analista].count++;
+                      analystStats[entry.analista].dates.push(entry.data);
+                  });
+
+                  // Converter para array e ordenar
+                  const analystArray = Object.entries(analystStats).map(([name, stats]) => ({
+                      name,
+                      count: stats.count,
+                      dates: stats.dates
+                  }));
+
+                  // Ordenar por quantidade (maior para menor)
+                  analystArray.sort((a, b) => b.count - a.count);
+
+                  // Atualizar lista de top analistas
+                  topAnalystsList.innerHTML = '';
+                  const top5 = analystArray.slice(0, 5);
+                  top5.forEach((analyst, index) => {
+                      const item = document.createElement('div');
+                      item.className = 'analyst-item';
+                      item.innerHTML = `
+                          <div>
+                              <span class="analyst-name">${index + 1}. ${analyst.name}</span>
+                          </div>
+                          <div class="analyst-count">${analyst.count}</div>
+                      `;
+                      topAnalystsList.appendChild(item);
+                  });
+
+                  // Atualizar lista de analistas com menos registros
+                  bottomAnalystsList.innerHTML = '';
+                  const bottom5 = [...analystArray].reverse().slice(0, 5);
+                  bottom5.forEach((analyst, index) => {
+                      const item = document.createElement('div');
+                      item.className = 'analyst-item';
+                      item.innerHTML = `
+                          <div>
+                              <span class="analyst-name">${index + 1}. ${analyst.name}</span>
+                          </div>
+                          <div class="analyst-count">${analyst.count}</div>
+                      `;
+                      bottomAnalystsList.appendChild(item);
+                  });
+
+                  // Atualizar detalhes por analista
+                  analystDetails.innerHTML = '';
+                  analystArray.forEach(analyst => {
+                      const item = document.createElement('div');
+                      item.className = 'analyst-detail-item';
+
+                      // Contar dias únicos
+                      const uniqueDates = [...new Set(analyst.dates)];
+                      const lastDate = uniqueDates.length > 0 ?
+                          new Date(uniqueDates[uniqueDates.length - 1]).toLocaleDateString('pt-BR') : 'N/A';
+
+                      item.innerHTML = `
+                          <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                              <span class="analyst-name" style="font-weight: 600;">${analyst.name}</span>
+                              <span class="analyst-count" style="color: var(--accent); font-weight: 600;">${analyst.count} validações</span>
+                          </div>
+                          <div style="font-size: 0.875rem; color: var(--gray);">
+                              <div>Dias trabalhados: ${uniqueDates.length}</div>
+                              <div>Última validação: ${lastDate}</div>
+                          </div>
+                      `;
+                      analystDetails.appendChild(item);
+                  });
+
+                  // Atualizar gráfico mensal
+                  updateMonthlyChart(analystArray);
+              } catch (error) {
+                  console.error('Erro ao atualizar relatórios de analistas:', error);
+              }
+          }
+
+          // Atualizar gráfico mensal
+          function updateMonthlyChart(analystData) {
+              // Destruir gráfico existente se houver
+              if (monthlyChart) {
+                  monthlyChart.destroy();
+              }
+
+              // Preparar dados para o gráfico
+              const labels = analystData.map(analyst => analyst.name);
+              const data = analystData.map(analyst => analyst.count);
+
+              // Criar o gráfico
+              const ctx = monthlyChartCanvas.getContext('2d');
+              monthlyChart = new Chart(ctx, {
+                  type: 'bar',
+                  data: {
+                      labels: labels,
+                      datasets: [{
+                          label: 'Validações por Analista',
+                          data: data,
+                          backgroundColor: 'rgba(66, 133, 244, 0.7)',
+                          borderColor: 'rgba(66, 133, 244, 1)',
+                          borderWidth: 1
+                      }]
+                  },
+                  options: {
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      scales: {
+                          y: {
+                              beginAtZero: true,
+                              ticks: {
+                                  color: 'var(--dark)'
+                              },
+                              grid: {
+                                  color: 'rgba(255, 255, 255, 0.1)'
+                              }
+                          },
+                          x: {
+                              ticks: {
+                                  color: 'var(--dark)'
+                              },
+                              grid: {
+                                  color: 'rgba(255, 255, 255, 0.1)'
+                              }
+                          }
+                      },
+                      plugins: {
+                          legend: {
+                              labels: {
+                                  color: 'var(--dark)'
+                              }
+                          },
+                          tooltip: {
+                              backgroundColor: 'rgba(26, 32, 44, 0.9)',
+                              titleColor: 'var(--dark)',
+                              bodyColor: 'var(--dark)',
+                              borderColor: 'var(--glass-border)',
+                              borderWidth: 1
+                          }
+                      }
+                  }
+              });
+          }
+
+          // Evento de mudança no seletor de mês
+          monthSelect.addEventListener('change', updateAnalystReports);
+
+          // Inicializa a seção de anotações como padrão
+          document.querySelector('.nav-item[data-section="notes"]').click();
+
+          // Carregar dados iniciais
+          loadData().then(data => {
+              console.log('Conexão com JSONBin estabelecida com sucesso!', data);
+          }).catch(error => {
+              console.error('Falha na conexão com JSONBin:', error);
+          });
+      }
     </script>
-</body>
+  </body>
 </html>
