@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Corporativo de Chamados</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0d47a1;
+      --accent: #1976d2;
+      --light: #e3f2fd;
+      --dark-bg: #121212;
+      --card-bg: #1e1e1e;
+      --text: #e0e0e0;
+      --border: #333;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--dark-bg);
+      color: var(--text);
+      margin: 0;
+      padding: 2rem;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    h1 {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--light);
+    }
+    #refreshBtn {
+      background: var(--accent);
+      color: white;
+      padding: 0.6rem 1.4rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .stats-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      padding: 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      text-align: center;
+    }
+    .stat-card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+    .stat-card .value {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .chamados-container, .incidents-day-container {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 1.5rem;
+      border: 1px solid var(--border);
+      margin-bottom: 2rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      color: var(--light);
+      text-align: left;
+      font-size: 0.95rem;
+    }
+    td {
+      font-size: 0.9rem;
+    }
+    .badge {
+      background: var(--accent);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+    }
+    input[type="search"] {
+      width: 100%;
+      max-width: 400px;
+      padding: 0.6rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #1a1a1a;
+      color: white;
+      margin-bottom: 1rem;
+    }
+    .copy-btn {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-weight: 600;
+      cursor: pointer;
+    }
+    pre {
+      white-space: pre-wrap;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Dashboard Corporativo de Chamados</h1>
+    <button id="refreshBtn">Atualizar</button>
+  </header>
+
+  <section class="stats-container">
+    <div class="stat-card"><h3>Chamados Hoje</h3><div class="value" id="countToday">--</div></div>
+    <div class="stat-card"><h3>Chamados Semana</h3><div class="value" id="countWeek">--</div></div>
+    <div class="stat-card"><h3>Chamados Mês</h3><div class="value" id="countMonth">--</div></div>
+    <div class="stat-card"><h3>Total</h3><div class="value" id="countTotal">--</div></div>
+  </section>
+
+  <section class="chamados-container">
+    <h2>Histórico de Chamados</h2>
+    <input type="search" id="searchInput" placeholder="Buscar..." />
+    <div id="chamadosTable">Carregando...</div>
+  </section>
+
+  <section class="incidents-day-container">
+    <h2>Incidentes gerados hoje</h2>
+    <pre id="incidentsDayReport">Carregando relatório...</pre>
+  </section>
+
+  <script>
+    const JSONBIN_API_KEY = '$2a$10$SpeE5.rHPveOV83qARbVqOkmjogz4ZOF6pahjv8ju7cEPDnPdt4rq';
+    const JSONBIN_BIN_ID = '685b273d8561e97a502b306a';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadChamados();
+      document.getElementById('refreshBtn').addEventListener('click', () => loadChamados(true));
+      document.getElementById('searchInput').addEventListener('input', filterChamados);
+    });
+
+    function isSameDay(dateStr) {
+      const d = new Date(dateStr);
+      const t = new Date();
+      return d.getDate() === t.getDate() && d.getMonth() === t.getMonth() && d.getFullYear() === t.getFullYear();
+    }
+    function isSameWeek(dateStr) {
+      const d = new Date(dateStr), t = new Date();
+      const start = new Date(t); start.setDate(t.getDate() - t.getDay());
+      const end = new Date(start); end.setDate(start.getDate() + 7);
+      return d >= start && d < end;
+    }
+    function isSameMonth(dateStr) {
+      const d = new Date(dateStr), t = new Date();
+      return d.getMonth() === t.getMonth() && d.getFullYear() === t.getFullYear();
+    }
+
+    async function loadChamados(showAlert = false) {
+      const table = document.getElementById('chamadosTable');
+      const report = document.getElementById('incidentsDayReport');
+      table.innerHTML = '<div>Carregando...</div>';
+      report.textContent = 'Carregando relatório...';
+
+      try {
+        const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
+          headers: { 'X-Access-Key': JSONBIN_API_KEY }
+        });
+        const data = await res.json();
+        const chamados = data.record?.chamados || [];
+
+        updateStats(chamados);
+        renderChamadosTable(chamados);
+        updateIncidentsDayReport(chamados);
+
+        if (showAlert) alert('Dados atualizados!');
+      } catch (err) {
+        table.innerHTML = '<div>Erro ao carregar chamados.</div>';
+        report.textContent = 'Erro ao carregar relatório.';
+      }
+    }
+
+    function updateStats(chamados) {
+      document.getElementById('countToday').textContent = chamados.filter(c => isSameDay(c.timestamp)).length;
+      document.getElementById('countWeek').textContent = chamados.filter(c => isSameWeek(c.timestamp)).length;
+      document.getElementById('countMonth').textContent = chamados.filter(c => isSameMonth(c.timestamp)).length;
+      document.getElementById('countTotal').textContent = chamados.length;
+    }
+
+    function renderChamadosTable(chamados) {
+      const html = `
+        <table><thead><tr><th>INC</th><th>Falha</th><th>Data</th><th>Ações</th></tr></thead><tbody>
+          ${chamados.map(c => `
+            <tr>
+              <td><span class="badge">${c.INC}</span></td>
+              <td>${c.FALHA}</td>
+              <td>${c.data_abertura}</td>
+              <td><button class="copy-btn" onclick="navigator.clipboard.writeText('${c.INC} - ${c.FALHA}')">Copiar</button></td>
+            </tr>
+          `).join('')}
+        </tbody></table>`;
+      document.getElementById('chamadosTable').innerHTML = html;
+    }
+
+    function updateIncidentsDayReport(chamados) {
+      const report = chamados.filter(c => isSameDay(c.timestamp)).map(c => `Incidente: ${c.INC}\nFalha: ${c.FALHA}\nData: ${c.data_abertura}\n-------------------------`).join('\n');
+      document.getElementById('incidentsDayReport').textContent = report || 'Nenhum incidente registrado hoje.';
+    }
+
+    function filterChamados() {
+      const val = document.getElementById('searchInput').value.toLowerCase();
+      document.querySelectorAll('#chamadosTable tbody tr').forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(val) ? '' : 'none';
+      });
+    }
+  </script>
+</body>
+</html>
