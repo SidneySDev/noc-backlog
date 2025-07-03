@@ -14,763 +14,986 @@
     />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-      #monthlyChart {
-        background: rgba(255, 255, 255, 0.1); /* fundo semi-transparente */
-        backdrop-filter: blur(10px);          /* efeito de desfoque */
-        -webkit-backdrop-filter: blur(10px);  /* suporte para Safari */
-        border-radius: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-        padding: 16px;
-      }
-      /* Splash Screen Styles - Versão com profundidade e fundo branco */
-      #splash-screen {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: white;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          z-index: 9999;
-          transition: opacity 0.5s ease-out;
-      }
-
-      #splash-logo-container {
-          position: relative;
-          width: 220px;
-          height: 220px;
-          margin-bottom: 30px;
-          perspective: 1000px;
-      }
-
-      #splash-logo {
-          width: 100%;
-          height: 100%;
-          object-fit: contain;
-          filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));
-          transform-style: preserve-3d;
-          animation: float 3s ease-in-out infinite;
-      }
-
-      @keyframes float {
-          0%, 100% {
-              transform: translateY(0) rotateY(0deg);
-              filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));
-          }
-          50% {
-              transform: translateY(-15px) rotateY(5deg);
-              filter: drop-shadow(0 15px 30px rgba(0,0,0,0.3));
-          }
-      }
-
-      .splash-spinner {
-          width: 70px;
-          height: 70px;
-          border: 8px solid rgba(66, 133, 244, 0.2);
-          border-top-color: #4285f4;
-          border-radius: 50%;
-          animation: spin 1s ease-in-out infinite;
-      }
-
-      @keyframes spin {
-          to { transform: rotate(360deg); }
-      }
-
-      .splash-text {
-          margin-top: 20px;
-          color: #333;
-          font-size: 1.2rem;
-          font-weight: 500;
-          text-shadow: 0 1px 2px rgba(0,0,0,0.1);
-      }
-
+      /* Variáveis de cor atualizadas */
       :root {
-          --primary: #1a73e8;
-          --primary-dark: #1557b0;
-          --secondary: #0d47a1;
-          --accent: #4285f4;
-          --light: #2d3748;
-          --dark: #e2e8f0;
-          --gray: #a0aec0;
-          --light-gray: #4a5568;
-          --success: #34a853;
-          --warning: #fbbc05;
-          --danger: #ea4335;
-          --white: rgba(26, 32, 44, 0.8);
-          --sidebar-width: 280px;
-          --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-          --glass: rgba(26, 32, 44, 0.7);
-          --glass-border: rgba(255, 255, 255, 0.1);
+        --primary: #4361ee;
+        --primary-dark: #3a56d4;
+        --secondary: #3f37c9;
+        --accent: #4895ef;
+        --accent-light: #4cc9f0;
+        --light: #f8f9fa;
+        --dark: #212529;
+        --gray: #6c757d;
+        --light-gray: #e9ecef;
+        --dark-gray: #495057;
+        --success: #4bb543;
+        --warning: #ffc107;
+        --danger: #dc3545;
+        --sidebar-width: 280px;
+        --sidebar-collapsed-width: 80px;
+        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        --glass: rgba(255, 255, 255, 0.15);
+        --glass-border: rgba(255, 255, 255, 0.2);
+        --glass-dark: rgba(0, 0, 0, 0.2);
+        --glass-dark-border: rgba(0, 0, 0, 0.3);
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+        --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1), 0 5px 10px rgba(0, 0, 0, 0.05);
+        --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.2), 0 10px 20px rgba(0, 0, 0, 0.1);
       }
 
+      /* Reset e estilos base */
       * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       }
 
       body {
-          background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
-          color: var(--dark);
-          line-height: 1.6;
-          display: row;
-          min-height: 100vh;
+        background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+        color: var(--light);
+        line-height: 1.6;
+        min-height: 100vh;
+        overflow-x: hidden;
       }
 
+      /* Splash Screen */
+      #splash-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        transition: opacity 0.5s ease-out;
+      }
+
+      #splash-logo-container {
+        position: relative;
+        width: 220px;
+        height: 220px;
+        margin-bottom: 30px;
+        perspective: 1000px;
+      }
+
+      #splash-logo {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));
+        transform-style: preserve-3d;
+        animation: float 3s ease-in-out infinite;
+      }
+
+      @keyframes float {
+        0%, 100% {
+          transform: translateY(0) rotateY(0deg);
+          filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));
+        }
+        50% {
+          transform: translateY(-15px) rotateY(5deg);
+          filter: drop-shadow(0 15px 30px rgba(0,0,0,0.3));
+        }
+      }
+
+      .splash-spinner {
+        width: 70px;
+        height: 70px;
+        border: 8px solid rgba(66, 133, 244, 0.2);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 1s ease-in-out infinite;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
+      .splash-text {
+        margin-top: 20px;
+        color: #333;
+        font-size: 1.2rem;
+        font-weight: 500;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      }
+
+      /* Layout Principal */
+      #main-content {
+        display: none;
+        min-height: 100vh;
+      }
+
+      .app-container {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      /* Sidebar Redesign */
       .sidebar {
-          width: var(--sidebar-width);
-          background: var(--glass);
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-          display: flex;
-          flex-direction: column;
-          transition: var(--transition);
-          z-index: 100;
-          border-right: 1px solid var(--glass-border);
+        width: var(--sidebar-width);
+        background: var(--glass);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        display: flex;
+        flex-direction: column;
+        transition: var(--transition);
+        z-index: 100;
+        border-right: 1px solid var(--glass-border);
+        box-shadow: var(--shadow-md);
+        position: relative;
+      }
+
+      .sidebar.collapsed {
+        width: var(--sidebar-collapsed-width);
+      }
+
+      .sidebar.collapsed .logo-text,
+      .sidebar.collapsed .nav-title,
+      .sidebar.collapsed .nav-link span,
+      .sidebar.collapsed .user-info {
+        display: none;
+      }
+
+      .sidebar.collapsed .logo-icon,
+      .sidebar.collapsed .nav-icon {
+        margin-right: 0;
+        font-size: 1.5rem;
+      }
+
+      .sidebar.collapsed .nav-link {
+        justify-content: center;
+        padding: 1rem 0;
+      }
+
+      .sidebar.collapsed .user-panel {
+        justify-content: center;
       }
 
       .sidebar-header {
-          padding: 1.5rem;
-          border-bottom: 1px solid var(--glass-border);
-          display: flex;
-          align-items: center;
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--glass-border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
       }
 
       .logo {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          font-size: 1.25rem;
-          font-weight: 700;
-          color: var(--dark);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--light);
+        text-decoration: none;
       }
 
       .logo-icon {
-          color: var(--accent);
-          font-size: 1.5rem;
+        color: var(--accent-light);
+        font-size: 1.5rem;
+        transition: var(--transition);
+      }
+
+      .logo-text {
+        transition: var(--transition);
+      }
+
+      .sidebar-toggle {
+        background: none;
+        border: none;
+        color: var(--light);
+        cursor: pointer;
+        font-size: 1.25rem;
+        opacity: 0.7;
+        transition: var(--transition);
+      }
+
+      .sidebar-toggle:hover {
+        opacity: 1;
+        transform: rotate(180deg);
+      }
+
+      .sidebar.collapsed .sidebar-toggle {
+        transform: rotate(180deg);
+      }
+
+      .sidebar.collapsed .sidebar-toggle:hover {
+        transform: rotate(0deg);
       }
 
       .nav-menu {
-          flex: 1;
-          padding: 0 0;
-          overflow-y: auto;
+        flex: 1;
+        padding: 1rem 0;
+        overflow-y: auto;
       }
 
       .nav-title {
-          padding: 0.5rem 1.5rem;
-          font-size: 0.75rem;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
-          color: var(--gray);
-          font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: rgba(255, 255, 255, 0.6);
+        font-weight: 600;
+        transition: var(--transition);
       }
 
       .nav-item {
-          margin: 0.25rem 0.75rem;
-          border-radius: 0.5rem;
-          transition: var(--transition);
+        margin: 0.25rem 0.75rem;
+        border-radius: 0.75rem;
+        transition: var(--transition);
+        position: relative;
       }
 
       .nav-item:hover {
-          background-color: rgba(66, 133, 244, 0.1);
+        background-color: rgba(72, 149, 239, 0.15);
       }
 
       .nav-item.active {
-          background-color: rgba(66, 133, 244, 0.2);
+        background-color: rgba(72, 149, 239, 0.25);
+      }
+
+      .nav-item.active::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: var(--accent-light);
+        border-radius: 4px 0 0 4px;
       }
 
       .nav-item.active .nav-link {
-          color: var(--accent);
+        color: white;
       }
 
       .nav-item.active .nav-icon {
-          color: var(--accent);
+        color: var(--accent-light);
       }
 
       .nav-link {
-          display: flex;
-          align-items: center;
-          padding: 0.75rem 1rem;
-          text-decoration: none;
-          color: var(--dark);
-          font-weight: 500;
-          font-size: 0.9375rem;
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        text-decoration: none;
+        color: rgba(255, 255, 255, 0.8);
+        font-weight: 500;
+        font-size: 0.9375rem;
+        transition: var(--transition);
+      }
+
+      .nav-link:hover {
+        color: white;
       }
 
       .nav-icon {
-          margin-right: 0.75rem;
-          font-size: 1.1rem;
-          color: var(--gray);
-          width: 24px;
-          display: flex;
-          justify-content: center;
+        margin-right: 0.75rem;
+        font-size: 1.1rem;
+        color: rgba(255, 255, 255, 0.6);
+        width: 24px;
+        display: flex;
+        justify-content: center;
+        transition: var(--transition);
+      }
+
+      .nav-link:hover .nav-icon {
+        color: white;
       }
 
       .user-panel {
-          padding: 1rem 1.5rem;
-          border-top: 1px solid var(--glass-border);
-          display: flex;
-          align-items: center;
+        padding: 1rem;
+        border-top: 1px solid var(--glass-border);
+        display: flex;
+        align-items: center;
+        transition: var(--transition);
       }
 
       .user-avatar {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          background-color: var(--accent);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          font-weight: 600;
-          margin-right: 0.75rem;
-          flex-shrink: 0;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        margin-right: 0.75rem;
+        flex-shrink: 0;
+        box-shadow: var(--shadow-sm);
       }
 
       .user-info {
-          flex: 1;
-          min-width: 0;
+        flex: 1;
+        min-width: 0;
+        transition: var(--transition);
       }
 
       .user-name {
-          font-weight: 600;
-          font-size: 0.9375rem;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          color: var(--dark);
+        font-weight: 600;
+        font-size: 0.9375rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: white;
       }
 
       .user-role {
-          font-size: 0.8125rem;
-          color: var(--gray);
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
+        font-size: 0.8125rem;
+        color: rgba(255, 255, 255, 0.6);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
+      /* Main Content */
       .main-content {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          min-width: 0;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        transition: var(--transition);
       }
 
       .content-header {
-          padding: 1.5rem;
-          background: var(--glass);
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-          border-bottom: 1px solid var(--glass-border);
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
+        padding: 1.25rem 1.5rem;
+        background: var(--glass);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--glass-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: var(--shadow-sm);
       }
 
       .page-title {
-          font-size: 1.5rem;
-          font-weight: 600;
-          color: var(--dark);
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .page-title-icon {
+        color: var(--accent-light);
       }
 
       .breadcrumb {
-          display: flex;
-          align-items: center;
-          font-size: 0.875rem;
-          color: var(--gray);
+        display: flex;
+        align-items: center;
+        font-size: 0.875rem;
+        color: rgba(255, 255, 255, 0.7);
       }
 
       .breadcrumb-item {
-          display: flex;
-          align-items: center;
+        display: flex;
+        align-items: center;
       }
 
       .breadcrumb-item:not(:last-child)::after {
-          content: '/';
-          margin: 0 0.5rem;
-          color: var(--gray);
+        content: '/';
+        margin: 0 0.5rem;
+        color: rgba(255, 255, 255, 0.4);
       }
 
       .breadcrumb-link {
-          color: var(--gray);
-          text-decoration: none;
-          transition: var(--transition);
+        color: rgba(255, 255, 255, 0.7);
+        text-decoration: none;
+        transition: var(--transition);
       }
 
       .breadcrumb-link:hover {
-          color: var(--accent);
+        color: var(--accent-light);
       }
 
       .content-body {
-          flex: 1;
-          padding: 1.5rem;
-          overflow-y: auto;
+        flex: 1;
+        padding: 1.5rem;
+        overflow-y: auto;
+        background: linear-gradient(rgba(26, 32, 44, 0.5), rgba(26, 32, 44, 0.7));
       }
 
+      /* Cards com Glassmorfismo Aprimorado */
       .card {
-          background: var(--glass);
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-          border-radius: 0.75rem;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-          border: 1px solid var(--glass-border);
-          margin-bottom: 1.5rem;
-          transition: var(--transition);
+        background: var(--glass);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 0.75rem;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--glass-border);
+        margin-bottom: 1.5rem;
+        transition: var(--transition);
+        overflow: hidden;
       }
 
       .card:hover {
-          box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
-          border-color: rgba(66, 133, 244, 0.3);
+        box-shadow: var(--shadow-lg);
+        border-color: rgba(72, 149, 239, 0.4);
+        transform: translateY(-2px);
       }
 
       .card-header {
-          padding: 1.25rem 1.5rem;
-          border-bottom: 1px solid var(--glass-border);
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--glass-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.05);
       }
 
       .card-title {
-          font-size: 1.125rem;
-          font-weight: 600;
-          color: var(--dark);
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .card-title-icon {
+        color: var(--accent-light);
       }
 
       .card-tools {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
       }
 
       .card-body {
-          padding: 1.5rem;
-          min-height: 700px;
+        padding: 1.5rem;
       }
 
+      /* Formulários */
       .form-row {
-          display: flex;
-          gap: 1rem;
-          margin-bottom: 1.25rem;
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
       }
 
       .form-group {
-          flex: 1;
+        flex: 1;
       }
 
       .form-label {
-          display: block;
-          margin-bottom: 0.5rem;
-          font-weight: 500;
-          font-size: 0.875rem;
-          color: var(--dark);
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        font-size: 0.875rem;
+        color: rgba(255, 255, 255, 0.9);
       }
 
       .form-control {
-          width: 100%;
-          padding: 0.75rem 1rem;
-          border: 1px solid var(--light-gray);
-          border-radius: 0.5rem;
-          font-size: 0.9375rem;
-          transition: var(--transition);
-          background-color: rgba(26, 32, 44, 0.5);
-          color: var(--dark);
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+        font-size: 0.9375rem;
+        transition: var(--transition);
+        background-color: rgba(255, 255, 255, 0.1);
+        color: white;
+      }
+
+      .form-control::placeholder {
+        color: rgba(255, 255, 255, 0.5);
       }
 
       .form-control:focus {
-          outline: none;
-          border-color: var(--accent);
-          box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.15);
-          background-color: rgba(26, 32, 44, 0.7);
+        outline: none;
+        border-color: var(--accent-light);
+        box-shadow: 0 0 0 3px rgba(72, 149, 239, 0.25);
+        background-color: rgba(255, 255, 255, 0.15);
       }
 
       .form-select {
-          appearance: none;
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23a0aec0' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-          background-repeat: no-repeat;
-          background-position: right 0.75rem center;
-          background-size: 16px 12px;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23a0aec0' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 16px 12px;
       }
 
+      /* Editor de Texto */
       .editor-container {
-          border: 1px solid var(--light-gray);
-          border-radius: 0.5rem;
-          overflow: hidden;
-          background-color: rgba(26, 32, 44, 0.7);
-          width: 100%;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+        overflow: hidden;
+        background-color: rgba(255, 255, 255, 0.1);
+        width: 100%;
       }
 
       .toolbar {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.25rem;
-          padding: 0.5rem;
-          background-color: rgba(26, 32, 44, 0.9);
-          border-bottom: 1px solid var(--light-gray);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+        padding: 0.5rem;
+        background-color: rgba(0, 0, 0, 0.2);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       }
 
       .toolbar-group {
-          display: flex;
-          gap: 0.25rem;
-          padding-right: 0.5rem;
-          border-right: 1px solid var(--light-gray);
-          margin-right: 0.5rem;
+        display: flex;
+        gap: 0.25rem;
+        padding-right: 0.5rem;
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+        margin-right: 0.5rem;
       }
 
       .toolbar-group:last-child {
-          border-right: none;
-          margin-right: 0;
+        border-right: none;
+        margin-right: 0;
       }
 
       .toolbar-btn {
-          background: none;
-          border: none;
-          color: var(--gray);
-          width: 32px;
-          height: 32px;
-          border-radius: 0.25rem;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: var(--transition);
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.7);
+        width: 32px;
+        height: 32px;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
       }
 
       .toolbar-btn:hover {
-          background-color: rgba(66, 133, 244, 0.2);
-          color: var(--accent);
+        background-color: rgba(72, 149, 239, 0.3);
+        color: white;
       }
 
       .toolbar-btn.active {
-          background-color: rgba(66, 133, 244, 0.3);
-          color: var(--accent);
+        background-color: rgba(72, 149, 239, 0.5);
+        color: white;
       }
 
       .color-picker {
-          width: 32px;
-          height: 32px;
-          padding: 0;
-          border: none;
-          cursor: pointer;
-          background: none;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        border: none;
+        cursor: pointer;
+        background: none;
       }
 
       .editor-content {
-          min-height: 600px;
-          max-height: 900px;
-          padding: 1rem;
-          outline: none;
-          overflow-y: auto;
+        min-height: 300px;
+        max-height: 600px;
+        padding: 1rem;
+        outline: none;
+        overflow-y: auto;
+        color: white;
       }
 
+      .editor-content:empty:before {
+        content: attr(placeholder);
+        color: rgba(255, 255, 255, 0.5);
+        pointer-events: none;
+        display: block;
+      }
+
+      /* Botões Redesign */
       .btn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          padding: 0.75rem 1.25rem;
-          border-radius: 0.5rem;
-          font-weight: 500;
-          font-size: 0.9375rem;
-          cursor: pointer;
-          transition: var(--transition);
-          border: none;
-          gap: 0.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        font-size: 0.9375rem;
+        cursor: pointer;
+        transition: var(--transition);
+        border: none;
+        gap: 0.5rem;
+        box-shadow: var(--shadow-sm);
       }
 
       .btn-primary {
-          background-color: var(--accent);
-          color: white;
+        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+        color: white;
       }
 
       .btn-primary:hover {
-          background-color: var(--primary);
-          transform: translateY(-1px);
+        background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
       }
 
       .btn-outline {
-          background-color: transparent;
-          border: 1px solid var(--light-gray);
-          color: var(--dark);
+        background-color: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
       }
 
       .btn-outline:hover {
-          background-color: rgba(66, 133, 244, 0.1);
-          border-color: var(--accent);
+        background-color: rgba(72, 149, 239, 0.2);
+        border-color: var(--accent-light);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .btn-icon {
+        padding: 0.5rem;
+        width: 36px;
+        height: 36px;
       }
 
       .action-buttons {
-          display: flex;
-          gap: 0.75rem;
-          justify-content: flex-end;
-          margin-top: 1rem;
+        display: flex;
+        gap: 0.75rem;
+        justify-content: flex-end;
+        margin-top: 1.5rem;
       }
 
+      /* FullCalendar Customização */
       .fc {
-          background-color: var(--glass);
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-          border-radius: 0.75rem;
-          overflow: hidden;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-          border: 1px solid var(--glass-border);
-          color: var(--dark);
+        background-color: var(--glass);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 0.75rem;
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--glass-border);
+        color: white;
       }
 
       .fc-header-toolbar {
-          padding: 1rem;
-          margin-bottom: 0 !important;
+        padding: 1rem;
+        margin-bottom: 0 !important;
       }
 
       .fc-toolbar-title {
-          font-size: 1.25rem;
-          font-weight: 600;
-          color: var(--dark);
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: white;
       }
 
       .fc-button {
-          background-color: var(--glass) !important;
-          border: 1px solid var(--light-gray) !important;
-          color: var(--dark) !important;
-          text-transform: capitalize !important;
-          font-weight: 500 !important;
-          transition: var(--transition) !important;
+        background-color: var(--glass) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+        text-transform: capitalize !important;
+        font-weight: 500 !important;
+        transition: var(--transition) !important;
       }
 
       .fc-button:hover {
-          background-color: rgba(66, 133, 244, 0.1) !important;
+        background-color: rgba(72, 149, 239, 0.2) !important;
       }
 
       .fc-button-primary:not(:disabled).fc-button-active {
-          background-color: var(--accent) !important;
-          border-color: var(--accent) !important;
-          color: white !important;
+        background-color: var(--accent) !important;
+        border-color: var(--accent) !important;
+        color: white !important;
       }
 
       .fc-daygrid-event {
-          border-radius: 0.25rem !important;
-          padding: 0.25rem 0.5rem !important;
-          font-size: 0.8125rem !important;
-          background-color: rgba(66, 133, 244, 0.2) !important;
-          border: none !important;
+        border-radius: 0.25rem !important;
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.8125rem !important;
+        background-color: rgba(72, 149, 239, 0.3) !important;
+        border: none !important;
+        color: white !important;
       }
 
       .fc-event-main {
-          display: flex;
-          align-items: center;
-          gap: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
       }
 
+      /* Stats Grid */
       .stats-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-          gap: 1.5rem;
-          margin-bottom: 1.5rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
       }
 
       .stat-card {
-          background: var(--glass);
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-          border-radius: 0.75rem;
-          padding: 1.5rem;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-          border: 1px solid var(--glass-border);
+        background: var(--glass);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--glass-border);
+        transition: var(--transition);
+      }
+
+      .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
       }
 
       .stat-title {
-          font-size: 0.875rem;
-          color: var(--gray);
-          margin-bottom: 0.5rem;
-          font-weight: 500;
+        font-size: 0.875rem;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 0.5rem;
+        font-weight: 500;
       }
 
       .stat-value {
-          font-size: 1.75rem;
-          font-weight: 700;
-          color: var(--dark);
-          margin-bottom: 0.25rem;
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 0.25rem;
       }
 
       .stat-change {
-          font-size: 0.8125rem;
-          display: flex;
-          align-items: center;
-          gap: 0.25rem;
+        font-size: 0.8125rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
       }
 
       .stat-change.positive {
-          color: var(--success);
+        color: var(--success);
       }
 
       .stat-change.negative {
-          color: var(--danger);
+        color: var(--danger);
       }
 
       /* Estilos para os novos elementos do dashboard */
       .analyst-stats-container {
-          display: flex;
-          flex-direction: column;
-          gap: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
       }
 
       .analyst-stats-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 1.5rem;
-          margin-bottom: 1.5rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
       }
 
       .analyst-stat-card {
-          background: var(--glass);
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-          border-radius: 0.75rem;
-          padding: 1.5rem;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-          border: 1px solid var(--glass-border);
+        background: var(--glass);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--glass-border);
+        transition: var(--transition);
+      }
+
+      .analyst-stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
       }
 
       .analyst-stat-card.wide {
-          grid-column: span 2;
+        grid-column: span 2;
       }
 
       .analyst-ranking {
-          margin-top: 1rem;
+        margin-top: 1rem;
       }
 
       .analyst-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 0.75rem 0;
-          border-bottom: 1px solid var(--glass-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--glass-border);
+        transition: var(--transition);
+      }
+
+      .analyst-item:hover {
+        background: rgba(255, 255, 255, 0.05);
       }
 
       .analyst-item:last-child {
-          border-bottom: none;
+        border-bottom: none;
       }
 
       .analyst-name {
-          font-weight: 500;
-          color: var(--dark);
+        font-weight: 500;
+        color: white;
       }
 
       .analyst-count {
-          font-weight: 600;
-          color: var(--accent);
+        font-weight: 600;
+        color: var(--accent-light);
       }
 
       .analyst-details {
-          margin-top: 1rem;
-          max-height: 300px;
-          overflow-y: auto;
+        margin-top: 1rem;
+        max-height: 300px;
+        overflow-y: auto;
       }
 
       .analyst-detail-item {
-          padding: 0.75rem 0;
-          border-bottom: 1px solid var(--glass-border);
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--glass-border);
+        transition: var(--transition);
+      }
+
+      .analyst-detail-item:hover {
+        background: rgba(255, 255, 255, 0.05);
       }
 
       .analyst-detail-item:last-child {
-          border-bottom: none;
+        border-bottom: none;
       }
 
       .chart-container {
+        width: 100%;
+        height: 400px;
+        margin-top: 1.5rem;
+      }
+
+      /* Tooltip customizado */
+      .tooltip {
+        position: relative;
+        display: inline-block;
+      }
+
+      .tooltip .tooltiptext {
+        visibility: hidden;
+        width: 120px;
+        background-color: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 5px;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%);
+        opacity: 0;
+        transition: opacity 0.3s;
+        font-size: 0.75rem;
+      }
+
+      .tooltip:hover .tooltiptext {
+        visibility: visible;
+        opacity: 1;
+      }
+
+      /* Responsividade */
+      @media (max-width: 1200px) {
+        .sidebar {
+          position: fixed;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          z-index: 1000;
+          transform: translateX(-100%);
+          transition: transform 0.3s ease;
+        }
+
+        .sidebar.active {
+          transform: translateX(0);
+        }
+
+        .main-content {
+          margin-left: 0;
           width: 100%;
-          height: 400px;
-          margin-top: 1.5rem;
+        }
+
+        .analyst-stat-card.wide {
+          grid-column: span 1;
+        }
       }
 
       @media (max-width: 992px) {
-          .sidebar {
-              position: fixed;
-              left: -100%;
-              top: 0;
-              bottom: 0;
-              z-index: 1000;
-          }
+        .stats-grid {
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        }
 
-          .sidebar.active {
-              left: 0;
-          }
-
-          .main-content {
-              margin-left: 0;
-          }
-
-          .analyst-stat-card.wide {
-              grid-column: span 1;
-          }
+        .analyst-stats-grid {
+          grid-template-columns: 1fr;
+        }
       }
 
       @media (max-width: 768px) {
-          .content-header {
-              flex-direction: column;
-              align-items: flex-start;
-              gap: 1rem;
-          }
+        .content-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 1rem;
+          padding: 1rem;
+        }
 
-          .form-row {
-              flex-direction: column;
-              gap: 1rem;
-          }
+        .form-row {
+          flex-direction: column;
+          gap: 1rem;
+        }
 
-          .action-buttons {
-              width: 100%;
-              justify-content: space-between;
-          }
+        .action-buttons {
+          width: 100%;
+          justify-content: space-between;
+        }
 
-          .analyst-stats-grid {
-              grid-template-columns: 1fr;
-          }
+        .card-body {
+          padding: 1rem;
+        }
+
+        .editor-content {
+          min-height: 200px;
+        }
       }
 
-      /* Classes para formatação de texto */
-      .text-bold {
-          font-weight: bold;
+      @media (max-width: 576px) {
+        .stats-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .btn {
+          padding: 0.6rem 1rem;
+          font-size: 0.875rem;
+        }
+
+        .content-body {
+          padding: 1rem;
+        }
       }
 
-      .text-italic {
-          font-style: italic;
+      /* Animações */
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
       }
 
-      .text-underline {
-          text-decoration: underline;
-      }
-
-      .text-highlight {
-          background-color: yellow;
-          color: black;
+      .fade-in {
+        animation: fadeIn 0.5s ease forwards;
       }
 
       /* Scrollbar personalizada */
       ::-webkit-scrollbar {
-          width: 8px;
-          height: 8px;
+        width: 8px;
+        height: 8px;
       }
 
       ::-webkit-scrollbar-track {
-          background: rgba(0, 0, 0, 0.1);
-          border-radius: 10px;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
       }
 
       ::-webkit-scrollbar-thumb {
-          background: var(--light-gray);
-          border-radius: 10px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
       }
 
       ::-webkit-scrollbar-thumb:hover {
-          background: var(--gray);
+        background: rgba(255, 255, 255, 0.3);
       }
     </style>
   </head>
   <body>
-    <!-- Splash Screen Atualizado -->
+    <!-- Splash Screen -->
     <div id="splash-screen">
       <div id="splash-logo-container">
         <img id="splash-logo" src="./logobacklog.png" />
@@ -780,354 +1003,452 @@
     </div>
 
     <!-- Conteúdo principal (oculto inicialmente) -->
-    <div id="main-content" style="display: none;">
-      <!-- Sidebar -->
-      <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-          <div class="logo">
-            <i class="fas fa-tasks logo-icon"></i>
-            <span>BacklogPro</span>
-          </div>
-        </div>
-
-        <div class="nav-menu">
-          <div class="nav-title">Menu Principal</div>
-
-          <div class="nav-item active" data-section="notes">
-            <a href="#" class="nav-link">
-              <i class="fas fa-edit nav-icon"></i>
-              <span>Anotações</span>
+    <div id="main-content">
+      <div class="app-container">
+        <!-- Sidebar Redesign -->
+        <div class="sidebar" id="sidebar">
+          <div class="sidebar-header">
+            <a href="#" class="logo">
+              <i class="fas fa-tasks logo-icon"></i>
+              <span class="logo-text">BacklogPro</span>
             </a>
-          </div>
-
-          <div class="nav-item" data-section="dashboard">
-            <a href="#" class="nav-link">
-              <i class="fas fa-calendar-alt nav-icon"></i>
-              <span>Dashboard</span>
-            </a>
-          </div>
-        </div>
-
-        <div class="user-panel">
-          <div class="user-avatar">AD</div>
-          <div class="user-info">
-            <div class="user-name">Admin</div>
-            <div class="user-role">Administrador</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Main Content -->
-      <div class="main-content">
-        <!-- Content Header -->
-        <div class="content-header">
-          <div>
-            <h1 class="page-title">Anotações</h1>
-            <div class="breadcrumb">
-              <div class="breadcrumb-item">
-                <a href="#" class="breadcrumb-link">Home</a>
-              </div>
-              <div class="breadcrumb-item">
-                <span>Anotações</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="card-tools">
-            <button class="btn btn-outline btn-icon" id="sidebar-toggle">
-              <i class="fas fa-bars"></i>
+            <button class="sidebar-toggle" id="sidebar-toggle">
+              <i class="fas fa-chevron-left"></i>
             </button>
           </div>
-        </div>
 
-        <!-- Content Body -->
-        <div class="content-body">
-          <!-- Notes Section -->
-          <div class="section-content" id="notes-section">
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">Registro de Backlog Diário</h3>
-                <div class="card-tools">
-                  <button class="btn btn-outline">
-                    <i class="fas fa-history"></i> Histórico
-                  </button>
-                </div>
-              </div>
+          <div class="nav-menu">
+            <div class="nav-title">Menu Principal</div>
 
-              <div class="card-body">
-                <form id="backlog-form">
-                  <div class="form-row">
-                    <div class="form-group">
-                      <label class="form-label">Analista</label>
-                      <select
-                        class="form-control form-select"
-                        id="analista-select"
-                        required
-                      >
-                        <option value="">Selecione o analista</option>
-                        <option value="DELANO">DELANO</option>
-                        <option value="HERBETH">HERBETH</option>
-                        <option value="WELLIGTON">WELLIGTON</option>
-                        <option value="EDMUNDO">EDMUNDO</option>
-                        <option value="SIDNEY">SIDNEY</option>
-                        <option value="MARCIO">MARCIO</option>
-                        <option value="HELIELTON">HELIELTON</option>
-                        <option value="ROBSON">ROBSON</option>
-                        <option value="WYLLAME">WYLLAME</option>
-                        <option value="DARLYSON">DARLYSON</option>
-                        <option value="MURILO">MURILO</option>
-                        <option value="ONOFRE">ONOFRE</option>
-                        <option value="LYNNA">LYNNA</option>
-                      </select>
-                    </div>
+            <div class="nav-item active" data-section="notes">
+              <a href="#" class="nav-link">
+                <i class="fas fa-edit nav-icon"></i>
+                <span>Anotações</span>
+              </a>
+            </div>
 
-                    <div class="form-group">
-                      <label class="form-label">Data</label>
-                      <input
-                        type="date"
-                        class="form-control"
-                        id="data-backlog"
-                        required
-                      />
-                    </div>
-                  </div>
+            <div class="nav-item" data-section="dashboard">
+              <a href="#" class="nav-link">
+                <i class="fas fa-chart-line nav-icon"></i>
+                <span>Dashboard</span>
+              </a>
+            </div>
 
-                  <div class="form-group">
-                    <label class="form-label">Backlog Validado</label>
-                    <div class="editor-container">
-                      <div class="toolbar">
-                        <div class="toolbar-group">
-                          <button
-                            type="button"
-                            class="toolbar-btn"
-                            data-command="bold"
-                            title="Negrito (Ctrl+B)"
-                          >
-                            <i class="fas fa-bold"></i>
-                          </button>
-                          <button
-                            type="button"
-                            class="toolbar-btn"
-                            data-command="italic"
-                            title="Itálico (Ctrl+I)"
-                          >
-                            <i class="fas fa-italic"></i>
-                          </button>
-                          <button
-                            type="button"
-                            class="toolbar-btn"
-                            data-command="underline"
-                            title="Sublinhado (Ctrl+U)"
-                          >
-                            <i class="fas fa-underline"></i>
-                          </button>
-                        </div>
+            <div class="nav-item" data-section="calendar">
+              <a href="#" class="nav-link">
+                <i class="fas fa-calendar-alt nav-icon"></i>
+                <span>Calendário</span>
+              </a>
+            </div>
 
-                        <div class="toolbar-group">
-                          <button
-                            type="button"
-                            class="toolbar-btn"
-                            data-command="insertUnorderedList"
-                            title="Lista não ordenada"
-                          >
-                            <i class="fas fa-list-ul"></i>
-                          </button>
-                          <button
-                            type="button"
-                            class="toolbar-btn"
-                            data-command="insertOrderedList"
-                            title="Lista ordenada"
-                          >
-                            <i class="fas fa-list-ol"></i>
-                          </button>
-                        </div>
-
-                        <div class="toolbar-group">
-                          <button
-                            type="button"
-                            class="toolbar-btn"
-                            data-command="hiliteColor"
-                            data-value="yellow"
-                            title="Marcador de texto"
-                          >
-                            <i class="fas fa-highlighter"></i>
-                          </button>
-                          <input
-                            type="color"
-                            class="color-picker"
-                            id="text-color"
-                            value="#e2e8f0"
-                            title="Cor do texto"
-                          />
-                          <input
-                            type="color"
-                            class="color-picker"
-                            id="bg-color"
-                            value="#1a202c"
-                            title="Cor de fundo"
-                          />
-                        </div>
-
-                        <div class="toolbar-group">
-                          <button
-                            type="button"
-                            class="toolbar-btn"
-                            data-command="undo"
-                            title="Desfazer (Ctrl+Z)"
-                          >
-                            <i class="fas fa-undo"></i>
-                          </button>
-                          <button
-                            type="button"
-                            class="toolbar-btn"
-                            data-command="redo"
-                            title="Refazer (Ctrl+Y)"
-                          >
-                            <i class="fas fa-redo"></i>
-                          </button>
-                        </div>
-                      </div>
-                      <div
-                        class="editor-content"
-                        id="backlog-text"
-                        contenteditable="true"
-                        placeholder="Descreva detalhadamente o backlog validado..."
-                      ></div>
-                    </div>
-                  </div>
-
-                  <div class="action-buttons">
-                    <button
-                      type="button"
-                      class="btn btn-outline"
-                      id="clear-form"
-                    >
-                      <i class="fas fa-trash-alt"></i> Limpar
-                    </button>
-                    <button
-                      type="submit"
-                      class="btn btn-primary"
-                      id="save-backlog"
-                    >
-                      <i class="fas fa-save"></i> Salvar Backlog
-                    </button>
-                  </div>
-                </form>
-              </div>
+            <div class="nav-item" data-section="reports">
+              <a href="#" class="nav-link">
+                <i class="fas fa-file-alt nav-icon"></i>
+                <span>Relatórios</span>
+              </a>
             </div>
           </div>
 
-          <!-- Dashboard Section -->
-          <div
-            class="section-content"
-            id="dashboard-section"
-            style="display: none;"
-          >
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">Calendário de Validações</h3>
-                <div class="card-tools">
-                  <div class="btn-group">
-                    <button class="btn btn-outline active" data-period="month">
-                      <i class="fas fa-calendar-alt"></i> Mês
-                    </button>
-                    <button class="btn btn-outline" data-period="week">
-                      <i class="fas fa-calendar-week"></i> Semana
-                    </button>
-                    <button class="btn btn-outline" data-period="day">
-                      <i class="fas fa-calendar-day"></i> Dia
+          <div class="user-panel">
+            <div class="user-avatar">AD</div>
+            <div class="user-info">
+              <div class="user-name">Admin</div>
+              <div class="user-role">Administrador</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+          <!-- Content Header -->
+          <div class="content-header">
+            <div>
+              <h1 class="page-title">
+                <i class="fas fa-edit page-title-icon"></i>
+                <span>Anotações</span>
+              </h1>
+              <div class="breadcrumb">
+                <div class="breadcrumb-item">
+                  <a href="#" class="breadcrumb-link">Home</a>
+                </div>
+                <div class="breadcrumb-item">
+                  <span>Anotações</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-tools">
+              <button class="btn btn-outline btn-icon" id="mobile-sidebar-toggle">
+                <i class="fas fa-bars"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Content Body -->
+          <div class="content-body">
+            <!-- Notes Section -->
+            <div class="section-content fade-in" id="notes-section">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">
+                    <i class="fas fa-clipboard-list card-title-icon"></i>
+                    <span>Registro de Backlog Diário</span>
+                  </h3>
+                  <div class="card-tools">
+                    <button class="btn btn-outline">
+                      <i class="fas fa-history"></i> Histórico
                     </button>
                   </div>
                 </div>
-              </div>
 
-              <div class="card-body">
-                <div id="calendar"></div>
-              </div>
-            </div>
-
-            <div class="stats-grid">
-              <div class="stat-card">
-                <div class="stat-title">Validações Hoje</div>
-                <div class="stat-value" id="stats-today">0</div>
-                <div class="stat-change positive">
-                  <i class="fas fa-arrow-up"></i>
-                  <span id="stats-today-change">0% em relação a ontem</span>
-                </div>
-              </div>
-
-              <div class="stat-card">
-                <div class="stat-title">Validações no Mês</div>
-                <div class="stat-value" id="stats-month">0</div>
-                <div class="stat-change negative">
-                  <i class="fas fa-arrow-down"></i>
-                  <span id="stats-month-change"
-                    >0% em relação ao mês passado</span
-                  >
-                </div>
-              </div>
-
-              <div class="stat-card">
-                <div class="stat-title">Analista Mais Ativo</div>
-                <div class="stat-value" id="stats-top-analyst">N/A</div>
-                <div class="stat-change">
-                  <i class="fas fa-user"></i>
-                  <span id="stats-top-count">0 validações</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Relatórios por Analista -->
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">Relatórios por Analista</h3>
-                <div class="card-tools">
-                  <select class="form-control form-select" id="month-select">
-                    <option value="0">Todos os meses</option>
-                    <option value="1">Janeiro</option>
-                    <option value="2">Fevereiro</option>
-                    <option value="3">Março</option>
-                    <option value="4">Abril</option>
-                    <option value="5">Maio</option>
-                    <option value="6">Junho</option>
-                    <option value="7">Julho</option>
-                    <option value="8">Agosto</option>
-                    <option value="9">Setembro</option>
-                    <option value="10">Outubro</option>
-                    <option value="11">Novembro</option>
-                    <option value="12">Dezembro</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="card-body">
-                <div class="analyst-stats-container">
-                  <div class="analyst-stats-grid">
-                    <!-- Top Analysts -->
-                    <div class="analyst-stat-card">
-                      <div class="stat-title">Top Analistas</div>
-                      <div class="analyst-ranking" id="top-analysts"></div>
-                    </div>
-
-                    <!-- Bottom Analysts -->
-                    <div class="analyst-stat-card">
-                      <div class="stat-title">
-                        Analistas com Menos Registros
+                <div class="card-body">
+                  <form id="backlog-form">
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label class="form-label">Analista</label>
+                        <select
+                          class="form-control form-select"
+                          id="analista-select"
+                          required
+                        >
+                          <option value="">Selecione o analista</option>
+                          <option value="DELANO">DELANO</option>
+                          <option value="HERBETH">HERBETH</option>
+                          <option value="WELLIGTON">WELLIGTON</option>
+                          <option value="EDMUNDO">EDMUNDO</option>
+                          <option value="SIDNEY">SIDNEY</option>
+                          <option value="MARCIO">MARCIO</option>
+                          <option value="HELIELTON">HELIELTON</option>
+                          <option value="ROBSON">ROBSON</option>
+                          <option value="WYLLAME">WYLLAME</option>
+                          <option value="DARLYSON">DARLYSON</option>
+                          <option value="MURILO">MURILO</option>
+                          <option value="ONOFRE">ONOFRE</option>
+                          <option value="LYNNA">LYNNA</option>
+                        </select>
                       </div>
-                      <div class="analyst-ranking" id="bottom-analysts"></div>
+
+                      <div class="form-group">
+                        <label class="form-label">Data</label>
+                        <input
+                          type="date"
+                          class="form-control"
+                          id="data-backlog"
+                          required
+                        />
+                      </div>
                     </div>
 
-                    <!-- Analyst Details -->
-                    <div class="analyst-stat-card wide">
-                      <div class="stat-title">Detalhes por Analista</div>
-                      <div class="analyst-details" id="analyst-details"></div>
+                    <div class="form-group">
+                      <label class="form-label">Backlog Validado</label>
+                      <div class="editor-container">
+                        <div class="toolbar">
+                          <div class="toolbar-group">
+                            <button
+                              type="button"
+                              class="toolbar-btn tooltip"
+                              data-command="bold"
+                              title="Negrito (Ctrl+B)"
+                            >
+                              <i class="fas fa-bold"></i>
+                              <span class="tooltiptext">Negrito (Ctrl+B)</span>
+                            </button>
+                            <button
+                              type="button"
+                              class="toolbar-btn tooltip"
+                              data-command="italic"
+                              title="Itálico (Ctrl+I)"
+                            >
+                              <i class="fas fa-italic"></i>
+                              <span class="tooltiptext">Itálico (Ctrl+I)</span>
+                            </button>
+                            <button
+                              type="button"
+                              class="toolbar-btn tooltip"
+                              data-command="underline"
+                              title="Sublinhado (Ctrl+U)"
+                            >
+                              <i class="fas fa-underline"></i>
+                              <span class="tooltiptext">Sublinhado (Ctrl+U)</span>
+                            </button>
+                          </div>
+
+                          <div class="toolbar-group">
+                            <button
+                              type="button"
+                              class="toolbar-btn tooltip"
+                              data-command="insertUnorderedList"
+                              title="Lista não ordenada"
+                            >
+                              <i class="fas fa-list-ul"></i>
+                              <span class="tooltiptext">Lista não ordenada</span>
+                            </button>
+                            <button
+                              type="button"
+                              class="toolbar-btn tooltip"
+                              data-command="insertOrderedList"
+                              title="Lista ordenada"
+                            >
+                              <i class="fas fa-list-ol"></i>
+                              <span class="tooltiptext">Lista ordenada</span>
+                            </button>
+                          </div>
+
+                          <div class="toolbar-group">
+                            <button
+                              type="button"
+                              class="toolbar-btn tooltip"
+                              data-command="hiliteColor"
+                              data-value="yellow"
+                              title="Marcador de texto"
+                            >
+                              <i class="fas fa-highlighter"></i>
+                              <span class="tooltiptext">Marcador de texto</span>
+                            </button>
+                            <input
+                              type="color"
+                              class="color-picker tooltip"
+                              id="text-color"
+                              value="#ffffff"
+                              title="Cor do texto"
+                            />
+                            <input
+                              type="color"
+                              class="color-picker tooltip"
+                              id="bg-color"
+                              value="#1a202c"
+                              title="Cor de fundo"
+                            />
+                          </div>
+
+                          <div class="toolbar-group">
+                            <button
+                              type="button"
+                              class="toolbar-btn tooltip"
+                              data-command="undo"
+                              title="Desfazer (Ctrl+Z)"
+                            >
+                              <i class="fas fa-undo"></i>
+                              <span class="tooltiptext">Desfazer (Ctrl+Z)</span>
+                            </button>
+                            <button
+                              type="button"
+                              class="toolbar-btn tooltip"
+                              data-command="redo"
+                              title="Refazer (Ctrl+Y)"
+                            >
+                              <i class="fas fa-redo"></i>
+                              <span class="tooltiptext">Refazer (Ctrl+Y)</span>
+                            </button>
+                          </div>
+                        </div>
+                        <div
+                          class="editor-content"
+                          id="backlog-text"
+                          contenteditable="true"
+                          placeholder="Descreva detalhadamente o backlog validado..."
+                        ></div>
+                      </div>
+                    </div>
+
+                    <div class="action-buttons">
+                      <button
+                        type="button"
+                        class="btn btn-outline"
+                        id="clear-form"
+                      >
+                        <i class="fas fa-trash-alt"></i> Limpar
+                      </button>
+                      <button
+                        type="submit"
+                        class="btn btn-primary"
+                        id="save-backlog"
+                      >
+                        <i class="fas fa-save"></i> Salvar Backlog
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dashboard Section -->
+            <div
+              class="section-content"
+              id="dashboard-section"
+              style="display: none;"
+            >
+              <div class="card fade-in">
+                <div class="card-header">
+                  <h3 class="card-title">
+                    <i class="fas fa-chart-line card-title-icon"></i>
+                    <span>Métricas Principais</span>
+                  </h3>
+                  <div class="card-tools">
+                    <div class="btn-group">
+                      <button class="btn btn-outline active" data-period="month">
+                        <i class="fas fa-calendar-alt"></i> Mês
+                      </button>
+                      <button class="btn btn-outline" data-period="week">
+                        <i class="fas fa-calendar-week"></i> Semana
+                      </button>
+                      <button class="btn btn-outline" data-period="day">
+                        <i class="fas fa-calendar-day"></i> Dia
+                      </button>
                     </div>
                   </div>
+                </div>
 
-                  <!-- Monthly Chart -->
-                  <div class="chart-container">
-                    <canvas id="monthlyChart"></canvas>
+                <div class="card-body">
+                  <div class="stats-grid">
+                    <div class="stat-card">
+                      <div class="stat-title">Validações Hoje</div>
+                      <div class="stat-value" id="stats-today">0</div>
+                      <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        <span id="stats-today-change">0% em relação a ontem</span>
+                      </div>
+                    </div>
+
+                    <div class="stat-card">
+                      <div class="stat-title">Validações no Mês</div>
+                      <div class="stat-value" id="stats-month">0</div>
+                      <div class="stat-change negative">
+                        <i class="fas fa-arrow-down"></i>
+                        <span id="stats-month-change"
+                          >0% em relação ao mês passado</span
+                        >
+                      </div>
+                    </div>
+
+                    <div class="stat-card">
+                      <div class="stat-title">Analista Mais Ativo</div>
+                      <div class="stat-value" id="stats-top-analyst">N/A</div>
+                      <div class="stat-change">
+                        <i class="fas fa-user"></i>
+                        <span id="stats-top-count">0 validações</span>
+                      </div>
+                    </div>
+
+                    <div class="stat-card">
+                      <div class="stat-title">Total de Validações</div>
+                      <div class="stat-value" id="stats-total">0</div>
+                      <div class="stat-change">
+                        <i class="fas fa-database"></i>
+                        <span id="stats-total-days">0 dias registrados</span>
+                      </div>
+                    </div>
                   </div>
+                </div>
+              </div>
+
+              <div class="card fade-in">
+                <div class="card-header">
+                  <h3 class="card-title">
+                    <i class="fas fa-calendar-alt card-title-icon"></i>
+                    <span>Calendário de Validações</span>
+                  </h3>
+                </div>
+                <div class="card-body">
+                  <div id="calendar"></div>
+                </div>
+              </div>
+
+              <!-- Relatórios por Analista -->
+              <div class="card fade-in">
+                <div class="card-header">
+                  <h3 class="card-title">
+                    <i class="fas fa-users card-title-icon"></i>
+                    <span>Relatórios por Analista</span>
+                  </h3>
+                  <div class="card-tools">
+                    <select class="form-control form-select" id="month-select">
+                      <option value="0">Todos os meses</option>
+                      <option value="1">Janeiro</option>
+                      <option value="2">Fevereiro</option>
+                      <option value="3">Março</option>
+                      <option value="4">Abril</option>
+                      <option value="5">Maio</option>
+                      <option value="6">Junho</option>
+                      <option value="7">Julho</option>
+                      <option value="8">Agosto</option>
+                      <option value="9">Setembro</option>
+                      <option value="10">Outubro</option>
+                      <option value="11">Novembro</option>
+                      <option value="12">Dezembro</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="card-body">
+                  <div class="analyst-stats-container">
+                    <div class="analyst-stats-grid">
+                      <!-- Top Analysts -->
+                      <div class="analyst-stat-card">
+                        <div class="stat-title">Top Analistas</div>
+                        <div class="analyst-ranking" id="top-analysts"></div>
+                      </div>
+
+                      <!-- Bottom Analysts -->
+                      <div class="analyst-stat-card">
+                        <div class="stat-title">
+                          Analistas com Menos Registros
+                        </div>
+                        <div class="analyst-ranking" id="bottom-analysts"></div>
+                      </div>
+
+                      <!-- Analyst Details -->
+                      <div class="analyst-stat-card wide">
+                        <div class="stat-title">Detalhes por Analista</div>
+                        <div class="analyst-details" id="analyst-details"></div>
+                      </div>
+                    </div>
+
+                    <!-- Monthly Chart -->
+                    <div class="chart-container">
+                      <canvas id="monthlyChart"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Calendar Section -->
+            <div class="section-content" id="calendar-section" style="display: none;">
+              <div class="card fade-in">
+                <div class="card-header">
+                  <h3 class="card-title">
+                    <i class="fas fa-calendar-alt card-title-icon"></i>
+                    <span>Calendário Completo</span>
+                  </h3>
+                  <div class="card-tools">
+                    <button class="btn btn-outline">
+                      <i class="fas fa-plus"></i> Novo Evento
+                    </button>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div id="full-calendar"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Reports Section -->
+            <div class="section-content" id="reports-section" style="display: none;">
+              <div class="card fade-in">
+                <div class="card-header">
+                  <h3 class="card-title">
+                    <i class="fas fa-file-alt card-title-icon"></i>
+                    <span>Relatórios Avançados</span>
+                  </h3>
+                  <div class="card-tools">
+                    <button class="btn btn-outline">
+                      <i class="fas fa-download"></i> Exportar
+                    </button>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <p>Relatórios detalhados em desenvolvimento...</p>
                 </div>
               </div>
             </div>
@@ -1153,7 +1474,7 @@
                   document.getElementById('main-content').style.display = 'flex';
                   initApplication();
               }, 500);
-          }, 3000);
+          }, 2000);
       });
 
       const now = new Date();
@@ -1170,6 +1491,7 @@
           // Elementos DOM
           const sidebar = document.getElementById('sidebar');
           const sidebarToggle = document.getElementById('sidebar-toggle');
+          const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle');
           const navItems = document.querySelectorAll('.nav-item');
           const sectionContents = document.querySelectorAll('.section-content');
           const analistaSelect = document.getElementById('analista-select');
@@ -1180,10 +1502,12 @@
           const saveButton = document.getElementById('save-backlog');
           const statsToday = document.getElementById('stats-today');
           const statsMonth = document.getElementById('stats-month');
+          const statsTotal = document.getElementById('stats-total');
           const statsTopAnalyst = document.getElementById('stats-top-analyst');
           const statsTopCount = document.getElementById('stats-top-count');
           const statsTodayChange = document.getElementById('stats-today-change');
           const statsMonthChange = document.getElementById('stats-month-change');
+          const statsTotalDays = document.getElementById('stats-total-days');
           const textColorPicker = document.getElementById('text-color');
           const bgColorPicker = document.getElementById('bg-color');
           const toolbarButtons = document.querySelectorAll('.toolbar-btn');
@@ -1220,14 +1544,14 @@
           }
 
           // Função para formatar a data no formato YYYY-MM-DD (fuso de São Paulo)
-            function getSaoPauloDateString() {
-                const now = new Date();
-                const offset = now.getTimezoneOffset() + 180; // Ajuste para UTC-3 (180 minutos)
-                const saoPauloTime = new Date(now.getTime() + offset * 60 * 1000);
-                return saoPauloTime.toISOString().split('T')[0];
-            }
+          function getSaoPauloDateString() {
+              const now = new Date();
+              const offset = now.getTimezoneOffset() + 180; // Ajuste para UTC-3 (180 minutos)
+              const saoPauloTime = new Date(now.getTime() + offset * 60 * 1000);
+              return saoPauloTime.toISOString().split('T')[0];
+          }
 
-            dataBacklog.value = getSaoPauloDateString();
+          dataBacklog.value = getSaoPauloDateString();
 
           // Editor de texto avançado
           function execCommand(command, value = null) {
@@ -1415,11 +1739,18 @@
                   this.classList.add('active');
 
                   const section = this.getAttribute('data-section');
-                  sectionContents.forEach(content => content.style.display = 'none');
-                  document.getElementById(`${section}-section`).style.display = 'block';
+                  sectionContents.forEach(content => {
+                      content.style.display = 'none';
+                      content.classList.remove('fade-in');
+                  });
+                  
+                  const sectionElement = document.getElementById(`${section}-section`);
+                  sectionElement.style.display = 'block';
+                  setTimeout(() => sectionElement.classList.add('fade-in'), 10);
 
                   const sectionTitle = this.querySelector('span').textContent;
-                  document.querySelector('.page-title').textContent = sectionTitle;
+                  document.querySelector('.page-title span').textContent = sectionTitle;
+                  document.querySelector('.page-title-icon').className = `fas ${this.querySelector('.nav-icon').className.split(' ')[1]} page-title-icon`;
 
                   const breadcrumb = document.querySelector('.breadcrumb');
                   breadcrumb.innerHTML = `
@@ -1435,13 +1766,27 @@
                       initCalendar();
                       updateStats();
                       updateAnalystReports();
+                  } else if (section === 'calendar') {
+                      initFullCalendar();
                   }
               });
           });
 
-          // Toggle sidebar em mobile
+          // Toggle sidebar
           sidebarToggle.addEventListener('click', function() {
+              sidebar.classList.toggle('collapsed');
+          });
+
+          // Toggle mobile sidebar
+          mobileSidebarToggle.addEventListener('click', function() {
               sidebar.classList.toggle('active');
+          });
+
+          // Fechar sidebar ao clicar fora (mobile)
+          document.addEventListener('click', function(e) {
+              if (window.innerWidth <= 1200 && !sidebar.contains(e.target) {
+                  sidebar.classList.remove('active');
+              }
           });
 
           // Limpar formulário
@@ -1503,11 +1848,11 @@
                   await saveData(backlogData);
 
                   saveButton.innerHTML = '<i class="fas fa-check"></i> Salvo com Sucesso!';
-                  saveButton.style.backgroundColor = '#34a853';
+                  saveButton.style.background = 'linear-gradient(135deg, #4bb543 0%, #3a9a32 100%)';
 
                   setTimeout(() => {
                       saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Backlog';
-                      saveButton.style.backgroundColor = '';
+                      saveButton.style.background = 'linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%)';
                       saveButton.disabled = false;
                   }, 2000);
 
@@ -1574,20 +1919,32 @@
                           modalContent.style.width = '90%';
                           modalContent.style.maxHeight = '80vh';
                           modalContent.style.overflow = 'auto';
+                          modalContent.style.backdropFilter = 'blur(12px)';
+                          modalContent.style.webkitBackdropFilter = 'blur(12px)';
+                          modalContent.style.border = '1px solid var(--glass-border)';
                           modalContent.innerHTML = `
-                              <h3 style="margin-bottom: 1rem; color: var(--accent)">Validação de Backlog</h3>
+                              <h3 style="margin-bottom: 1rem; color: var(--accent-light)">Validação de Backlog</h3>
                               <p><strong>Analista:</strong> ${analista}</p>
                               <p><strong>Data:</strong> ${data}</p>
                               <div style="margin-top: 1rem; border-top: 1px solid var(--glass-border); padding-top: 1rem">
                                   ${texto}
                               </div>
-                              <button style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--accent); color: white; border: none; border-radius: 0.25rem; cursor: pointer">Fechar</button>
+                              <button style="margin-top: 1.5rem; padding: 0.75rem 1.5rem; background: var(--accent); color: white; border: none; border-radius: 0.5rem; cursor: pointer; transition: var(--transition);">Fechar</button>
                           `;
 
                           modal.appendChild(modalContent);
                           document.body.appendChild(modal);
 
-                          modal.querySelector('button').addEventListener('click', () => {
+                          const closeBtn = modal.querySelector('button');
+                          closeBtn.addEventListener('mouseenter', () => {
+                              closeBtn.style.transform = 'translateY(-2px)';
+                              closeBtn.style.boxShadow = 'var(--shadow-sm)';
+                          });
+                          closeBtn.addEventListener('mouseleave', () => {
+                              closeBtn.style.transform = 'none';
+                              closeBtn.style.boxShadow = 'none';
+                          });
+                          closeBtn.addEventListener('click', () => {
                               document.body.removeChild(modal);
                           });
                       }
@@ -1596,6 +1953,91 @@
                   calendar.render();
               } catch (error) {
                   console.error('Erro ao inicializar calendário:', error);
+              }
+          }
+
+          // Inicializa o calendário completo
+          async function initFullCalendar() {
+              try {
+                  const calendarEl = document.getElementById('full-calendar');
+
+                  const events = backlogData.registros.map(entry => ({
+                      title: `${entry.analista}`,
+                      start: entry.data,
+                      extendedProps: {
+                          analista: entry.analista,
+                          texto: entry.texto
+                      },
+                      className: 'completo'
+                  }));
+
+                  const calendar = new FullCalendar.Calendar(calendarEl, {
+                      initialView: 'dayGridMonth',
+                      locale: 'pt-br',
+                      headerToolbar: {
+                          left: 'prev,next today',
+                          center: 'title',
+                          right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
+                      },
+                      events: events,
+                      eventClick: function(info) {
+                          const { analista, texto } = info.event.extendedProps;
+                          const data = formatSaoPauloDate(info.event.start);
+
+                          const modal = document.createElement('div');
+                          modal.style.position = 'fixed';
+                          modal.style.top = '0';
+                          modal.style.left = '0';
+                          modal.style.width = '100%';
+                          modal.style.height = '100%';
+                          modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
+                          modal.style.display = 'flex';
+                          modal.style.justifyContent = 'center';
+                          modal.style.alignItems = 'center';
+                          modal.style.zIndex = '10000';
+
+                          const modalContent = document.createElement('div');
+                          modalContent.style.backgroundColor = 'var(--glass)';
+                          modalContent.style.padding = '2rem';
+                          modalContent.style.borderRadius = '0.5rem';
+                          modalContent.style.maxWidth = '800px';
+                          modalContent.style.width = '90%';
+                          modalContent.style.maxHeight = '80vh';
+                          modalContent.style.overflow = 'auto';
+                          modalContent.style.backdropFilter = 'blur(12px)';
+                          modalContent.style.webkitBackdropFilter = 'blur(12px)';
+                          modalContent.style.border = '1px solid var(--glass-border)';
+                          modalContent.innerHTML = `
+                              <h3 style="margin-bottom: 1rem; color: var(--accent-light)">Validação de Backlog</h3>
+                              <p><strong>Analista:</strong> ${analista}</p>
+                              <p><strong>Data:</strong> ${data}</p>
+                              <div style="margin-top: 1rem; border-top: 1px solid var(--glass-border); padding-top: 1rem">
+                                  ${texto}
+                              </div>
+                              <button style="margin-top: 1.5rem; padding: 0.75rem 1.5rem; background: var(--accent); color: white; border: none; border-radius: 0.5rem; cursor: pointer; transition: var(--transition);">Fechar</button>
+                          `;
+
+                          modal.appendChild(modalContent);
+                          document.body.appendChild(modal);
+
+                          const closeBtn = modal.querySelector('button');
+                          closeBtn.addEventListener('mouseenter', () => {
+                              closeBtn.style.transform = 'translateY(-2px)';
+                              closeBtn.style.boxShadow = 'var(--shadow-sm)';
+                          });
+                          closeBtn.addEventListener('mouseleave', () => {
+                              closeBtn.style.transform = 'none';
+                              closeBtn.style.boxShadow = 'none';
+                          });
+                          closeBtn.addEventListener('click', () => {
+                              document.body.removeChild(modal);
+                          });
+                      }
+                  });
+
+                  calendar.render();
+              } catch (error) {
+                  console.error('Erro ao inicializar calendário completo:', error);
               }
           }
 
@@ -1644,11 +2086,16 @@
                       }
                   }
 
+                  // Dias únicos com registros
+                  const uniqueDates = new Set(registros.map(entry => entry.data));
+
                   // Atualizar estatísticas
                   statsToday.textContent = todayEntries.length;
                   statsMonth.textContent = monthEntries.length;
+                  statsTotal.textContent = registros.length;
                   statsTopAnalyst.textContent = topAnalyst;
                   statsTopCount.textContent = `${topCount} validações`;
+                  statsTotalDays.textContent = `${uniqueDates.size} dias registrados`;
 
                   // Calcular variações percentuais
                   const todayChange = yesterdayEntries.length > 0 ?
@@ -1773,9 +2220,9 @@
                       item.innerHTML = `
                           <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
                               <span class="analyst-name" style="font-weight: 600;">${analyst.name}</span>
-                              <span class="analyst-count" style="color: var(--accent); font-weight: 600;">${analyst.count} validações</span>
+                              <span class="analyst-count" style="color: var(--accent-light); font-weight: 600;">${analyst.count} validações</span>
                           </div>
-                          <div style="font-size: 0.875rem; color: var(--gray);">
+                          <div style="font-size: 0.875rem; color: rgba(255, 255, 255, 0.7);">
                               <div>Dias trabalhados: ${uniqueDates.length}</div>
                               <div>Última validação: ${lastDate}</div>
                           </div>
@@ -1810,8 +2257,8 @@
                       datasets: [{
                           label: 'Validações por Analista',
                           data: data,
-                          backgroundColor: 'rgba(66, 133, 244, 0.7)',
-                          borderColor: 'rgba(66, 133, 244, 1)',
+                          backgroundColor: 'rgba(72, 149, 239, 0.7)',
+                          borderColor: 'rgba(72, 149, 239, 1)',
                           borderWidth: 1
                       }]
                   },
@@ -1822,7 +2269,7 @@
                           y: {
                               beginAtZero: true,
                               ticks: {
-                                  color: 'var(--dark)'
+                                  color: 'white'
                               },
                               grid: {
                                   color: 'rgba(255, 255, 255, 0.1)'
@@ -1830,7 +2277,7 @@
                           },
                           x: {
                               ticks: {
-                                  color: 'var(--dark)'
+                                  color: 'white'
                               },
                               grid: {
                                   color: 'rgba(255, 255, 255, 0.1)'
@@ -1840,13 +2287,13 @@
                       plugins: {
                           legend: {
                               labels: {
-                                  color: 'var(--dark)'
+                                  color: 'white'
                               }
                           },
                           tooltip: {
                               backgroundColor: 'rgba(26, 32, 44, 0.9)',
-                              titleColor: 'var(--dark)',
-                              bodyColor: 'var(--dark)',
+                              titleColor: 'white',
+                              bodyColor: 'white',
                               borderColor: 'var(--glass-border)',
                               borderWidth: 1
                           }
