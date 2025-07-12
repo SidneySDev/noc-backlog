@@ -8,6 +8,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
     <style>
         /* Splash Screen Styles */
         #splash-screen {
@@ -25,6 +28,48 @@
             color: #00ffff;
             z-index: 9999;
             transition: opacity 0.5s ease-out;
+        }
+
+        .fc-event.has-tooltip {
+            position: relative;
+        }
+
+        .fc-event .tooltip {
+            visibility: hidden;
+            width: 120px;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: var(--light);
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 100;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 0.8rem;
+        }
+
+        .fc-event .tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: var(--glass) transparent transparent transparent;
+        }
+
+        .fc-event:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
         }
 
         .loader-container {
@@ -1205,6 +1250,18 @@
         .toast-warning {
             border-left: 4px solid var(--warning);
         }
+
+        /* Tag para registros do JSONBin */
+        .jsonbin-tag {
+            display: inline-block;
+            background-color: #f59e0b;
+            color: #000;
+            font-size: 0.7rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 0.25rem;
+            margin-left: 0.5rem;
+            vertical-align: middle;
+        }
     </style>
 </head>
 
@@ -1247,8 +1304,6 @@
                     </a>
                 </div>
             </div>
-
-
         </div>
 
         <!-- Overlay para fechar a sidebar -->
@@ -1455,73 +1510,266 @@
                 <!-- Toast Notification -->
                 <div class="toast" id="toast"></div>
             </div>
+        </div>
+    </div>
 
-            <!-- Scripts -->
-            <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
-            <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/pt-br.js"></script>
-            <script>
-                // Mostrar splash screen e depois carregar a página após 1.5 segundos
-                document.addEventListener('DOMContentLoaded', function () {
-                    setTimeout(function () {
-                        const splash = document.getElementById('splash-screen');
-                        splash.style.opacity = '0';
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/pt-br.js"></script>
+    <script>
+        // Mostrar splash screen e depois carregar a página após 1.5 segundos
+        document.addEventListener('DOMContentLoaded', function () {
+            setTimeout(function () {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = '0';
 
-                        setTimeout(function () {
-                            splash.style.display = 'none';
-                            document.getElementById('app-container').style.display = 'flex';
-                            initApplication();
-                        }, 200);
-                    }, 3000);
+                setTimeout(function () {
+                    splash.style.display = 'none';
+                    document.getElementById('app-container').style.display = 'flex';
+                    initApplication();
+                }, 200);
+            }, 3000);
+        });
+
+        function initApplication() {
+            // Configurações do Firebase
+            const firebaseConfig = {
+                apiKey: "AIzaSyBWBGcnOlv2Gu_0hN17qIGW6RKL3uITbzY",
+                authDomain: "bancodedados-snzb.firebaseapp.com",
+                projectId: "bancodedados-snzb",
+                storageBucket: "bancodedados-snzb.appspot.com",
+                messagingSenderId: "573270416863",
+                appId: "1:573270416863:web:81455e206b4d252d29b86a"
+            };
+
+            // Inicializar Firebase
+            const app = firebase.initializeApp(firebaseConfig);
+            const db = firebase.firestore();
+
+            // Configurações do JSONBin (apenas para leitura)
+            const BIN_ID = '685632118960c979a5ae30ac';
+            const MASTER_KEY = '$2a$10$YMdKhRE5rs2j/addb0u2beEv8Buf0LgOpYvT5YQhwzDZqIfxBOsWK';
+            const ACCESS_KEY = '$2a$10$SpeE5.rHPveOV83qARbVqOkmjogz4ZOF6pahjv8ju7cEPDnPdt4rq';
+            const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+            // Elementos DOM
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+            const menuToggle = document.getElementById('menu-toggle');
+            const navItems = document.querySelectorAll('.nav-item');
+            const sectionContents = document.querySelectorAll('.section-content');
+            const analistaSelect = document.getElementById('analista-select');
+            const dataBacklog = document.getElementById('data-backlog');
+
+            // Configurar data inicial com fuso horário de Fortaleza (UTC-3)
+            function getFortalezaDateString() {
+                const now = new Date();
+                // Ajusta para UTC-3 (Fortaleza)
+                const fortalezaTime = new Date(now.getTime() - (now.getTimezoneOffset() * 60000) - (3 * 3600000));
+                return fortalezaTime.toISOString().split('T')[0];
+            }
+
+            dataBacklog.value = getFortalezaDateString();
+
+            const backlogText = document.getElementById('backlog-text');
+            const backlogForm = document.getElementById('backlog-form');
+            const clearFormBtn = document.getElementById('clear-form');
+            const saveButton = document.getElementById('save-backlog');
+            const toast = document.getElementById('toast');
+            const fullscreenToggle = document.getElementById('fullscreen-toggle');
+            const pageTitle = document.querySelector('.page-title');
+            const monthSelect = document.getElementById('month-select');
+
+            // Elementos da dashboard
+            const validationsTodayEl = document.getElementById('validations-today');
+            const todayChangeEl = document.getElementById('today-change');
+            const validationsMonthEl = document.getElementById('validations-month');
+            const monthChangeEl = document.getElementById('month-change');
+            const topAnalystEl = document.getElementById('top-analyst');
+            const topAnalystCountEl = document.getElementById('top-analyst-count');
+            const topAnalystsEl = document.getElementById('top-analysts');
+            const bottomAnalystsEl = document.getElementById('bottom-analysts');
+            const analystChartEl = document.getElementById('analystChart');
+
+            // Variáveis globais
+            let backlogData = {
+                meta: {
+                    sistema: "Backlog do NOC",
+                    versao: "1.0",
+                    ultima_atualizacao: null,
+                    criado_em: new Date().toISOString()
+                },
+                registros: []
+            };
+
+            let firebaseRecords = [];
+            let analystChart = null;
+
+            // Função para mostrar toast
+            function showToast(message, type = 'success', duration = 3000) {
+                toast.textContent = message;
+                toast.className = `toast ${type}`;
+                toast.classList.add('show');
+
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, duration);
+            }
+
+            // Função para obter timestamp com fuso horário de Fortaleza (UTC-3)
+            function getFortalezaTimestamp() {
+                // Cria uma data no fuso horário de Fortaleza
+                const now = new Date();
+
+                // Formata a data como string no formato ISO com offset -03:00
+                const timeString = now.toLocaleString('pt-BR', {
+                    timeZone: 'America/Fortaleza',
+                    hour12: false
                 });
 
-                function initApplication() {
-                    // Configurações do JSONBin
-                    const BIN_ID = '685632118960c979a5ae30ac';
-                    const MASTER_KEY = '$2a$10$YMdKhRE5rs2j/addb0u2beEv8Buf0LgOpYvT5YQhwzDZqIfxBOsWK';
-                    const ACCESS_KEY = '$2a$10$SpeE5.rHPveOV83qARbVqOkmjogz4ZOF6pahjv8ju7cEPDnPdt4rq';
-                    const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+                // Extrai os componentes da data
+                const [datePart, timePart] = timeString.split(', ');
+                const [day, month, year] = datePart.split('/');
+                const [hours, minutes, seconds] = timePart.split(':');
 
-                    // Elementos DOM
-                    const sidebar = document.getElementById('sidebar');
-                    const sidebarOverlay = document.getElementById('sidebar-overlay');
-                    const menuToggle = document.getElementById('menu-toggle');
-                    const navItems = document.querySelectorAll('.nav-item');
-                    const sectionContents = document.querySelectorAll('.section-content');
-                    const analistaSelect = document.getElementById('analista-select');
-                    const dataBacklog = document.getElementById('data-backlog');
+                // Obtém os milissegundos
+                const ms = now.getMilliseconds().toString().padStart(3, '0');
 
-                    // Configurar data inicial com fuso horário de Fortaleza (UTC-3)
-                    function getFortalezaDateString() {
-                        const now = new Date();
-                        // Ajusta para UTC-3 (Fortaleza)
-                        const fortalezaTime = new Date(now.getTime() - (now.getTimezoneOffset() * 60000) - (3 * 3600000));
-                        return fortalezaTime.toISOString().split('T')[0];
+                // Formata no padrão ISO 8601 com offset -03:00
+                return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${ms}-03:00`;
+            }
+
+            // Toggle sidebar
+            menuToggle.addEventListener('click', function () {
+                sidebar.classList.toggle('active');
+                sidebarOverlay.classList.toggle('active');
+            });
+
+            // Fechar sidebar ao clicar no overlay
+            sidebarOverlay.addEventListener('click', function () {
+                sidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+            });
+
+            // Toggle fullscreen
+            fullscreenToggle.addEventListener('click', function () {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(err => {
+                        showToast(`Erro ao entrar em tela cheia: ${err.message}`, 'error');
+                    });
+                    fullscreenToggle.innerHTML = '<i class="fas fa-compress"></i>';
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                        fullscreenToggle.innerHTML = '<i class="fas fa-expand"></i>';
+                    }
+                }
+            });
+
+            // Editor de texto avançado
+            function execCommand(command, value = null) {
+                document.execCommand(command, false, value);
+                backlogText.focus();
+            }
+
+            // Atalhos de teclado
+            backlogText.addEventListener('keydown', function (e) {
+                if (e.ctrlKey && e.key === 'b') {
+                    e.preventDefault();
+                    execCommand('bold');
+                }
+                else if (e.ctrlKey && e.key === 'i') {
+                    e.preventDefault();
+                    execCommand('italic');
+                }
+                else if (e.ctrlKey && e.key === 'u') {
+                    e.preventDefault();
+                    execCommand('underline');
+                }
+                else if (e.ctrlKey && e.key === 'z') {
+                    e.preventDefault();
+                    execCommand('undo');
+                }
+                else if (e.ctrlKey && e.key === 'y') {
+                    e.preventDefault();
+                    execCommand('redo');
+                }
+                else if (e.ctrlKey && e.key === 's') {
+                    e.preventDefault();
+                    document.getElementById('save-backlog').click();
+                }
+            });
+
+            // Eventos dos botões da toolbar
+            document.querySelectorAll('.toolbar-btn').forEach(button => {
+                button.addEventListener('click', function () {
+                    const command = this.getAttribute('data-command');
+                    const value = this.getAttribute('data-value');
+
+                    if (command === 'hiliteColor') {
+                        execCommand('hiliteColor', value);
+                    } else {
+                        execCommand(command);
+                    }
+                });
+            });
+
+            // Atualiza cor do texto
+            document.getElementById('text-color').addEventListener('change', function () {
+                execCommand('foreColor', this.value);
+            });
+
+            // Atualiza cor de fundo
+            document.getElementById('bg-color').addEventListener('change', function () {
+                execCommand('hiliteColor', this.value);
+            });
+
+            // Carregar dados do JSONBin (apenas leitura)
+            async function loadJsonBinData() {
+                try {
+                    showToast('Carregando dados do JSONBin...', 'info');
+                    const response = await fetch(API_URL, {
+                        headers: {
+                            'X-Master-Key': MASTER_KEY,
+                            'X-Access-Key': ACCESS_KEY
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Erro HTTP: ${response.status}`);
                     }
 
-                    dataBacklog.value = getFortalezaDateString();
+                    const jsonData = await response.json();
 
-                    const backlogText = document.getElementById('backlog-text');
-                    const backlogForm = document.getElementById('backlog-form');
-                    const clearFormBtn = document.getElementById('clear-form');
-                    const saveButton = document.getElementById('save-backlog');
-                    const toast = document.getElementById('toast');
-                    const fullscreenToggle = document.getElementById('fullscreen-toggle');
-                    const pageTitle = document.querySelector('.page-title');
-                    const monthSelect = document.getElementById('month-select');
+                    if (!jsonData.record || Object.keys(jsonData.record).length === 0) {
+                        return {
+                            meta: {
+                                sistema: "Backlog do NOC",
+                                versao: "1.0",
+                                ultima_atualizacao: null,
+                                criado_em: new Date().toISOString()
+                            },
+                            registros: []
+                        };
+                    }
 
-                    // Elementos da dashboard
-                    const validationsTodayEl = document.getElementById('validations-today');
-                    const todayChangeEl = document.getElementById('today-change');
-                    const validationsMonthEl = document.getElementById('validations-month');
-                    const monthChangeEl = document.getElementById('month-change');
-                    const topAnalystEl = document.getElementById('top-analyst');
-                    const topAnalystCountEl = document.getElementById('top-analyst-count');
-                    const topAnalystsEl = document.getElementById('top-analysts');
-                    const bottomAnalystsEl = document.getElementById('bottom-analysts');
-                    const analystChartEl = document.getElementById('analystChart');
+                    // Adiciona tag [snz-b] aos registros do JSONBin
+                    const recordsWithTag = jsonData.record.registros.map(record => {
+                        return {
+                            ...record,
+                            texto: record.texto + ' <span class="jsonbin-tag">[snz-b]</span>',
+                            fonte: 'jsonbin'
+                        };
+                    });
 
-                    // Variáveis globais
-                    let backlogData = {
+                    return {
+                        ...jsonData.record,
+                        registros: recordsWithTag
+                    };
+                } catch (error) {
+                    console.error('Erro ao carregar dados do JSONBin:', error);
+                    showToast('Erro ao carregar dados do JSONBin. Verifique o console.', 'error');
+                    return {
                         meta: {
                             sistema: "Backlog do NOC",
                             versao: "1.0",
@@ -1530,765 +1778,676 @@
                         },
                         registros: []
                     };
+                }
+            }
 
-                    let analystChart = null;
+            // Carregar dados do Firebase
+            async function loadFirebaseData() {
+                try {
+                    const doc = await db.collection('backlog').doc('tHlAClzGU9769Sv95RNb').get();
 
-                    // Função para mostrar toast
-                    function showToast(message, type = 'success', duration = 3000) {
-                        toast.textContent = message;
-                        toast.className = `toast ${type}`;
-                        toast.classList.add('show');
+                    return {
+                        meta: {
+                            sistema: "Backlog do NOC",
+                            versao: "1.0",
+                            ultima_atualizacao: new Date().toISOString(),
+                            criado_em: new Date().toISOString()
+                        },
+                        registros: doc.exists ? doc.data().registros || [] : []
+                    };
+                } catch (error) {
+                    console.error('Erro ao carregar dados do Firebase:', error);
+                    return {
+                        meta: {
+                            sistema: "Backlog do NOC",
+                            versao: "1.0",
+                            ultima_atualizacao: null,
+                            criado_em: new Date().toISOString()
+                        },
+                        registros: []
+                    };
+                }
+            }
+            // Salvar dados no Firebase
+            async function saveToFirebase(record) {
+                try {
+                    // Atualizar metadados (se ainda quiser manter)
+                    await db.collection('backlog').doc('metadata').set({
+                        sistema: "Backlog do NOC",
+                        versao: "1.0",
+                        ultima_atualizacao: firebase.firestore.FieldValue.serverTimestamp(),
+                        criado_em: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
 
-                        setTimeout(() => {
-                            toast.classList.remove('show');
-                        }, duration);
-                    }
-
-                    // Função para obter timestamp com fuso horário de Fortaleza (UTC-3)
-                    function getFortalezaTimestamp() {
-                        // Cria uma data no fuso horário de Fortaleza
-                        const now = new Date();
-
-                        // Formata a data como string no formato ISO com offset -03:00
-                        const timeString = now.toLocaleString('pt-BR', {
-                            timeZone: 'America/Fortaleza',
-                            hour12: false
-                        });
-
-                        // Extrai os componentes da data
-                        const [datePart, timePart] = timeString.split(', ');
-                        const [day, month, year] = datePart.split('/');
-                        const [hours, minutes, seconds] = timePart.split(':');
-
-                        // Obtém os milissegundos
-                        const ms = now.getMilliseconds().toString().padStart(3, '0');
-
-                        // Formata no padrão ISO 8601 com offset -03:00
-                        return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${ms}-03:00`;
-                    }
-
-                    // Toggle sidebar
-                    menuToggle.addEventListener('click', function () {
-                        sidebar.classList.toggle('active');
-                        sidebarOverlay.classList.toggle('active');
+                    // Adicionar novo registro diretamente no documento
+                    await db.collection('backlog').doc('tHlAClzGU9769Sv95RNb').update({
+                        registros: firebase.firestore.FieldValue.arrayUnion(record)
                     });
 
-                    // Fechar sidebar ao clicar no overlay
-                    sidebarOverlay.addEventListener('click', function () {
-                        sidebar.classList.remove('active');
-                        sidebarOverlay.classList.remove('active');
-                    });
+                    return "Registro adicionado com sucesso";
+                } catch (error) {
+                    console.error('Erro ao salvar no Firebase:', error);
+                    throw error;
+                }
+            }
 
-                    // Toggle fullscreen
-                    fullscreenToggle.addEventListener('click', function () {
-                        if (!document.fullscreenElement) {
-                            document.documentElement.requestFullscreen().catch(err => {
-                                showToast(`Erro ao entrar em tela cheia: ${err.message}`, 'error');
-                            });
-                            fullscreenToggle.innerHTML = '<i class="fas fa-compress"></i>';
-                        } else {
-                            if (document.exitFullscreen) {
-                                document.exitFullscreen();
-                                fullscreenToggle.innerHTML = '<i class="fas fa-expand"></i>';
-                            }
-                        }
-                    });
+            // Verificar se o analista já salvou backlog na data selecionada
+            async function checkAnalistaBacklog(analista, data) {
+                try {
+                    const doc = await db.collection('backlog').doc('tHlAClzGU9769Sv95RNb').get();
+                    if (!doc.exists) return false;
 
-                    // Editor de texto avançado
-                    function execCommand(command, value = null) {
-                        document.execCommand(command, false, value);
-                        backlogText.focus();
-                    }
+                    const registros = doc.data().registros || [];
+                    return registros.some(entry =>
+                        entry.analista === analista && entry.data === data
+                    );
+                } catch (error) {
+                    console.error('Erro ao verificar backlog do analista:', error);
+                    return false;
+                }
+            }
 
-                    // Atalhos de teclado
-                    backlogText.addEventListener('keydown', function (e) {
-                        if (e.ctrlKey && e.key === 'b') {
-                            e.preventDefault();
-                            execCommand('bold');
-                        }
-                        else if (e.ctrlKey && e.key === 'i') {
-                            e.preventDefault();
-                            execCommand('italic');
-                        }
-                        else if (e.ctrlKey && e.key === 'u') {
-                            e.preventDefault();
-                            execCommand('underline');
-                        }
-                        else if (e.ctrlKey && e.key === 'z') {
-                            e.preventDefault();
-                            execCommand('undo');
-                        }
-                        else if (e.ctrlKey && e.key === 'y') {
-                            e.preventDefault();
-                            execCommand('redo');
-                        }
-                        else if (e.ctrlKey && e.key === 's') {
-                            e.preventDefault();
-                            document.getElementById('save-backlog').click();
+            // Verificar quantos analistas diferentes já salvaram backlog na data selecionada
+            async function countAnalistasDia(data) {
+                try {
+                    const doc = await db.collection('backlog').doc('tHlAClzGU9769Sv95RNb').get();
+                    if (!doc.exists) return 0;
+
+                    const registros = doc.data().registros || [];
+                    const analistasDia = new Set();
+
+                    registros.forEach(record => {
+                        if (record.data === data) {
+                            analistasDia.add(record.analista);
                         }
                     });
 
-                    // Eventos dos botões da toolbar
-                    document.querySelectorAll('.toolbar-btn').forEach(button => {
-                        button.addEventListener('click', function () {
-                            const command = this.getAttribute('data-command');
-                            const value = this.getAttribute('data-value');
-
-                            if (command === 'hiliteColor') {
-                                execCommand('hiliteColor', value);
-                            } else {
-                                execCommand(command);
-                            }
-                        });
-                    });
-
-                    // Atualiza cor do texto
-                    document.getElementById('text-color').addEventListener('change', function () {
-                        execCommand('foreColor', this.value);
-                    });
-
-                    // Atualiza cor de fundo
-                    document.getElementById('bg-color').addEventListener('change', function () {
-                        execCommand('hiliteColor', this.value);
-                    });
-
-                    // Carregar dados do JSONBin
-                    async function loadData() {
-                        try {
-                            showToast('Carregando dados...', 'info');
-                            const response = await fetch(API_URL, {
-                                headers: {
-                                    'X-Master-Key': MASTER_KEY,
-                                    'X-Access-Key': ACCESS_KEY
-                                }
-                            });
-
-                            if (!response.ok) {
-                                throw new Error(`Erro HTTP: ${response.status}`);
-                            }
-
-                            const jsonData = await response.json();
-
-                            if (!jsonData.record || Object.keys(jsonData.record).length === 0) {
-                                const initialData = {
-                                    meta: {
-                                        sistema: "Backlog do NOC",
-                                        versao: "1.0",
-                                        ultima_atualizacao: null,
-                                        criado_em: new Date().toISOString()
-                                    },
-                                    registros: []
-                                };
-
-                                await saveData(initialData);
-                                backlogData = initialData;
-                                return initialData;
-                            }
-
-                            backlogData = jsonData.record;
-                            showToast('Dados carregados com sucesso!');
-                            return jsonData.record;
-                        } catch (error) {
-                            console.error('Erro ao carregar dados:', error);
-                            showToast('Erro ao carregar dados. Verifique o console.', 'error');
-
-                            const initialData = {
-                                meta: {
-                                    sistema: "Backlog do NOC",
-                                    versao: "1.0",
-                                    ultima_atualizacao: null,
-                                    criado_em: new Date().toISOString()
-                                },
-                                registros: []
-                            };
-
-                            backlogData = initialData;
-                            return initialData;
-                        }
-                    }
-
-                    // Salvar dados no JSONBin
-                    async function saveData(data) {
-                        try {
-                            const response = await fetch(API_URL, {
-                                method: 'PUT',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-Master-Key': MASTER_KEY,
-                                    'X-Access-Key': ACCESS_KEY
-                                },
-                                body: JSON.stringify(data)
-                            });
-
-                            if (!response.ok) {
-                                throw new Error(`Erro HTTP: ${response.status}`);
-                            }
-
-                            const result = await response.json();
-                            return result;
-                        } catch (error) {
-                            console.error('Erro ao salvar dados:', error);
-                            throw error;
-                        }
-                    }
-
-                    // Verificar se o analista já salvou backlog na data selecionada
-                    async function checkAnalistaBacklog(analista, data) {
-                        try {
-                            const existingEntry = backlogData.registros.find(entry =>
-                                entry.analista === analista && entry.data === data
-                            );
-                            return !!existingEntry;
-                        } catch (error) {
-                            console.error('Erro ao verificar backlog do analista:', error);
-                            return false;
-                        }
-                    }
-
-                    // Verificar quantos analistas diferentes já salvaram backlog na data selecionada
-                    async function countAnalistasDia(data) {
-                        try {
-                            const entries = backlogData.registros.filter(entry => entry.data === data);
-                            const uniqueAnalistas = new Set(entries.map(entry => entry.analista));
-                            return uniqueAnalistas.size;
-                        } catch (error) {
-                            console.error('Erro ao contar analistas do dia:', error);
-                            return 0;
-                        }
-                    }
-
-                    // Navegação entre seções
-                    navItems.forEach(item => {
-                        item.addEventListener('click', function (e) {
-                            e.preventDefault();
-
-                            navItems.forEach(nav => nav.classList.remove('active'));
-                            this.classList.add('active');
-
-                            const section = this.getAttribute('data-section');
-                            sectionContents.forEach(content => content.style.display = 'none');
-                            document.getElementById(`${section}-section`).style.display = 'block';
-
-                            const sectionTitle = this.querySelector('span').textContent;
-                            pageTitle.textContent = sectionTitle;
-
-                            if (section === 'dashboard') {
-                                initCalendar();
-                                updateDashboardStats();
-                            }
-                        });
-                    });
-
-                    // Limpar formulário com confirmação
-                    clearFormBtn.addEventListener('click', function () {
-                        if (backlogText.innerHTML.trim() !== '' && !confirm('Tem certeza que deseja limpar o formulário? Todo o conteúdo não salvo será perdido.')) {
-                            return;
-                        }
-                        backlogForm.reset();
-                        dataBacklog.value = getFortalezaDateString();
-                        backlogText.innerHTML = '';
-                        showToast('Formulário limpo com sucesso!');
-                    });
-
-                    // Salvar backlog
-                    backlogForm.addEventListener('submit', async function (e) {
-                        e.preventDefault();
-
-                        const analista = analistaSelect.value;
-                        const data = dataBacklog.value;
-                        const texto = backlogText.innerHTML.trim();
-
-                        if (!analista || !data || !texto) {
-                            showToast('Por favor, preencha todos os campos obrigatórios!', 'error');
-                            return;
-                        }
-
-                        try {
-                            const alreadySaved = await checkAnalistaBacklog(analista, data);
-                            if (alreadySaved) {
-                                showToast('Este analista já salvou um backlog nesta data. Apenas um registro por analista por dia é permitido.', 'error');
-                                return;
-                            }
-
-                            const analistasCount = await countAnalistasDia(data);
-                            if (analistasCount >= 4) {
-                                showToast('Limite máximo de 4 analistas diferentes por dia atingido. Não é possível salvar mais backlogs nesta data.', 'error');
-                                return;
-                            }
-
-                            saveButton.disabled = true;
-                            saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
-
-                            const newRecord = {
-                                id: backlogData.registros.length + 1,
-                                analista,
-                                data,
-                                texto,
-                                timestamp: getFortalezaTimestamp()
-                            };
-
-                            backlogData.registros.push(newRecord);
-                            backlogData.meta.ultima_atualizacao = new Date().toISOString();
-
-                            await saveData(backlogData);
-
-                            saveButton.innerHTML = '<i class="fas fa-check"></i> Salvo com Sucesso!';
-                            saveButton.style.backgroundColor = '#34a853';
-                            showToast('Backlog salvo com sucesso!');
-
-                            setTimeout(() => {
-                                saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Backlog';
-                                saveButton.style.backgroundColor = '';
-                                saveButton.disabled = false;
-                            }, 2000);
-
-                            backlogText.innerHTML = '';
-
-                            if (document.getElementById('dashboard-section').style.display !== 'none') {
-                                initCalendar();
-                                updateDashboardStats();
-                            }
-                        } catch (error) {
-                            console.error('Erro ao salvar:', error);
-                            showToast('Erro ao salvar os dados. Verifique o console para detalhes.', 'error');
-                            saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Backlog';
-                            saveButton.disabled = false;
-                        }
-                    });
-
-                    // Função auxiliar para obter cor do analista
-                    function getAnalystColor(analista) {
-                        const colors = {
-                            'DELANO': '#65a30d',
-                            'HERBETH': '#dc2626',
-                            'WELLIGTON': '#ea580c',
-                            'EDMUNDO': '#8b5cf6',
-                            'SIDNEY': '#14b8a6',
-                            'MARCIO': '#ec4899',
-                            'HELIELTON': '#3b82f6',
-                            'ROBSON': '#f59e0b',
-                            'WYLLAME': '#059669',
-                            'DARLYSON': '#d946ef',
-                            'MURILO': '#06b6d4',
-                            'ONOFRE': '#f97316',
-                            'LYNNA': '#be185d'
-                        };
-                        return colors[analista] || '#3b82f6';
-                    }
-
-                    // Atualizar estatísticas da dashboard
-                    function updateDashboardStats() {
-                        const today = getFortalezaDateString();
-                        const currentMonth = new Date().getMonth() + 1;
-                        const currentYear = new Date().getFullYear();
-
-                        // Filtrar registros pelo mês selecionado
-                        const selectedMonth = monthSelect.value;
-                        let filteredRecords = backlogData.registros;
-
-                        if (selectedMonth) {
-                            const [year, month] = selectedMonth.split('-');
-                            filteredRecords = backlogData.registros.filter(record => {
-                                const recordDate = new Date(record.data);
-                                return recordDate.getFullYear() == year &&
-                                    (recordDate.getMonth() + 1) == month;
-                            });
-                        }
-
-                        // Estatísticas de hoje
-                        const todayValidations = filteredRecords.filter(record => record.data === today).length;
-                        const yesterday = new Date(new Date(today).getTime() - 86400000).toISOString().split('T')[0];
-                        const yesterdayValidations = filteredRecords.filter(record => record.data === yesterday).length;
-
-                        validationsTodayEl.textContent = todayValidations;
-
-                        let todayChange = 0;
-                        if (yesterdayValidations > 0) {
-                            todayChange = Math.round(((todayValidations - yesterdayValidations) / yesterdayValidations) * 100);
-                        } else if (todayValidations > 0) {
-                            todayChange = 100;
-                        }
-
-                        if (todayChange > 0) {
-                            todayChangeEl.innerHTML = `<i class="fas fa-caret-up"></i> ${todayChange}% em relação a ontem`;
-                            todayChangeEl.className = 'stat-change positive';
-                        } else if (todayChange < 0) {
-                            todayChangeEl.innerHTML = `<i class="fas fa-caret-down"></i> ${Math.abs(todayChange)}% em relação a ontem`;
-                            todayChangeEl.className = 'stat-change negative';
-                        } else {
-                            todayChangeEl.innerHTML = `<i class="fas fa-equals"></i> 0% em relação a ontem`;
-                            todayChangeEl.className = 'stat-change';
-                        }
-
-                        // Estatísticas do mês
-                        const currentMonthValidations = filteredRecords.filter(record => {
-                            const recordDate = new Date(record.data);
-                            return recordDate.getMonth() + 1 === currentMonth &&
-                                recordDate.getFullYear() === currentYear;
-                        }).length;
-
-                        const lastMonth = currentMonth === 1 ? 12 : currentMonth - 1;
-                        const lastMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
-                        const lastMonthValidations = filteredRecords.filter(record => {
-                            const recordDate = new Date(record.data);
-                            return recordDate.getMonth() + 1 === lastMonth &&
-                                recordDate.getFullYear() === lastMonthYear;
-                        }).length;
-
-                        validationsMonthEl.textContent = currentMonthValidations;
-
-                        let monthChange = 0;
-                        if (lastMonthValidations > 0) {
-                            monthChange = Math.round(((currentMonthValidations - lastMonthValidations) / lastMonthValidations) * 100);
-                        } else if (currentMonthValidations > 0) {
-                            monthChange = 100;
-                        }
-
-                        if (monthChange > 0) {
-                            monthChangeEl.innerHTML = `<i class="fas fa-caret-up"></i> ${monthChange}% em relação ao mês passado`;
-                            monthChangeEl.className = 'stat-change positive';
-                        } else if (monthChange < 0) {
-                            monthChangeEl.innerHTML = `<i class="fas fa-caret-down"></i> ${Math.abs(monthChange)}% em relação ao mês passado`;
-                            monthChangeEl.className = 'stat-change negative';
-                        } else {
-                            monthChangeEl.innerHTML = `<i class="fas fa-equals"></i> 0% em relação ao mês passado`;
-                            monthChangeEl.className = 'stat-change';
-                        }
-
-                        // Analistas mais ativos
-                        const analystCounts = {};
-                        filteredRecords.forEach(record => {
-                            if (!analystCounts[record.analista]) {
-                                analystCounts[record.analista] = 0;
-                            }
-                            analystCounts[record.analista]++;
-                        });
-
-                        const sortedAnalysts = Object.entries(analystCounts).sort((a, b) => b[1] - a[1]);
-
-                        // Top analista
-                        if (sortedAnalysts.length > 0) {
-                            topAnalystEl.textContent = sortedAnalysts[0][0];
-                            topAnalystCountEl.textContent = `${sortedAnalysts[0][1]} validações`;
-                        } else {
-                            topAnalystEl.textContent = 'N/A';
-                            topAnalystCountEl.textContent = '0 validações';
-                        }
-
-                        // Top 3 analistas
-                        topAnalystsEl.innerHTML = '';
-                        sortedAnalysts.slice(0, 3).forEach((analyst, index) => {
-                            const medalClass = index === 0 ? 'gold' : index === 1 ? 'silver' : 'bronze';
-                            const medalIcon = index === 0 ? 'fa-medal' : index === 1 ? 'fa-medal' : 'fa-medal';
-
-                            const analystEl = document.createElement('div');
-                            analystEl.className = 'analyst-item';
-                            analystEl.innerHTML = `
-                      <div>
-                          <span class="medal ${medalClass}"><i class="fas ${medalIcon}"></i></span>
-                          <span class="analyst-name">${analyst[0]}</span>
-                      </div>
-                      <span class="analyst-count">${analyst[1]} validações</span>
-                  `;
-                            topAnalystsEl.appendChild(analystEl);
-                        });
-
-                        // Analistas com menos registros (apenas se houver mais de 3 analistas)
-                        bottomAnalystsEl.innerHTML = '';
-                        if (sortedAnalysts.length > 3) {
-                            sortedAnalysts.slice(-3).reverse().forEach(analyst => {
-                                const analystEl = document.createElement('div');
-                                analystEl.className = 'analyst-item';
-                                analystEl.innerHTML = `
-                          <span class="analyst-name">${analyst[0]}</span>
-                          <span class="analyst-count">${analyst[1]} validação${analyst[1] !== 1 ? 's' : ''}</span>
-                      `;
-                                bottomAnalystsEl.appendChild(analystEl);
-                            });
-                        } else if (sortedAnalysts.length > 0) {
-                            bottomAnalystsEl.innerHTML = '<p>Todos os analistas estão no ranking!</p>';
-                        } else {
-                            bottomAnalystsEl.innerHTML = '<p>Nenhum dado disponível</p>';
-                        }
-
-                        // Atualizar gráfico
-                        updateAnalystChart(sortedAnalysts);
-                    }
-
-                    // Atualizar gráfico de analistas
-                    function updateAnalystChart(sortedAnalysts) {
-                        const labels = sortedAnalysts.map(item => item[0]);
-                        const data = sortedAnalysts.map(item => item[1]);
-                        const backgroundColors = sortedAnalysts.map(item => getAnalystColor(item[0]));
-
-                        if (analystChart) {
-                            analystChart.data.labels = labels;
-                            analystChart.data.datasets[0].data = data;
-                            analystChart.data.datasets[0].backgroundColor = backgroundColors;
-                            analystChart.update();
-                        } else {
-                            const ctx = analystChartEl.getContext('2d');
-                            analystChart = new Chart(ctx, {
-                                type: 'bar',
-                                data: {
-                                    labels: labels,
-                                    datasets: [{
-                                        label: 'Validações por Analista',
-                                        data: data,
-                                        backgroundColor: backgroundColors,
-                                        borderColor: 'rgba(255, 255, 255, 0.1)',
-                                        borderWidth: 1
-                                    }]
-                                },
-                                options: {
-                                    responsive: true,
-                                    maintainAspectRatio: false,
-                                    plugins: {
-                                        legend: {
-                                            display: false
-                                        },
-                                        tooltip: {
-                                            backgroundColor: 'rgba(26, 32, 44, 0.9)',
-                                            titleColor: '#e2e8f0',
-                                            bodyColor: '#a0aec0',
-                                            borderColor: 'rgba(255, 255, 255, 0.1)',
-                                            borderWidth: 1,
-                                            padding: 12,
-                                            usePointStyle: true
-                                        }
-                                    },
-                                    scales: {
-                                        y: {
-                                            beginAtZero: true,
-                                            grid: {
-                                                color: 'rgba(255, 255, 255, 0.05)'
-                                            },
-                                            ticks: {
-                                                color: '#a0aec0'
-                                            }
-                                        },
-                                        x: {
-                                            grid: {
-                                                display: false
-                                            },
-                                            ticks: {
-                                                color: '#a0aec0'
-                                            }
-                                        }
-                                    }
-                                }
-                            });
-                        }
-                    }
-
-                    // Popular seletor de meses
-                    function populateMonthSelect() {
-                        monthSelect.innerHTML = '<option value="">Todos os meses</option>';
-
-                        if (backlogData.registros.length === 0) return;
-
-                        // Extrair meses únicos dos registros
-                        const months = new Set();
-                        backlogData.registros.forEach(record => {
-                            const date = new Date(record.data);
-                            const year = date.getFullYear();
-                            const month = date.getMonth() + 1;
-                            months.add(`${year}-${month.toString().padStart(2, '0')}`);
-                        });
-
-                        // Ordenar meses (do mais recente para o mais antigo)
-                        const sortedMonths = Array.from(months).sort((a, b) => {
-                            return new Date(b) - new Date(a);
-                        });
-
-                        // Adicionar opções ao select
-                        sortedMonths.forEach(month => {
-                            const [year, monthNum] = month.split('-');
-                            const monthName = new Date(`${year}-${monthNum}-01`).toLocaleDateString('pt-BR', {
-                                month: 'long',
-                                year: 'numeric'
-                            });
-
-                            const option = document.createElement('option');
-                            option.value = month;
-                            option.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
-                            monthSelect.appendChild(option);
-                        });
-
-                        // Adicionar evento de mudança
-                        monthSelect.addEventListener('change', updateDashboardStats);
-                    }
-
-                    // Inicializa o calendário com visual moderno e glassmorfismo
-                    async function initCalendar() {
-                        try {
-                            const calendarEl = document.getElementById('calendar');
-                            calendarEl.innerHTML = ''; // Limpa o calendário existente
-
-                            // Criar eventos individuais para cada analista
-                            const events = backlogData.registros.map(entry => ({
-                                title: entry.analista,
-                                start: entry.data,
-                                extendedProps: {
-                                    texto: entry.texto,
-                                    analista: entry.analista
-                                },
-                                className: `event-${entry.analista.toLowerCase()} fc-event-analyst`
-                            }));
-
-                            const calendar = new FullCalendar.Calendar(calendarEl, {
-                                initialView: 'dayGridMonth',
-                                locale: 'pt-br',
-                                headerToolbar: {
-                                    left: 'prev,next today',
-                                    center: 'title',
-                                    right: 'dayGridMonth,dayGridWeek,dayGridDay'
-                                },
-                                events: events,
-                                eventContent: function (arg) {
-                                    // Personalizar o conteúdo do evento
-                                    const eventEl = document.createElement('div');
-                                    eventEl.className = 'fc-event-content';
-                                    eventEl.style.display = 'flex';
-                                    eventEl.style.alignItems = 'center';
-                                    eventEl.style.padding = '0.25rem 0.5rem';
-                                    eventEl.style.gap = '0.5rem';
-
-                                    // Ícone baseado no analista
-                                    const iconEl = document.createElement('i');
-                                    iconEl.className = 'fas fa-user-check';
-                                    iconEl.style.fontSize = '0.8em';
-
-                                    // Nome do analista
-                                    const titleEl = document.createElement('span');
-                                    titleEl.className = 'fc-event-title';
-                                    titleEl.textContent = arg.event.title;
-
-                                    eventEl.appendChild(iconEl);
-                                    eventEl.appendChild(titleEl);
-
-                                    return { domNodes: [eventEl] };
-                                },
-                                eventClick: function (info) {
-                                    // Criar modal de detalhes
-                                    const modal = document.createElement('div');
-                                    modal.className = 'fc-event-modal';
-
-                                    const modalContent = document.createElement('div');
-                                    modalContent.className = 'fc-event-modal-content';
-
-                                    // Cabeçalho do modal
-                                    const modalHeader = document.createElement('div');
-                                    modalHeader.className = 'fc-event-modal-header';
-
-                                    const modalTitle = document.createElement('h3');
-                                    modalTitle.className = 'fc-event-modal-title';
-                                    modalTitle.textContent = 'Detalhes da Validação';
-
-                                    const closeButton = document.createElement('button');
-                                    closeButton.className = 'fc-event-modal-close';
-                                    closeButton.innerHTML = '<i class="fas fa-times"></i>';
-                                    closeButton.addEventListener('click', () => {
-                                        document.body.removeChild(modal);
-                                    });
-
-                                    modalHeader.appendChild(modalTitle);
-                                    modalHeader.appendChild(closeButton);
-
-                                    // Corpo do modal
-                                    const modalBody = document.createElement('div');
-
-                                    // Data da validação
-                                    const dateEl = document.createElement('div');
-                                    dateEl.style.marginBottom = '1.5rem';
-                                    dateEl.style.fontSize = '0.95rem';
-                                    dateEl.style.color = 'var(--gray)';
-                                    dateEl.innerHTML = `<i class="far fa-calendar-alt" style="margin-right: 0.5rem;"></i> ${new Date(info.event.start).toLocaleDateString('pt-BR')}`;
-
-                                    // Item do analista
-                                    const analystItem = document.createElement('div');
-                                    analystItem.className = 'fc-event-analyst-item';
-
-                                    const analystName = document.createElement('div');
-                                    analystName.className = 'fc-event-analyst-name';
-                                    analystName.innerHTML = `<i class="fas fa-user-tie" style="color: ${getAnalystColor(info.event.extendedProps.analista)}"></i> ${info.event.extendedProps.analista}`;
-
-                                    const analystContent = document.createElement('div');
-                                    analystContent.className = 'fc-event-analyst-content';
-                                    analystContent.innerHTML = info.event.extendedProps.texto;
-
-                                    analystItem.appendChild(analystName);
-                                    analystItem.appendChild(analystContent);
-
-                                    modalBody.appendChild(dateEl);
-                                    modalBody.appendChild(analystItem);
-
-                                    // Montar modal
-                                    modalContent.appendChild(modalHeader);
-                                    modalContent.appendChild(modalBody);
-                                    modal.appendChild(modalContent);
-                                    document.body.appendChild(modal);
-                                },
-                                dayCellContent: function (arg) {
-                                    // Personalizar o conteúdo do dia
-                                    const container = document.createElement('div');
-                                    container.style.display = 'flex';
-                                    container.style.flexDirection = 'column';
-                                    container.style.height = '100%';
-
-                                    const dayNumber = document.createElement('div');
-                                    dayNumber.textContent = arg.dayNumberText;
-                                    dayNumber.style.textAlign = 'center';
-                                    dayNumber.style.padding = '0.5rem';
-                                    dayNumber.style.fontWeight = '500';
-                                    dayNumber.style.fontSize = '0.9rem';
-
-                                    container.appendChild(dayNumber);
-
-                                    // Adicionar espaço para eventos
-                                    const eventsContainer = document.createElement('div');
-                                    eventsContainer.style.flexGrow = '1';
-                                    container.appendChild(eventsContainer);
-
-                                    return { domNodes: [container] };
-                                },
-                                viewDidMount: function (arg) {
-                                    // Estilizar cabeçalho
-                                    const header = document.querySelector('.fc-header-toolbar');
-                                    if (header) {
-                                        header.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                                        header.style.backdropFilter = 'blur(10px)';
-                                        header.style.borderRadius = '1rem 1rem 0 0';
-                                        header.style.padding = '1.5rem';
-                                        header.style.borderBottom = '1px solid var(--glass-border)';
-                                    }
-
-                                    // Estilizar botões de navegação
-                                    const buttons = document.querySelectorAll('.fc-button');
-                                    buttons.forEach(button => {
-                                        button.style.backdropFilter = 'blur(5px)';
-                                        button.style.border = '1px solid var(--glass-border)';
-                                    });
-                                }
-                            });
-
-                            calendar.render();
-                        } catch (error) {
-                            console.error('Erro ao inicializar calendário:', error);
-                            showToast('Erro ao carregar o calendário', 'error');
-                        }
-                    }
-
-                    // Carregar dados iniciais
-                    loadData().then(data => {
-                        console.log('Conexão com JSONBin estabelecida com sucesso!', data);
-                        populateMonthSelect();
+                    return analistasDia.size;
+                } catch (error) {
+                    console.error('Erro ao contar analistas do dia:', error);
+                    return 0;
+                }
+            }
+            // Navegação entre seções
+            navItems.forEach(item => {
+                item.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+
+                    const section = this.getAttribute('data-section');
+                    sectionContents.forEach(content => content.style.display = 'none');
+                    document.getElementById(`${section}-section`).style.display = 'block';
+
+                    const sectionTitle = this.querySelector('span').textContent;
+                    pageTitle.textContent = sectionTitle;
+
+                    if (section === 'dashboard') {
+                        initCalendar();
                         updateDashboardStats();
-                    }).catch(error => {
-                        console.error('Falha na conexão com JSONBin:', error);
+                    }
+                });
+            });
+
+            // Limpar formulário com confirmação
+            clearFormBtn.addEventListener('click', function () {
+                if (backlogText.innerHTML.trim() !== '' && !confirm('Tem certeza que deseja limpar o formulário? Todo o conteúdo não salvo será perdido.')) {
+                    return;
+                }
+                backlogForm.reset();
+                dataBacklog.value = getFortalezaDateString();
+                backlogText.innerHTML = '';
+                showToast('Formulário limpo com sucesso!');
+            });
+
+            // Salvar backlog
+            backlogForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const analista = analistaSelect.value;
+                const data = dataBacklog.value;
+                const texto = backlogText.innerHTML.trim();
+
+                if (!analista || !data || !texto) {
+                    showToast('Por favor, preencha todos os campos obrigatórios!', 'error');
+                    return;
+                }
+
+                try {
+                    const alreadySaved = await checkAnalistaBacklog(analista, data);
+                    if (alreadySaved) {
+                        showToast('Este analista já salvou um backlog nesta data. Apenas um registro por analista por dia é permitido.', 'error');
+                        return;
+                    }
+
+                    const analistasCount = await countAnalistasDia(data);
+                    if (analistasCount >= 4) {
+                        showToast('Limite máximo de 4 analistas diferentes por dia atingido. Não é possível salvar mais backlogs nesta data.', 'error');
+                        return;
+                    }
+
+                    saveButton.disabled = true;
+                    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+
+                    const newRecord = {
+                        id: backlogData.registros.length + firebaseRecords.length + 1,
+                        analista,
+                        data,
+                        texto,
+                        timestamp: getFortalezaTimestamp()
+                    };
+
+                    // Salvar apenas no Firebase
+                    const docId = await saveToFirebase(newRecord);
+
+                    // Adicionar ao array local para exibição imediata
+                    firebaseRecords.push({
+                        ...newRecord,
+                        id: docId,
+                        fonte: 'firebase'
+                    });
+
+                    saveButton.innerHTML = '<i class="fas fa-check"></i> Salvo com Sucesso!';
+                    saveButton.style.backgroundColor = '#34a853';
+                    showToast('Backlog salvo com sucesso no Firebase!');
+
+                    setTimeout(() => {
+                        saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Backlog';
+                        saveButton.style.backgroundColor = '';
+                        saveButton.disabled = false;
+                    }, 2000);
+
+                    backlogText.innerHTML = '';
+
+                    if (document.getElementById('dashboard-section').style.display !== 'none') {
+                        initCalendar();
+                        updateDashboardStats();
+                    }
+                } catch (error) {
+                    console.error('Erro ao salvar:', error);
+                    showToast('Erro ao salvar os dados. Verifique o console para detalhes.', 'error');
+                    saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Backlog';
+                    saveButton.disabled = false;
+                }
+            });
+
+            // Função auxiliar para obter cor do analista
+            function getAnalystColor(analista) {
+                const colors = {
+                    'DELANO': '#65a30d',
+                    'HERBETH': '#dc2626',
+                    'WELLIGTON': '#ea580c',
+                    'EDMUNDO': '#8b5cf6',
+                    'SIDNEY': '#14b8a6',
+                    'MARCIO': '#ec4899',
+                    'HELIELTON': '#3b82f6',
+                    'ROBSON': '#f59e0b',
+                    'WYLLAME': '#059669',
+                    'DARLYSON': '#d946ef',
+                    'MURILO': '#06b6d4',
+                    'ONOFRE': '#f97316',
+                    'LYNNA': '#be185d'
+                };
+                return colors[analista] || '#3b82f6';
+            }
+
+            // Atualizar estatísticas da dashboard
+            function updateDashboardStats() {
+                // Combinar registros do JSONBin e Firebase
+                const allRecords = [...backlogData.registros, ...firebaseRecords];
+
+                const today = getFortalezaDateString();
+                const currentMonth = new Date().getMonth() + 1;
+                const currentYear = new Date().getFullYear();
+
+                // Filtrar registros pelo mês selecionado
+                const selectedMonth = monthSelect.value;
+                let filteredRecords = allRecords;
+
+                if (selectedMonth) {
+                    const [year, month] = selectedMonth.split('-');
+                    filteredRecords = allRecords.filter(record => {
+                        const recordDate = new Date(record.data);
+                        return recordDate.getFullYear() == year &&
+                            (recordDate.getMonth() + 1) == month;
                     });
                 }
-            </script>
+
+                // Estatísticas de hoje
+                const todayValidations = filteredRecords.filter(record => record.data === today).length;
+                const yesterday = new Date(new Date(today).getTime() - 86400000).toISOString().split('T')[0];
+                const yesterdayValidations = filteredRecords.filter(record => record.data === yesterday).length;
+
+                validationsTodayEl.textContent = todayValidations;
+
+                let todayChange = 0;
+                if (yesterdayValidations > 0) {
+                    todayChange = Math.round(((todayValidations - yesterdayValidations) / yesterdayValidations) * 100);
+                } else if (todayValidations > 0) {
+                    todayChange = 100;
+                }
+
+                if (todayChange > 0) {
+                    todayChangeEl.innerHTML = `<i class="fas fa-caret-up"></i> ${todayChange}% em relação a ontem`;
+                    todayChangeEl.className = 'stat-change positive';
+                } else if (todayChange < 0) {
+                    todayChangeEl.innerHTML = `<i class="fas fa-caret-down"></i> ${Math.abs(todayChange)}% em relação a ontem`;
+                    todayChangeEl.className = 'stat-change negative';
+                } else {
+                    todayChangeEl.innerHTML = `<i class="fas fa-equals"></i> 0% em relação a ontem`;
+                    todayChangeEl.className = 'stat-change';
+                }
+
+                // Estatísticas do mês
+                const currentMonthValidations = filteredRecords.filter(record => {
+                    const recordDate = new Date(record.data);
+                    return recordDate.getMonth() + 1 === currentMonth &&
+                        recordDate.getFullYear() === currentYear;
+                }).length;
+
+                const lastMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+                const lastMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
+                const lastMonthValidations = filteredRecords.filter(record => {
+                    const recordDate = new Date(record.data);
+                    return recordDate.getMonth() + 1 === lastMonth &&
+                        recordDate.getFullYear() === lastMonthYear;
+                }).length;
+
+                validationsMonthEl.textContent = currentMonthValidations;
+
+                let monthChange = 0;
+                if (lastMonthValidations > 0) {
+                    monthChange = Math.round(((currentMonthValidations - lastMonthValidations) / lastMonthValidations) * 100);
+                } else if (currentMonthValidations > 0) {
+                    monthChange = 100;
+                }
+
+                if (monthChange > 0) {
+                    monthChangeEl.innerHTML = `<i class="fas fa-caret-up"></i> ${monthChange}% em relação ao mês passado`;
+                    monthChangeEl.className = 'stat-change positive';
+                } else if (monthChange < 0) {
+                    monthChangeEl.innerHTML = `<i class="fas fa-caret-down"></i> ${Math.abs(monthChange)}% em relação ao mês passado`;
+                    monthChangeEl.className = 'stat-change negative';
+                } else {
+                    monthChangeEl.innerHTML = `<i class="fas fa-equals"></i> 0% em relação ao mês passado`;
+                    monthChangeEl.className = 'stat-change';
+                }
+
+                // Analistas mais ativos
+                const analystCounts = {};
+                filteredRecords.forEach(record => {
+                    if (!analystCounts[record.analista]) {
+                        analystCounts[record.analista] = 0;
+                    }
+                    analystCounts[record.analista]++;
+                });
+
+                const sortedAnalysts = Object.entries(analystCounts).sort((a, b) => b[1] - a[1]);
+
+                // Top analista
+                if (sortedAnalysts.length > 0) {
+                    topAnalystEl.textContent = sortedAnalysts[0][0];
+                    topAnalystCountEl.textContent = `${sortedAnalysts[0][1]} validações`;
+                } else {
+                    topAnalystEl.textContent = 'N/A';
+                    topAnalystCountEl.textContent = '0 validações';
+                }
+
+                // Top 3 analistas
+                topAnalystsEl.innerHTML = '';
+                sortedAnalysts.slice(0, 3).forEach((analyst, index) => {
+                    const medalClass = index === 0 ? 'gold' : index === 1 ? 'silver' : 'bronze';
+                    const medalIcon = index === 0 ? 'fa-medal' : index === 1 ? 'fa-medal' : 'fa-medal';
+
+                    const analystEl = document.createElement('div');
+                    analystEl.className = 'analyst-item';
+                    analystEl.innerHTML = `
+                        <div>
+                            <span class="medal ${medalClass}"><i class="fas ${medalIcon}"></i></span>
+                            <span class="analyst-name">${analyst[0]}</span>
+                        </div>
+                        <span class="analyst-count">${analyst[1]} validações</span>
+                    `;
+                    topAnalystsEl.appendChild(analystEl);
+                });
+
+                // Analistas com menos registros (apenas se houver mais de 3 analistas)
+                bottomAnalystsEl.innerHTML = '';
+                if (sortedAnalysts.length > 3) {
+                    sortedAnalysts.slice(-3).reverse().forEach(analyst => {
+                        const analystEl = document.createElement('div');
+                        analystEl.className = 'analyst-item';
+                        analystEl.innerHTML = `
+                            <span class="analyst-name">${analyst[0]}</span>
+                            <span class="analyst-count">${analyst[1]} validação${analyst[1] !== 1 ? 's' : ''}</span>
+                        `;
+                        bottomAnalystsEl.appendChild(analystEl);
+                    });
+                } else if (sortedAnalysts.length > 0) {
+                    bottomAnalystsEl.innerHTML = '<p>Todos os analistas estão no ranking!</p>';
+                } else {
+                    bottomAnalystsEl.innerHTML = '<p>Nenhum dado disponível</p>';
+                }
+
+                // Atualizar gráfico
+                updateAnalystChart(sortedAnalysts);
+            }
+
+            // Atualizar gráfico de analistas
+            function updateAnalystChart(sortedAnalysts) {
+                const labels = sortedAnalysts.map(item => item[0]);
+                const data = sortedAnalysts.map(item => item[1]);
+                const backgroundColors = sortedAnalysts.map(item => getAnalystColor(item[0]));
+
+                if (analystChart) {
+                    analystChart.data.labels = labels;
+                    analystChart.data.datasets[0].data = data;
+                    analystChart.data.datasets[0].backgroundColor = backgroundColors;
+                    analystChart.update();
+                } else {
+                    const ctx = analystChartEl.getContext('2d');
+                    analystChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Validações por Analista',
+                                data: data,
+                                backgroundColor: backgroundColors,
+                                borderColor: 'rgba(255, 255, 255, 0.1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(26, 32, 44, 0.9)',
+                                    titleColor: '#e2e8f0',
+                                    bodyColor: '#a0aec0',
+                                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                                    borderWidth: 1,
+                                    padding: 12,
+                                    usePointStyle: true
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.05)'
+                                    },
+                                    ticks: {
+                                        color: '#a0aec0'
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        display: false
+                                    },
+                                    ticks: {
+                                        color: '#a0aec0'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Popular seletor de meses
+            function populateMonthSelect() {
+                monthSelect.innerHTML = '<option value="">Todos os meses</option>';
+
+                // Combinar registros do JSONBin e Firebase
+                const allRecords = [...backlogData.registros, ...firebaseRecords];
+
+                if (allRecords.length === 0) return;
+
+                // Extrair meses únicos dos registros
+                const months = new Set();
+                allRecords.forEach(record => {
+                    const date = new Date(record.data);
+                    const year = date.getFullYear();
+                    const month = date.getMonth() + 1;
+                    months.add(`${year}-${month.toString().padStart(2, '0')}`);
+                });
+
+                // Ordenar meses (do mais recente para o mais antigo)
+                const sortedMonths = Array.from(months).sort((a, b) => {
+                    return new Date(b) - new Date(a);
+                });
+
+                // Adicionar opções ao select
+                sortedMonths.forEach(month => {
+                    const [year, monthNum] = month.split('-');
+                    const monthName = new Date(`${year}-${monthNum}-01`).toLocaleDateString('pt-BR', {
+                        month: 'long',
+                        year: 'numeric'
+                    });
+
+                    const option = document.createElement('option');
+                    option.value = month;
+                    option.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+                    monthSelect.appendChild(option);
+                });
+
+                // Adicionar evento de mudança
+                monthSelect.addEventListener('change', updateDashboardStats);
+            }
+
+            // Inicializa o calendário com visual moderno e glassmorfismo
+            async function initCalendar() {
+                try {
+                    const calendarEl = document.getElementById('calendar');
+                    calendarEl.innerHTML = ''; // Limpa o calendário existente
+
+                    // Combinar registros do JSONBin e Firebase
+                    const allRecords = [...backlogData.registros, ...firebaseRecords];
+
+                    // Criar eventos individuais para cada analista
+                    const events = allRecords.map(entry => ({
+                        title: entry.analista,
+                        start: entry.data,
+                        extendedProps: {
+                            texto: entry.texto,
+                            analista: entry.analista,
+                            fonte: entry.fonte
+                        },
+                        className: `event-${entry.analista.toLowerCase()} fc-event-analyst has-tooltip`
+                    }));
+
+                    const calendar = new FullCalendar.Calendar(calendarEl, {
+                        initialView: 'dayGridMonth',
+                        locale: 'pt-br',
+                        headerToolbar: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: 'dayGridMonth,dayGridWeek,dayGridDay'
+                        },
+                        events: events,
+                        eventContent: function (arg) {
+                            // Personalizar o conteúdo do evento
+                            const eventEl = document.createElement('div');
+                            eventEl.className = 'fc-event-content';
+                            eventEl.style.display = 'flex';
+                            eventEl.style.alignItems = 'center';
+                            eventEl.style.padding = '0.25rem 0.5rem';
+                            eventEl.style.gap = '0.5rem';
+
+                            // Ícone baseado no analista
+                            const iconEl = document.createElement('i');
+                            iconEl.className = 'fas fa-user-check';
+                            iconEl.style.fontSize = '0.8em';
+
+                            // Nome do analista
+                            const titleEl = document.createElement('span');
+                            titleEl.className = 'fc-event-title';
+                            titleEl.textContent = arg.event.title;
+
+                            // Tooltip para mostrar a fonte
+                            const tooltipEl = document.createElement('div');
+                            tooltipEl.className = 'tooltip';
+                            tooltipEl.textContent = arg.event.extendedProps.fonte === 'jsonbin' ?
+                                'Origem: JSONBin' : 'Origem: Firebase';
+
+                            eventEl.appendChild(iconEl);
+                            eventEl.appendChild(titleEl);
+                            eventEl.appendChild(tooltipEl);
+
+                            return { domNodes: [eventEl] };
+                        },
+                        eventClick: function (info) {
+                            // Criar modal de detalhes
+                            const modal = document.createElement('div');
+                            modal.className = 'fc-event-modal';
+
+                            const modalContent = document.createElement('div');
+                            modalContent.className = 'fc-event-modal-content';
+
+                            // Cabeçalho do modal
+                            const modalHeader = document.createElement('div');
+                            modalHeader.className = 'fc-event-modal-header';
+
+                            const modalTitle = document.createElement('h3');
+                            modalTitle.className = 'fc-event-modal-title';
+                            modalTitle.textContent = 'Detalhes da Validação';
+
+                            const closeButton = document.createElement('button');
+                            closeButton.className = 'fc-event-modal-close';
+                            closeButton.innerHTML = '<i class="fas fa-times"></i>';
+                            closeButton.addEventListener('click', () => {
+                                document.body.removeChild(modal);
+                            });
+
+                            modalHeader.appendChild(modalTitle);
+                            modalHeader.appendChild(closeButton);
+
+                            // Corpo do modal
+                            const modalBody = document.createElement('div');
+
+                            // Data da validação
+                            const dateEl = document.createElement('div');
+                            dateEl.style.marginBottom = '1.5rem';
+                            dateEl.style.fontSize = '0.95rem';
+                            dateEl.style.color = 'var(--gray)';
+                            dateEl.innerHTML = `<i class="far fa-calendar-alt" style="margin-right: 0.5rem;"></i> ${new Date(info.event.start).toLocaleDateString('pt-BR')}`;
+
+                            // Fonte do registro
+                            const sourceEl = document.createElement('div');
+                            sourceEl.style.marginBottom = '1rem';
+                            sourceEl.style.fontSize = '0.85rem';
+                            sourceEl.style.color = 'var(--gray)';
+                            sourceEl.innerHTML = `<i class="fas fa-database" style="margin-right: 0.5rem;"></i> ${info.event.extendedProps.fonte === 'jsonbin' ? 'JSONBin' : 'Firebase'}`;
+
+                            // Item do analista
+                            const analystItem = document.createElement('div');
+                            analystItem.className = 'fc-event-analyst-item';
+
+                            const analystName = document.createElement('div');
+                            analystName.className = 'fc-event-analyst-name';
+                            analystName.innerHTML = `<i class="fas fa-user-tie" style="color: ${getAnalystColor(info.event.extendedProps.analista)}"></i> ${info.event.extendedProps.analista}`;
+
+                            const analystContent = document.createElement('div');
+                            analystContent.className = 'fc-event-analyst-content';
+                            analystContent.innerHTML = info.event.extendedProps.texto.replace('<span class="jsonbin-tag">[snz-b]</span>', ''); // Remove a tag se existir
+
+                            analystItem.appendChild(analystName);
+                            analystItem.appendChild(analystContent);
+
+                            modalBody.appendChild(dateEl);
+                            modalBody.appendChild(sourceEl);
+                            modalBody.appendChild(analystItem);
+
+                            // Montar modal
+                            modalContent.appendChild(modalHeader);
+                            modalContent.appendChild(modalBody);
+                            modal.appendChild(modalContent);
+                            document.body.appendChild(modal);
+                        },
+                        dayCellContent: function (arg) {
+                            // Personalizar o conteúdo do dia
+                            const container = document.createElement('div');
+                            container.style.display = 'flex';
+                            container.style.flexDirection = 'column';
+                            container.style.height = '100%';
+
+                            const dayNumber = document.createElement('div');
+                            dayNumber.textContent = arg.dayNumberText;
+                            dayNumber.style.textAlign = 'center';
+                            dayNumber.style.padding = '0.5rem';
+                            dayNumber.style.fontWeight = '500';
+                            dayNumber.style.fontSize = '0.9rem';
+
+                            container.appendChild(dayNumber);
+
+                            // Adicionar espaço para eventos
+                            const eventsContainer = document.createElement('div');
+                            eventsContainer.style.flexGrow = '1';
+                            container.appendChild(eventsContainer);
+
+                            return { domNodes: [container] };
+                        },
+                        viewDidMount: function (arg) {
+                            // Estilizar cabeçalho
+                            const header = document.querySelector('.fc-header-toolbar');
+                            if (header) {
+                                header.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                                header.style.backdropFilter = 'blur(10px)';
+                                header.style.borderRadius = '1rem 1rem 0 0';
+                                header.style.padding = '1.5rem';
+                                header.style.borderBottom = '1px solid var(--glass-border)';
+                            }
+
+                            // Estilizar botões de navegação
+                            const buttons = document.querySelectorAll('.fc-button');
+                            buttons.forEach(button => {
+                                button.style.backdropFilter = 'blur(5px)';
+                                button.style.border = '1px solid var(--glass-border)';
+                            });
+                        }
+                    });
+
+                    calendar.render();
+                } catch (error) {
+                    console.error('Erro ao inicializar calendário:', error);
+                    showToast('Erro ao carregar o calendário', 'error');
+                }
+            }
+            // Carregar dados iniciais
+            async function loadInitialData() {
+                try {
+                    // Carregar dados do JSONBin e Firebase em paralelo
+                    const [jsonbinData, firebaseData] = await Promise.all([
+                        loadJsonBinData(),
+                        loadFirebaseData()
+                    ]);
+
+                    // Atribuir os dados
+                    backlogData = jsonbinData;
+                    firebaseRecords = firebaseData.registros;
+
+                    console.log('Dados carregados com sucesso!');
+                    showToast('Dados carregados com sucesso!');
+
+                    // Atualizar a interface
+                    populateMonthSelect();
+                    updateDashboardStats();
+                } catch (error) {
+                    console.error('Erro ao carregar dados iniciais:', error);
+                    showToast('Erro ao carregar dados. Verifique o console.', 'error');
+                }
+            }
+
+            // Iniciar o aplicativo
+            loadInitialData();
+        }
+    </script>
 </body>
 
 </html>
