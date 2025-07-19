@@ -1,0 +1,2453 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Backlog Management Pro | Sistema de Gestão</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    <style>
+        /* Splash Screen Styles */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, #080818, #000);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', Courier, monospace;
+            color: #00ffff;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .fc-event.has-tooltip {
+            position: relative;
+        }
+
+        .fc-event .tooltip {
+            visibility: hidden;
+            width: 120px;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: var(--light);
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 100;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 0.8rem;
+        }
+
+        .fc-event .tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: var(--glass) transparent transparent transparent;
+        }
+
+        .fc-event:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .loader-container {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-center {
+            width: 145px;
+            height: 145px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: floatRotatePulse 4s ease-in-out infinite;
+            z-index: 2;
+            filter: drop-shadow(0 0 10px #00faffaa);
+        }
+
+        .icon-center img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+        }
+
+        .orbital-ring {
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            border-top: 3px solid #00faff;
+            border-left: 3px solid transparent;
+            border-bottom: 3px solid transparent;
+            border-right: 3px solid transparent;
+            animation: spin 1.5s linear infinite;
+            box-shadow: 100 100 200px #00faff88;
+            z-index: 1;
+        }
+
+        .orbital-ring::after {
+            content: "";
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: #00faff;
+            border-radius: 50%;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 12px #00faff;
+        }
+
+        @keyframes floatRotatePulse {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+                filter: drop-shadow(0 0 10px #00faffaa);
+            }
+
+            25% {
+                transform: translateY(-8px) rotate(5deg);
+                box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);
+                filter: drop-shadow(0 0 20px #00faffcc);
+            }
+
+            50% {
+                transform: translateY(0) rotate(0deg);
+                box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+                filter: drop-shadow(0 0 10px #00faffaa);
+            }
+
+            75% {
+                transform: translateY(-8px) rotate(-5deg);
+                box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);
+                filter: drop-shadow(0 0 20px #00faffcc);
+            }
+
+            100% {
+                transform: translateY(0) rotate(0deg);
+                box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+                filter: drop-shadow(0 0 10px #00faffaa);
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-text {
+            margin-top: 30px;
+            font-size: 1.2rem;
+            font-weight: 400;
+            white-space: nowrap;
+            overflow: hidden;
+            border-right: 3px solid #00ffff;
+            width: 0;
+            animation:
+                typing 1.5s steps(12) forwards,
+                blinkCaret 0.5s step-end infinite;
+            letter-spacing: 2px;
+        }
+
+        @keyframes typing {
+            from {
+                width: 0;
+            }
+
+            to {
+                width: 15ch;
+            }
+        }
+
+        @keyframes blinkCaret {
+
+            0%,
+            100% {
+                border-color: transparent;
+            }
+
+            50% {
+                border-color: #00ffff;
+            }
+        }
+
+        :root {
+            --primary: #1a73e8;
+            --primary-dark: #1557b0;
+            --secondary: #0d47a1;
+            --accent: #4285f4;
+            --light: #e2e8f0;
+            --dark: #1a202c;
+            --gray: #a0aec0;
+            --light-gray: #4a5568;
+            --success: #34a853;
+            --warning: #fbbc05;
+            --danger: #ea4335;
+            --white: rgba(26, 32, 44, 0.8);
+            --sidebar-width: 280px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --glass: rgba(26, 32, 44, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --navbar-height: 60px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            color: var(--light);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Layout Principal */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            z-index: 100;
+            border-right: 1px solid var(--glass-border);
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            transform: translateX(-100%);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar.active {
+            transform: translateX(0);
+        }
+
+        .sidebar-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            height: var(--navbar-height);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--light);
+        }
+
+        .logo-icon {
+            color: var(--accent);
+            font-size: 1.5rem;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 1rem 0;
+            overflow-y: auto;
+        }
+
+        .nav-title {
+            padding: 0.5rem 1.5rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--gray);
+            font-weight: 600;
+        }
+
+        .nav-item {
+            margin: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .nav-item:hover {
+            background-color: rgba(66, 133, 244, 0.1);
+        }
+
+        .nav-item.active {
+            background-color: rgba(66, 133, 244, 0.2);
+        }
+
+        .nav-item.active .nav-link {
+            color: var(--accent);
+        }
+
+        .nav-item.active .nav-icon {
+            color: var(--accent);
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+            color: var(--light);
+            font-weight: 500;
+            font-size: 0.9375rem;
+        }
+
+        .nav-icon {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+            color: var(--gray);
+            width: 24px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .user-panel {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9375rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--light);
+        }
+
+        .user-role {
+            font-size: 0.8125rem;
+            color: var(--gray);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Navbar Superior */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--navbar-height);
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            z-index: 90;
+        }
+
+        .menu-toggle {
+            background: none;
+            border: none;
+            color: var(--light);
+            font-size: 1.25rem;
+            cursor: pointer;
+            margin-right: 1rem;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .menu-toggle:hover {
+            background-color: rgba(66, 133, 244, 0.1);
+            color: var(--accent);
+        }
+
+        .page-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--light);
+            margin-right: auto;
+        }
+
+        .navbar-tools {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Conteúdo Principal */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            margin-top: var(--navbar-height);
+            padding: 1.5rem;
+            width: 100%;
+            transition: var(--transition);
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+        /* Content Body */
+        .content-body {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--glass-border);
+            margin-bottom: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+            border-color: rgba(66, 133, 244, 0.3);
+        }
+
+        .card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--light);
+        }
+
+        .card-tools {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Formulários */
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group {
+            flex: 1;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: var(--light);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--light-gray);
+            border-radius: 0.5rem;
+            font-size: 0.9375rem;
+            transition: var(--transition);
+            background-color: rgba(26, 32, 44, 0.5);
+            color: var(--light);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.15);
+            background-color: rgba(26, 32, 44, 0.7);
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23a0aec0' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 16px 12px;
+        }
+
+        /* Editor de Texto */
+        .editor-container {
+            border: 1px solid var(--light-gray);
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background-color: rgba(26, 32, 44, 0.7);
+            width: 100%;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            padding: 0.5rem;
+            background-color: rgba(26, 32, 44, 0.9);
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .toolbar-group {
+            display: flex;
+            gap: 0.25rem;
+            padding-right: 0.5rem;
+            border-right: 1px solid var(--light-gray);
+            margin-right: 0.5rem;
+        }
+
+        .toolbar-group:last-child {
+            border-right: none;
+            margin-right: 0;
+        }
+
+        .toolbar-btn {
+            background: none;
+            border: none;
+            color: var(--gray);
+            width: 32px;
+            height: 32px;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .toolbar-btn:hover {
+            background-color: rgba(66, 133, 244, 0.2);
+            color: var(--accent);
+        }
+
+        .toolbar-btn.active {
+            background-color: rgba(66, 133, 244, 0.3);
+            color: var(--accent);
+        }
+
+        .color-picker {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border: none;
+            cursor: pointer;
+            background: none;
+        }
+
+        .editor-content {
+            min-height: 800px;
+            max-height: 600px;
+            padding: 1rem;
+            outline: none;
+            overflow-y: auto;
+        }
+
+        /* Botões */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            font-size: 0.9375rem;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary);
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--light-gray);
+            color: var(--light);
+        }
+
+        .btn-outline:hover {
+            background-color: rgba(66, 133, 244, 0.1);
+            border-color: var(--accent);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            margin-top: 1rem;
+        }
+
+        /* FullCalendar - Estilos melhorados */
+        .fc {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            color: var(--light);
+        }
+
+        .fc-header-toolbar {
+            padding: 1.5rem;
+            margin-bottom: 0 !important;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+        }
+
+        .fc-toolbar-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--light);
+        }
+
+        .fc-button {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid var(--glass-border) !important;
+            color: var(--light) !important;
+            font-weight: 500 !important;
+            transition: var(--transition) !important;
+            border-radius: 0.75rem !important;
+            padding: 0.5rem 1rem !important;
+            backdrop-filter: blur(5px);
+        }
+
+        .fc-button:hover {
+            background-color: rgba(66, 133, 244, 0.2) !important;
+        }
+
+        .fc-button-primary:not(:disabled).fc-button-active {
+            background-color: var(--accent) !important;
+            border-color: var(--accent) !important;
+            color: white !important;
+        }
+
+        .fc-daygrid-day {
+            border: 1px solid var(--glass-border) !important;
+            background: rgba(255, 255, 255, 0.03);
+            transition: all 0.3s ease;
+        }
+
+        .fc-daygrid-day:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .fc-daygrid-day-number {
+            color: var(--light);
+            font-weight: 500;
+            padding: 0.5rem;
+        }
+
+        .fc-daygrid-day.fc-day-today {
+            background-color: rgba(66, 133, 244, 0.15) !important;
+        }
+
+        .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .fc-daygrid-event {
+            border-radius: 0.75rem !important;
+            padding: 0.5rem !important;
+            font-size: 0.85rem !important;
+            background: rgba(66, 133, 244, 0.25) !important;
+            border: none !important;
+            color: var(--light) !important;
+            margin: 0.25rem 0.5rem !important;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            transition: all 0.3s ease;
+        }
+
+        .fc-daygrid-event:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            background: rgba(66, 133, 244, 0.35) !important;
+        }
+
+        .fc-event-main {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem;
+        }
+
+        .fc-event-title {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 500;
+        }
+
+        .fc-event-dot {
+            display: none !important;
+        }
+
+        .fc-col-header-cell {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border) !important;
+            padding: 0.75rem 0;
+        }
+
+        .fc-col-header-cell-cushion {
+            color: var(--light);
+            font-weight: 500;
+        }
+
+        /* Estilo para eventos de diferentes analistas */
+        .event-delano {
+            background: rgba(101, 163, 13, 0.25) !important;
+            border-color: rgba(101, 163, 13, 0.3) !important;
+        }
+
+        .event-herbeth {
+            background: rgba(220, 38, 38, 0.25) !important;
+            border-color: rgba(220, 38, 38, 0.3) !important;
+        }
+
+        .event-welligton {
+            background: rgba(234, 88, 12, 0.25) !important;
+            border-color: rgba(234, 88, 12, 0.3) !important;
+        }
+
+        .event-edmundo {
+            background: rgba(139, 92, 246, 0.25) !important;
+            border-color: rgba(139, 92, 246, 0.3) !important;
+        }
+
+        .event-sidney {
+            background: rgba(20, 184, 166, 0.25) !important;
+            border-color: rgba(20, 184, 166, 0.3) !important;
+        }
+
+        .event-marcio {
+            background: rgba(236, 72, 153, 0.25) !important;
+            border-color: rgba(236, 72, 153, 0.3) !important;
+        }
+
+        .event-helielton {
+            background: rgba(59, 130, 246, 0.25) !important;
+            border-color: rgba(59, 130, 246, 0.3) !important;
+        }
+
+        .event-robson {
+            background: rgba(245, 158, 11, 0.25) !important;
+            border-color: rgba(245, 158, 11, 0.3) !important;
+        }
+
+        .event-wyllame {
+            background: rgba(5, 150, 105, 0.25) !important;
+            border-color: rgba(5, 150, 105, 0.3) !important;
+        }
+
+        .event-darlyson {
+            background: rgba(217, 70, 239, 0.25) !important;
+            border-color: rgba(217, 70, 239, 0.3) !important;
+        }
+
+        .event-murilo {
+            background: rgba(6, 182, 212, 0.25) !important;
+            border-color: rgba(6, 182, 212, 0.3) !important;
+        }
+
+        .event-onofre {
+            background: rgba(249, 115, 22, 0.25) !important;
+            border-color: rgba(249, 115, 22, 0.3) !important;
+        }
+
+        .event-lynna {
+            background: rgba(190, 24, 93, 0.25) !important;
+            border-color: rgba(190, 24, 93, 0.3) !important;
+        }
+
+        /* Modal de detalhes estilizado */
+        .fc-event-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+        }
+
+        .fc-event-modal-content {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            color: var(--light);
+        }
+
+        .fc-event-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .fc-event-modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--light);
+            margin: 0;
+        }
+
+        .fc-event-modal-close {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--light);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .fc-event-modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .fc-event-analyst-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--glass-border);
+            transition: var(--transition);
+        }
+
+        .fc-event-analyst-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .fc-event-analyst-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--light);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .fc-event-analyst-content {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--gray);
+        }
+
+        /* Estatísticas */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--glass-border);
+        }
+
+        .stat-title {
+            font-size: 0.875rem;
+            color: var(--gray);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--light);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-change {
+            font-size: 0.8125rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .stat-change.positive {
+            color: var(--success);
+        }
+
+        .stat-change.negative {
+            color: var(--danger);
+        }
+
+        /* Estilos para os novos elementos do dashboard */
+        .analyst-stats-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .analyst-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .analyst-stat-card {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--glass-border);
+        }
+
+        .analyst-stat-card.wide {
+            grid-column: span 2;
+        }
+
+        .analyst-ranking {
+            margin-top: 1rem;
+        }
+
+        .analyst-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .analyst-item:last-child {
+            border-bottom: none;
+        }
+
+        .analyst-name {
+            font-weight: 500;
+            color: var(--light);
+        }
+
+        .analyst-count {
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .analyst-details {
+            margin-top: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .analyst-detail-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .analyst-detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin-top: 1.5rem;
+        }
+
+        /* Medalhas para ranking */
+        .medal {
+            width: 24px;
+            height: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .gold {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #000;
+        }
+
+        .silver {
+            background: linear-gradient(135deg, #C0C0C0, #A0A0A0);
+            color: #000;
+        }
+
+        .bronze {
+            background: linear-gradient(135deg, #CD7F32, #A05A2C);
+            color: #fff;
+        }
+
+        /* Filtro de mês */
+        .month-filter {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .month-filter label {
+            font-weight: 500;
+            color: var(--light);
+        }
+
+        /* Overlay para quando a sidebar está aberta */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 80;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+
+        .sidebar-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Media Queries */
+        @media (max-width: 992px) {
+            .analyst-stat-card.wide {
+                grid-column: span 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .action-buttons {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .analyst-stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .editor-content {
+                min-height: 400px;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .sidebar {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: var(--sidebar-width);
+            }
+
+            .menu-toggle {
+                display: none;
+            }
+        }
+
+        /* Classes para formatação de texto */
+        .text-bold {
+            font-weight: bold;
+        }
+
+        .text-italic {
+            font-style: italic;
+        }
+
+        .text-underline {
+            text-decoration: underline;
+        }
+
+        .text-highlight {
+            background-color: yellow;
+            color: black;
+        }
+
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--light-gray);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gray);
+        }
+
+        /* Animações */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--glass-border);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            max-width: 400px;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            border-left: 4px solid var(--success);
+        }
+
+        .toast.error {
+            border-left: 4px solid var(--danger);
+        }
+
+        .toast-warning {
+            border-left: 4px solid var(--warning);
+        }
+
+        /* Tag para registros do JSONBin */
+        .jsonbin-tag {
+            display: inline-block;
+            background-color: #f59e0b;
+            color: #000;
+            font-size: 0.7rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 0.25rem;
+            margin-left: 0.5rem;
+            vertical-align: middle;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+</head>
+
+<body>
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <div class="loader-container">
+            <div class="icon-center">
+                <img src="./logobacklog.png" />
+            </div>
+            <div class="orbital-ring"></div>
+        </div>
+    </div>
+
+    <!-- Conteúdo principal (oculto inicialmente) -->
+    <div id="app-container" class="app-container" style="display: none;">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-tasks logo-icon"></i>
+                    <span>BacklogPro</span>
+                </div>
+            </div>
+
+            <div class="nav-menu">
+                <div class="nav-title">Menu Principal</div>
+
+                <div class="nav-item active" data-section="notes">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-edit nav-icon"></i>
+                        <span>Anotações</span>
+                    </a>
+                </div>
+
+                <div class="nav-item" data-section="dashboard">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-calendar-alt nav-icon"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overlay para fechar a sidebar -->
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+        <!-- Navbar Superior -->
+        <nav class="navbar">
+            <button class="menu-toggle" id="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1 class="page-title">Anotações</h1>
+            <div class="navbar-tools">
+                <button class="btn btn-outline btn-icon" id="fullscreen-toggle">
+                    <i class="fas fa-expand"></i>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content" id="main-content">
+            <!-- Content Body -->
+            <div class="content-body">
+                <!-- Notes Section -->
+                <div class="section-content" id="notes-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Registro de Backlog Diário</h3>
+                            <div class="card-tools">
+                                <button class="btn btn-outline">
+                                    <i class="fas fa-history"></i> Histórico
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <form id="backlog-form">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label">Analista</label>
+                                        <select class="form-control form-select" id="analista-select" required>
+                                            <option value="">Selecione o analista</option>
+                                            <option value="DELANO">DELANO</option>
+                                            <option value="HERBETH">HERBETH</option>
+                                            <option value="WELLIGTON">WELLIGTON</option>
+                                            <option value="EDMUNDO">EDMUNDO</option>
+                                            <option value="SIDNEY">SIDNEY</option>
+                                            <option value="MARCIO">MARCIO</option>
+                                            <option value="HELIELTON">HELIELTON</option>
+                                            <option value="ROBSON">ROBSON</option>
+                                            <option value="WYLLAME">WYLLAME</option>
+                                            <option value="DARLYSON">DARLYSON</option>
+                                            <option value="MURILO">MURILO</option>
+                                            <option value="ONOFRE">ONOFRE</option>
+                                            <option value="LYNNA">LYNNA</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Data</label>
+                                        <input type="date" class="form-control" id="data-backlog" required />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Backlog Validado</label>
+                                    <div class="editor-container">
+                                        <div class="toolbar">
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn" data-command="bold"
+                                                    title="Negrito (Ctrl+B)">
+                                                    <i class="fas fa-bold"></i>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" data-command="italic"
+                                                    title="Itálico (Ctrl+I)">
+                                                    <i class="fas fa-italic"></i>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" data-command="underline"
+                                                    title="Sublinhado (Ctrl+U)">
+                                                    <i class="fas fa-underline"></i>
+                                                </button>
+                                            </div>
+
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn"
+                                                    data-command="insertUnorderedList" title="Lista não ordenada">
+                                                    <i class="fas fa-list-ul"></i>
+                                                </button>
+                                                <button type="button" class="toolbar-btn"
+                                                    data-command="insertOrderedList" title="Lista ordenada">
+                                                    <i class="fas fa-list-ol"></i>
+                                                </button>
+                                            </div>
+
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn" data-command="hiliteColor"
+                                                    data-value="yellow" title="Marcador de texto">
+                                                    <i class="fas fa-highlighter"></i>
+                                                </button>
+                                                <input type="color" class="color-picker" id="text-color" value="#e2e8f0"
+                                                    title="Cor do texto" />
+                                                <input type="color" class="color-picker" id="bg-color" value="#1a202c"
+                                                    title="Cor de fundo" />
+                                            </div>
+
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn" data-command="undo"
+                                                    title="Desfazer (Ctrl+Z)">
+                                                    <i class="fas fa-undo"></i>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" data-command="redo"
+                                                    title="Refazer (Ctrl+Y)">
+                                                    <i class="fas fa-redo"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="editor-content" id="backlog-text" contenteditable="true"
+                                            placeholder="Descreva detalhadamente o backlog validado..."></div>
+                                    </div>
+                                </div>
+
+                                <div class="action-buttons">
+                                    <button type="button" class="btn btn-outline" id="clear-form">
+                                        <i class="fas fa-trash-alt"></i> Limpar
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" id="save-backlog">
+                                        <i class="fas fa-save"></i> Salvar Backlog
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard Section -->
+                <div class="section-content" id="dashboard-section" style="display: none;">
+                    <div class="analyst-stats-container">
+                        <!-- Calendário primeiro -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Calendário de Validações</h3>
+                            </div>
+                            <div class="card-body">
+                                <div id="calendar"></div>
+                            </div>
+                        </div>
+
+                        <!-- Filtro e estatísticas abaixo do calendário -->
+                        <div class="month-filter">
+                            <label for="month-select">Filtrar por mês:</label>
+                            <select id="month-select" class="form-control form-select">
+                                <option value="">Todos os meses</option>
+                            </select>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-title">Validações Hoje</div>
+                                <div class="stat-value" id="validations-today">0</div>
+                                <div class="stat-change" id="today-change">
+                                    <i class="fas fa-caret-up"></i> 0% em relação a ontem
+                                </div>
+                            </div>
+
+                            <div class="stat-card">
+                                <div class="stat-title">Validações no Mês</div>
+                                <div class="stat-value" id="validations-month">0</div>
+                                <div class="stat-change" id="month-change">
+                                    <i class="fas fa-caret-up"></i> 0% em relação ao mês passado
+                                </div>
+                            </div>
+
+                            <div class="stat-card">
+                                <div class="stat-title">Analista Mais Ativo</div>
+                                <div class="stat-value" id="top-analyst">N/A</div>
+                                <div class="stat-value" id="top-analyst-count">0 validações</div>
+                            </div>
+                        </div>
+
+                        <div class="analyst-stats-grid">
+                            <div class="analyst-stat-card">
+                                <h3 class="card-title">Top Analistas</h3>
+                                <div class="analyst-ranking" id="top-analysts">
+                                    <!-- Preenchido dinamicamente -->
+                                </div>
+                            </div>
+
+                            <div class="analyst-stat-card">
+                                <h3 class="card-title">Analistas com Menos Registros</h3>
+                                <div class="analyst-ranking" id="bottom-analysts">
+                                    <!-- Preenchido dinamicamente -->
+                                </div>
+                            </div>
+
+                            <div class="analyst-stat-card wide">
+                                <h3 class="card-title">Relatórios por Analista</h3>
+                                <div class="chart-container">
+                                    <canvas id="analystChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Toast Notification -->
+                <div class="toast" id="toast"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/pt-br.js"></script>
+    <script>
+        // Mostrar splash screen e depois carregar a página após 1.5 segundos
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = '0';
+                setTimeout(function() {
+                    splash.style.display = 'none';
+                    document.getElementById('app-container').style.display = 'flex';
+                    initApplication();
+                }, 200);
+            }, 3000);
+        });
+
+        function initApplication() {
+            // Configurações do Firebase
+            const firebaseConfig = {
+                apiKey: "%%FIREBASE_API_KEY%%",
+                authDomain: "%%FIREBASE_AUTH_DOMAIN%%",
+                projectId: "%%FIREBASE_PROJECT_ID%%",
+                storageBucket: "%%FIREBASE_STORAGE_BUCKET%%",
+                messagingSenderId: "%%FIREBASE_MESSAGING_SENDER_ID%%",
+                appId: "%%FIREBASE_APP_ID%%"
+            };
+
+            // Inicializar Firebase
+            const app = firebase.initializeApp(firebaseConfig);
+            const db = firebase.firestore();
+
+            // Configurações do JSONBin (apenas para leitura)
+            const BIN_ID = '%%JSONBIN_BIN_ID%%';
+            const MASTER_KEY = '%%JSONBIN_MASTER_KEY%%';
+            const ACCESS_KEY = '%%JSONBIN_ACCESS_KEY%%';
+            const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+            // Elementos DOM
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+            const menuToggle = document.getElementById('menu-toggle');
+            const navItems = document.querySelectorAll('.nav-item');
+            const sectionContents = document.querySelectorAll('.section-content');
+            const analistaSelect = document.getElementById('analista-select');
+            const dataBacklog = document.getElementById('data-backlog');
+
+            // Configurar data inicial com fuso horário de Fortaleza (UTC-3)
+            function getFortalezaDateString() {
+                const now = new Date();
+                // Ajusta para UTC-3 (Fortaleza)
+                const fortalezaTime = new Date(now.getTime() - (now.getTimezoneOffset() * 60000) - (3 * 3600000));
+                return fortalezaTime.toISOString().split('T')[0];
+            }
+
+            dataBacklog.value = getFortalezaDateString();
+
+            const backlogText = document.getElementById('backlog-text');
+            const backlogForm = document.getElementById('backlog-form');
+            const clearFormBtn = document.getElementById('clear-form');
+            const saveButton = document.getElementById('save-backlog');
+            const toast = document.getElementById('toast');
+            const fullscreenToggle = document.getElementById('fullscreen-toggle');
+            const pageTitle = document.querySelector('.page-title');
+            const monthSelect = document.getElementById('month-select');
+
+            // Elementos da dashboard
+            const validationsTodayEl = document.getElementById('validations-today');
+            const todayChangeEl = document.getElementById('today-change');
+            const validationsMonthEl = document.getElementById('validations-month');
+            const monthChangeEl = document.getElementById('month-change');
+            const topAnalystEl = document.getElementById('top-analyst');
+            const topAnalystCountEl = document.getElementById('top-analyst-count');
+            const topAnalystsEl = document.getElementById('top-analysts');
+            const bottomAnalystsEl = document.getElementById('bottom-analysts');
+            const analystChartEl = document.getElementById('analystChart');
+
+            // Variáveis globais
+            let backlogData = {
+                meta: {
+                    sistema: "Backlog do NOC",
+                    versao: "1.0",
+                    ultima_atualizacao: null,
+                    criado_em: new Date().toISOString()
+                },
+                registros: []
+            };
+
+            let firebaseRecords = [];
+            let analystChart = null;
+
+            // Função para mostrar toast
+            function showToast(message, type = 'success', duration = 3000) {
+                toast.textContent = message;
+                toast.className = `toast ${type}`;
+                toast.classList.add('show');
+
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, duration);
+            }
+
+            // Função para obter timestamp com fuso horário de Fortaleza (UTC-3)
+            function getFortalezaTimestamp() {
+                // Cria uma data no fuso horário de Fortaleza
+                const now = new Date();
+
+                // Formata a data como string no formato ISO com offset -03:00
+                const timeString = now.toLocaleString('pt-BR', {
+                    timeZone: 'America/Fortaleza',
+                    hour12: false
+                });
+
+                // Extrai os componentes da data
+                const [datePart, timePart] = timeString.split(', ');
+                const [day, month, year] = datePart.split('/');
+                const [hours, minutes, seconds] = timePart.split(':');
+
+                // Obtém os milissegundos
+                const ms = now.getMilliseconds().toString().padStart(3, '0');
+
+                // Formata no padrão ISO 8601 com offset -03:00
+                return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${ms}-03:00`;
+            }
+
+            // Toggle sidebar
+            menuToggle.addEventListener('click', function () {
+                sidebar.classList.toggle('active');
+                sidebarOverlay.classList.toggle('active');
+            });
+
+            // Fechar sidebar ao clicar no overlay
+            sidebarOverlay.addEventListener('click', function () {
+                sidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+            });
+
+            // Toggle fullscreen
+            fullscreenToggle.addEventListener('click', function () {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(err => {
+                        showToast(`Erro ao entrar em tela cheia: ${err.message}`, 'error');
+                    });
+                    fullscreenToggle.innerHTML = '<i class="fas fa-compress"></i>';
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                        fullscreenToggle.innerHTML = '<i class="fas fa-expand"></i>';
+                    }
+                }
+            });
+
+            // Editor de texto avançado
+            function execCommand(command, value = null) {
+                document.execCommand(command, false, value);
+                backlogText.focus();
+            }
+
+            // Atalhos de teclado
+            backlogText.addEventListener('keydown', function (e) {
+                if (e.ctrlKey && e.key === 'b') {
+                    e.preventDefault();
+                    execCommand('bold');
+                }
+                else if (e.ctrlKey && e.key === 'i') {
+                    e.preventDefault();
+                    execCommand('italic');
+                }
+                else if (e.ctrlKey && e.key === 'u') {
+                    e.preventDefault();
+                    execCommand('underline');
+                }
+                else if (e.ctrlKey && e.key === 'z') {
+                    e.preventDefault();
+                    execCommand('undo');
+                }
+                else if (e.ctrlKey && e.key === 'y') {
+                    e.preventDefault();
+                    execCommand('redo');
+                }
+                else if (e.ctrlKey && e.key === 's') {
+                    e.preventDefault();
+                    document.getElementById('save-backlog').click();
+                }
+            });
+
+            // Eventos dos botões da toolbar
+            document.querySelectorAll('.toolbar-btn').forEach(button => {
+                button.addEventListener('click', function () {
+                    const command = this.getAttribute('data-command');
+                    const value = this.getAttribute('data-value');
+
+                    if (command === 'hiliteColor') {
+                        execCommand('hiliteColor', value);
+                    } else {
+                        execCommand(command);
+                    }
+                });
+            });
+
+            // Atualiza cor do texto
+            document.getElementById('text-color').addEventListener('change', function () {
+                execCommand('foreColor', this.value);
+            });
+
+            // Atualiza cor de fundo
+            document.getElementById('bg-color').addEventListener('change', function () {
+                execCommand('hiliteColor', this.value);
+            });
+
+            // Carregar dados do JSONBin (apenas leitura)
+            async function loadJsonBinData() {
+                try {
+                    showToast('Carregando dados do JSONBin...', 'info');
+                    const response = await fetch(API_URL, {
+                        headers: {
+                            'X-Master-Key': MASTER_KEY,
+                            'X-Access-Key': ACCESS_KEY
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Erro HTTP: ${response.status}`);
+                    }
+
+                    const jsonData = await response.json();
+
+                    if (!jsonData.record || Object.keys(jsonData.record).length === 0) {
+                        return {
+                            meta: {
+                                sistema: "Backlog do NOC",
+                                versao: "1.0",
+                                ultima_atualizacao: null,
+                                criado_em: new Date().toISOString()
+                            },
+                            registros: []
+                        };
+                    }
+
+                    // Adiciona tag [snz-b] aos registros do JSONBin
+                    const recordsWithTag = jsonData.record.registros.map(record => {
+                        return {
+                            ...record,
+                            texto: record.texto + ' <span class="jsonbin-tag">[snz-b]</span>',
+                            fonte: 'jsonbin'
+                        };
+                    });
+
+                    return {
+                        ...jsonData.record,
+                        registros: recordsWithTag
+                    };
+                } catch (error) {
+                    console.error('Erro ao carregar dados do JSONBin:', error);
+                    showToast('Erro ao carregar dados do JSONBin. Verifique o console.', 'error');
+                    return {
+                        meta: {
+                            sistema: "Backlog do NOC",
+                            versao: "1.0",
+                            ultima_atualizacao: null,
+                            criado_em: new Date().toISOString()
+                        },
+                        registros: []
+                    };
+                }
+            }
+
+            // Carregar dados do Firebase
+            async function loadFirebaseData() {
+                try {
+                    const doc = await db.collection('backlog').doc('tHlAClzGU9769Sv95RNb').get();
+
+                    return {
+                        meta: {
+                            sistema: "Backlog do NOC",
+                            versao: "1.0",
+                            ultima_atualizacao: new Date().toISOString(),
+                            criado_em: new Date().toISOString()
+                        },
+                        registros: doc.exists ? doc.data().registros || [] : []
+                    };
+                } catch (error) {
+                    console.error('Erro ao carregar dados do Firebase:', error);
+                    return {
+                        meta: {
+                            sistema: "Backlog do NOC",
+                            versao: "1.0",
+                            ultima_atualizacao: null,
+                            criado_em: new Date().toISOString()
+                        },
+                        registros: []
+                    };
+                }
+            }
+            // Salvar dados no Firebase
+            async function saveToFirebase(record) {
+                try {
+                    // Atualizar metadados (se ainda quiser manter)
+                    await db.collection('backlog').doc('metadata').set({
+                        sistema: "Backlog do NOC",
+                        versao: "1.0",
+                        ultima_atualizacao: firebase.firestore.FieldValue.serverTimestamp(),
+                        criado_em: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+
+                    // Adicionar novo registro diretamente no documento
+                    await db.collection('backlog').doc('tHlAClzGU9769Sv95RNb').update({
+                        registros: firebase.firestore.FieldValue.arrayUnion(record)
+                    });
+
+                    return "Registro adicionado com sucesso";
+                } catch (error) {
+                    console.error('Erro ao salvar no Firebase:', error);
+                    throw error;
+                }
+            }
+
+            // Verificar se o analista já salvou backlog na data selecionada
+            async function checkAnalistaBacklog(analista, data) {
+                try {
+                    const doc = await db.collection('backlog').doc('tHlAClzGU9769Sv95RNb').get();
+                    if (!doc.exists) return false;
+
+                    const registros = doc.data().registros || [];
+                    return registros.some(entry =>
+                        entry.analista === analista && entry.data === data
+                    );
+                } catch (error) {
+                    console.error('Erro ao verificar backlog do analista:', error);
+                    return false;
+                }
+            }
+
+            // Verificar quantos analistas diferentes já salvaram backlog na data selecionada
+            async function countAnalistasDia(data) {
+                try {
+                    const doc = await db.collection('backlog').doc('tHlAClzGU9769Sv95RNb').get();
+                    if (!doc.exists) return 0;
+
+                    const registros = doc.data().registros || [];
+                    const analistasDia = new Set();
+
+                    registros.forEach(record => {
+                        if (record.data === data) {
+                            analistasDia.add(record.analista);
+                        }
+                    });
+
+                    return analistasDia.size;
+                } catch (error) {
+                    console.error('Erro ao contar analistas do dia:', error);
+                    return 0;
+                }
+            }
+            // Navegação entre seções
+            navItems.forEach(item => {
+                item.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+
+                    const section = this.getAttribute('data-section');
+                    sectionContents.forEach(content => content.style.display = 'none');
+                    document.getElementById(`${section}-section`).style.display = 'block';
+
+                    const sectionTitle = this.querySelector('span').textContent;
+                    pageTitle.textContent = sectionTitle;
+
+                    if (section === 'dashboard') {
+                        initCalendar();
+                        updateDashboardStats();
+                    }
+                });
+            });
+
+            // Limpar formulário com confirmação
+            clearFormBtn.addEventListener('click', function () {
+                if (backlogText.innerHTML.trim() !== '' && !confirm('Tem certeza que deseja limpar o formulário? Todo o conteúdo não salvo será perdido.')) {
+                    return;
+                }
+                backlogForm.reset();
+                dataBacklog.value = getFortalezaDateString();
+                backlogText.innerHTML = '';
+                showToast('Formulário limpo com sucesso!');
+            });
+
+            // Salvar backlog
+            backlogForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const analista = analistaSelect.value;
+                const data = dataBacklog.value;
+                const texto = backlogText.innerHTML.trim();
+
+                if (!analista || !data || !texto) {
+                    showToast('Por favor, preencha todos os campos obrigatórios!', 'error');
+                    return;
+                }
+
+                try {
+                    const alreadySaved = await checkAnalistaBacklog(analista, data);
+                    if (alreadySaved) {
+                        showToast('Este analista já salvou um backlog nesta data. Apenas um registro por analista por dia é permitido.', 'error');
+                        return;
+                    }
+
+                    const analistasCount = await countAnalistasDia(data);
+                    if (analistasCount >= 4) {
+                        showToast('Limite máximo de 4 analistas diferentes por dia atingido. Não é possível salvar mais backlogs nesta data.', 'error');
+                        return;
+                    }
+
+                    saveButton.disabled = true;
+                    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+
+                    const newRecord = {
+                        id: backlogData.registros.length + firebaseRecords.length + 1,
+                        analista,
+                        data,
+                        texto,
+                        timestamp: getFortalezaTimestamp()
+                    };
+
+                    // Salvar apenas no Firebase
+                    const docId = await saveToFirebase(newRecord);
+
+                    // Adicionar ao array local para exibição imediata
+                    firebaseRecords.push({
+                        ...newRecord,
+                        id: docId,
+                        fonte: 'firebase'
+                    });
+
+                    saveButton.innerHTML = '<i class="fas fa-check"></i> Salvo com Sucesso!';
+                    saveButton.style.backgroundColor = '#34a853';
+                    showToast('Backlog salvo com sucesso no Firebase!');
+
+                    setTimeout(() => {
+                        saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Backlog';
+                        saveButton.style.backgroundColor = '';
+                        saveButton.disabled = false;
+                    }, 2000);
+
+                    backlogText.innerHTML = '';
+
+                    if (document.getElementById('dashboard-section').style.display !== 'none') {
+                        initCalendar();
+                        updateDashboardStats();
+                    }
+                } catch (error) {
+                    console.error('Erro ao salvar:', error);
+                    showToast('Erro ao salvar os dados. Verifique o console para detalhes.', 'error');
+                    saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Backlog';
+                    saveButton.disabled = false;
+                }
+            });
+
+            // Função auxiliar para obter cor do analista
+            function getAnalystColor(analista) {
+                const colors = {
+                    'DELANO': '#65a30d',
+                    'HERBETH': '#dc2626',
+                    'WELLIGTON': '#ea580c',
+                    'EDMUNDO': '#8b5cf6',
+                    'SIDNEY': '#14b8a6',
+                    'MARCIO': '#ec4899',
+                    'HELIELTON': '#3b82f6',
+                    'ROBSON': '#f59e0b',
+                    'WYLLAME': '#059669',
+                    'DARLYSON': '#d946ef',
+                    'MURILO': '#06b6d4',
+                    'ONOFRE': '#f97316',
+                    'LYNNA': '#be185d'
+                };
+                return colors[analista] || '#3b82f6';
+            }
+
+            // Atualizar estatísticas da dashboard
+            function updateDashboardStats() {
+                // Combinar registros do JSONBin e Firebase
+                const allRecords = [...backlogData.registros, ...firebaseRecords];
+
+                const today = getFortalezaDateString();
+                const currentMonth = new Date().getMonth() + 1;
+                const currentYear = new Date().getFullYear();
+
+                // Filtrar registros pelo mês selecionado
+                const selectedMonth = monthSelect.value;
+                let filteredRecords = allRecords;
+
+                if (selectedMonth) {
+                    const [year, month] = selectedMonth.split('-');
+                    filteredRecords = allRecords.filter(record => {
+                        const recordDate = new Date(record.data);
+                        return recordDate.getFullYear() == year &&
+                            (recordDate.getMonth() + 1) == month;
+                    });
+                }
+
+                // Estatísticas de hoje
+                const todayValidations = filteredRecords.filter(record => record.data === today).length;
+                const yesterday = new Date(new Date(today).getTime() - 86400000).toISOString().split('T')[0];
+                const yesterdayValidations = filteredRecords.filter(record => record.data === yesterday).length;
+
+                validationsTodayEl.textContent = todayValidations;
+
+                let todayChange = 0;
+                if (yesterdayValidations > 0) {
+                    todayChange = Math.round(((todayValidations - yesterdayValidations) / yesterdayValidations) * 100);
+                } else if (todayValidations > 0) {
+                    todayChange = 100;
+                }
+
+                if (todayChange > 0) {
+                    todayChangeEl.innerHTML = `<i class="fas fa-caret-up"></i> ${todayChange}% em relação a ontem`;
+                    todayChangeEl.className = 'stat-change positive';
+                } else if (todayChange < 0) {
+                    todayChangeEl.innerHTML = `<i class="fas fa-caret-down"></i> ${Math.abs(todayChange)}% em relação a ontem`;
+                    todayChangeEl.className = 'stat-change negative';
+                } else {
+                    todayChangeEl.innerHTML = `<i class="fas fa-equals"></i> 0% em relação a ontem`;
+                    todayChangeEl.className = 'stat-change';
+                }
+
+                // Estatísticas do mês
+                const currentMonthValidations = filteredRecords.filter(record => {
+                    const recordDate = new Date(record.data);
+                    return recordDate.getMonth() + 1 === currentMonth &&
+                        recordDate.getFullYear() === currentYear;
+                }).length;
+
+                const lastMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+                const lastMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
+                const lastMonthValidations = filteredRecords.filter(record => {
+                    const recordDate = new Date(record.data);
+                    return recordDate.getMonth() + 1 === lastMonth &&
+                        recordDate.getFullYear() === lastMonthYear;
+                }).length;
+
+                validationsMonthEl.textContent = currentMonthValidations;
+
+                let monthChange = 0;
+                if (lastMonthValidations > 0) {
+                    monthChange = Math.round(((currentMonthValidations - lastMonthValidations) / lastMonthValidations) * 100);
+                } else if (currentMonthValidations > 0) {
+                    monthChange = 100;
+                }
+
+                if (monthChange > 0) {
+                    monthChangeEl.innerHTML = `<i class="fas fa-caret-up"></i> ${monthChange}% em relação ao mês passado`;
+                    monthChangeEl.className = 'stat-change positive';
+                } else if (monthChange < 0) {
+                    monthChangeEl.innerHTML = `<i class="fas fa-caret-down"></i> ${Math.abs(monthChange)}% em relação ao mês passado`;
+                    monthChangeEl.className = 'stat-change negative';
+                } else {
+                    monthChangeEl.innerHTML = `<i class="fas fa-equals"></i> 0% em relação ao mês passado`;
+                    monthChangeEl.className = 'stat-change';
+                }
+
+                // Analistas mais ativos
+                const analystCounts = {};
+                filteredRecords.forEach(record => {
+                    if (!analystCounts[record.analista]) {
+                        analystCounts[record.analista] = 0;
+                    }
+                    analystCounts[record.analista]++;
+                });
+
+                const sortedAnalysts = Object.entries(analystCounts).sort((a, b) => b[1] - a[1]);
+
+                // Top analista
+                if (sortedAnalysts.length > 0) {
+                    topAnalystEl.textContent = sortedAnalysts[0][0];
+                    topAnalystCountEl.textContent = `${sortedAnalysts[0][1]} validações`;
+                } else {
+                    topAnalystEl.textContent = 'N/A';
+                    topAnalystCountEl.textContent = '0 validações';
+                }
+
+                // Top 3 analistas
+                topAnalystsEl.innerHTML = '';
+                sortedAnalysts.slice(0, 3).forEach((analyst, index) => {
+                    const medalClass = index === 0 ? 'gold' : index === 1 ? 'silver' : 'bronze';
+                    const medalIcon = index === 0 ? 'fa-medal' : index === 1 ? 'fa-medal' : 'fa-medal';
+
+                    const analystEl = document.createElement('div');
+                    analystEl.className = 'analyst-item';
+                    analystEl.innerHTML = `
+                        <div>
+                            <span class="medal ${medalClass}"><i class="fas ${medalIcon}"></i></span>
+                            <span class="analyst-name">${analyst[0]}</span>
+                        </div>
+                        <span class="analyst-count">${analyst[1]} validações</span>
+                    `;
+                    topAnalystsEl.appendChild(analystEl);
+                });
+
+                // Analistas com menos registros (apenas se houver mais de 3 analistas)
+                bottomAnalystsEl.innerHTML = '';
+                if (sortedAnalysts.length > 3) {
+                    sortedAnalysts.slice(-3).reverse().forEach(analyst => {
+                        const analystEl = document.createElement('div');
+                        analystEl.className = 'analyst-item';
+                        analystEl.innerHTML = `
+                            <span class="analyst-name">${analyst[0]}</span>
+                            <span class="analyst-count">${analyst[1]} validação${analyst[1] !== 1 ? 's' : ''}</span>
+                        `;
+                        bottomAnalystsEl.appendChild(analystEl);
+                    });
+                } else if (sortedAnalysts.length > 0) {
+                    bottomAnalystsEl.innerHTML = '<p>Todos os analistas estão no ranking!</p>';
+                } else {
+                    bottomAnalystsEl.innerHTML = '<p>Nenhum dado disponível</p>';
+                }
+
+                // Atualizar gráfico
+                updateAnalystChart(sortedAnalysts);
+            }
+
+            // Atualizar gráfico de analistas
+            function updateAnalystChart(sortedAnalysts) {
+                const labels = sortedAnalysts.map(item => item[0]);
+                const data = sortedAnalysts.map(item => item[1]);
+                const backgroundColors = sortedAnalysts.map(item => getAnalystColor(item[0]));
+
+                if (analystChart) {
+                    analystChart.data.labels = labels;
+                    analystChart.data.datasets[0].data = data;
+                    analystChart.data.datasets[0].backgroundColor = backgroundColors;
+                    analystChart.update();
+                } else {
+                    const ctx = analystChartEl.getContext('2d');
+                    analystChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Validações por Analista',
+                                data: data,
+                                backgroundColor: backgroundColors,
+                                borderColor: 'rgba(255, 255, 255, 0.1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(26, 32, 44, 0.9)',
+                                    titleColor: '#e2e8f0',
+                                    bodyColor: '#a0aec0',
+                                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                                    borderWidth: 1,
+                                    padding: 12,
+                                    usePointStyle: true
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.05)'
+                                    },
+                                    ticks: {
+                                        color: '#a0aec0'
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        display: false
+                                    },
+                                    ticks: {
+                                        color: '#a0aec0'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Popular seletor de meses
+            function populateMonthSelect() {
+                monthSelect.innerHTML = '<option value="">Todos os meses</option>';
+
+                // Combinar registros do JSONBin e Firebase
+                const allRecords = [...backlogData.registros, ...firebaseRecords];
+
+                if (allRecords.length === 0) return;
+
+                // Extrair meses únicos dos registros
+                const months = new Set();
+                allRecords.forEach(record => {
+                    const date = new Date(record.data);
+                    const year = date.getFullYear();
+                    const month = date.getMonth() + 1;
+                    months.add(`${year}-${month.toString().padStart(2, '0')}`);
+                });
+
+                // Ordenar meses (do mais recente para o mais antigo)
+                const sortedMonths = Array.from(months).sort((a, b) => {
+                    return new Date(b) - new Date(a);
+                });
+
+                // Adicionar opções ao select
+                sortedMonths.forEach(month => {
+                    const [year, monthNum] = month.split('-');
+                    const monthName = new Date(`${year}-${monthNum}-01`).toLocaleDateString('pt-BR', {
+                        month: 'long',
+                        year: 'numeric'
+                    });
+
+                    const option = document.createElement('option');
+                    option.value = month;
+                    option.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+                    monthSelect.appendChild(option);
+                });
+
+                // Adicionar evento de mudança
+                monthSelect.addEventListener('change', updateDashboardStats);
+            }
+
+            // Inicializa o calendário com visual moderno e glassmorfismo
+            async function initCalendar() {
+                try {
+                    const calendarEl = document.getElementById('calendar');
+                    calendarEl.innerHTML = ''; // Limpa o calendário existente
+
+                    // Combinar registros do JSONBin e Firebase
+                    const allRecords = [...backlogData.registros, ...firebaseRecords];
+
+                    // Criar eventos individuais para cada analista
+                    const events = allRecords.map(entry => ({
+                        title: entry.analista,
+                        start: entry.data,
+                        extendedProps: {
+                            texto: entry.texto,
+                            analista: entry.analista,
+                            fonte: entry.fonte
+                        },
+                        className: `event-${entry.analista.toLowerCase()} fc-event-analyst has-tooltip`
+                    }));
+
+                    const calendar = new FullCalendar.Calendar(calendarEl, {
+                        initialView: 'dayGridMonth',
+                        locale: 'pt-br',
+                        headerToolbar: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: 'dayGridMonth,dayGridWeek,dayGridDay'
+                        },
+                        events: events,
+                        eventContent: function (arg) {
+                            // Personalizar o conteúdo do evento
+                            const eventEl = document.createElement('div');
+                            eventEl.className = 'fc-event-content';
+                            eventEl.style.display = 'flex';
+                            eventEl.style.alignItems = 'center';
+                            eventEl.style.padding = '0.25rem 0.5rem';
+                            eventEl.style.gap = '0.5rem';
+
+                            // Ícone baseado no analista
+                            const iconEl = document.createElement('i');
+                            iconEl.className = 'fas fa-user-check';
+                            iconEl.style.fontSize = '0.8em';
+
+                            // Nome do analista
+                            const titleEl = document.createElement('span');
+                            titleEl.className = 'fc-event-title';
+                            titleEl.textContent = arg.event.title;
+
+                            // Tooltip para mostrar a fonte
+                            const tooltipEl = document.createElement('div');
+                            tooltipEl.className = 'tooltip';
+                            tooltipEl.textContent = arg.event.extendedProps.fonte === 'jsonbin' ?
+                                'Origem: JSONBin' : 'Origem: Firebase';
+
+                            eventEl.appendChild(iconEl);
+                            eventEl.appendChild(titleEl);
+                            eventEl.appendChild(tooltipEl);
+
+                            return { domNodes: [eventEl] };
+                        },
+                        eventClick: function (info) {
+                            // Criar modal de detalhes
+                            const modal = document.createElement('div');
+                            modal.className = 'fc-event-modal';
+
+                            const modalContent = document.createElement('div');
+                            modalContent.className = 'fc-event-modal-content';
+
+                            // Cabeçalho do modal
+                            const modalHeader = document.createElement('div');
+                            modalHeader.className = 'fc-event-modal-header';
+
+                            const modalTitle = document.createElement('h3');
+                            modalTitle.className = 'fc-event-modal-title';
+                            modalTitle.textContent = 'Detalhes da Validação';
+
+                            const closeButton = document.createElement('button');
+                            closeButton.className = 'fc-event-modal-close';
+                            closeButton.innerHTML = '<i class="fas fa-times"></i>';
+                            closeButton.addEventListener('click', () => {
+                                document.body.removeChild(modal);
+                            });
+
+                            modalHeader.appendChild(modalTitle);
+                            modalHeader.appendChild(closeButton);
+
+                            // Corpo do modal
+                            const modalBody = document.createElement('div');
+
+                            // Data da validação
+                            const dateEl = document.createElement('div');
+                            dateEl.style.marginBottom = '1.5rem';
+                            dateEl.style.fontSize = '0.95rem';
+                            dateEl.style.color = 'var(--gray)';
+                            dateEl.innerHTML = `<i class="far fa-calendar-alt" style="margin-right: 0.5rem;"></i> ${new Date(info.event.start).toLocaleDateString('pt-BR')}`;
+
+                            // Fonte do registro
+                            const sourceEl = document.createElement('div');
+                            sourceEl.style.marginBottom = '1rem';
+                            sourceEl.style.fontSize = '0.85rem';
+                            sourceEl.style.color = 'var(--gray)';
+                            sourceEl.innerHTML = `<i class="fas fa-database" style="margin-right: 0.5rem;"></i> ${info.event.extendedProps.fonte === 'jsonbin' ? 'JSONBin' : 'Firebase'}`;
+
+                            // Item do analista
+                            const analystItem = document.createElement('div');
+                            analystItem.className = 'fc-event-analyst-item';
+
+                            const analystName = document.createElement('div');
+                            analystName.className = 'fc-event-analyst-name';
+                            analystName.innerHTML = `<i class="fas fa-user-tie" style="color: ${getAnalystColor(info.event.extendedProps.analista)}"></i> ${info.event.extendedProps.analista}`;
+
+                            const analystContent = document.createElement('div');
+                            analystContent.className = 'fc-event-analyst-content';
+                            analystContent.innerHTML = info.event.extendedProps.texto.replace('<span class="jsonbin-tag">[snz-b]</span>', ''); // Remove a tag se existir
+
+                            analystItem.appendChild(analystName);
+                            analystItem.appendChild(analystContent);
+
+                            modalBody.appendChild(dateEl);
+                            modalBody.appendChild(sourceEl);
+                            modalBody.appendChild(analystItem);
+
+                            // Montar modal
+                            modalContent.appendChild(modalHeader);
+                            modalContent.appendChild(modalBody);
+                            modal.appendChild(modalContent);
+                            document.body.appendChild(modal);
+                        },
+                        dayCellContent: function (arg) {
+                            // Personalizar o conteúdo do dia
+                            const container = document.createElement('div');
+                            container.style.display = 'flex';
+                            container.style.flexDirection = 'column';
+                            container.style.height = '100%';
+
+                            const dayNumber = document.createElement('div');
+                            dayNumber.textContent = arg.dayNumberText;
+                            dayNumber.style.textAlign = 'center';
+                            dayNumber.style.padding = '0.5rem';
+                            dayNumber.style.fontWeight = '500';
+                            dayNumber.style.fontSize = '0.9rem';
+
+                            container.appendChild(dayNumber);
+
+                            // Adicionar espaço para eventos
+                            const eventsContainer = document.createElement('div');
+                            eventsContainer.style.flexGrow = '1';
+                            container.appendChild(eventsContainer);
+
+                            return { domNodes: [container] };
+                        },
+                        viewDidMount: function (arg) {
+                            // Estilizar cabeçalho
+                            const header = document.querySelector('.fc-header-toolbar');
+                            if (header) {
+                                header.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                                header.style.backdropFilter = 'blur(10px)';
+                                header.style.borderRadius = '1rem 1rem 0 0';
+                                header.style.padding = '1.5rem';
+                                header.style.borderBottom = '1px solid var(--glass-border)';
+                            }
+
+                            // Estilizar botões de navegação
+                            const buttons = document.querySelectorAll('.fc-button');
+                            buttons.forEach(button => {
+                                button.style.backdropFilter = 'blur(5px)';
+                                button.style.border = '1px solid var(--glass-border)';
+                            });
+                        }
+                    });
+
+                    calendar.render();
+                } catch (error) {
+                    console.error('Erro ao inicializar calendário:', error);
+                    showToast('Erro ao carregar o calendário', 'error');
+                }
+            }
+            // Carregar dados iniciais
+            async function loadInitialData() {
+                try {
+                    // Carregar dados do JSONBin e Firebase em paralelo
+                    const [jsonbinData, firebaseData] = await Promise.all([
+                        loadJsonBinData(),
+                        loadFirebaseData()
+                    ]);
+
+                    // Atribuir os dados
+                    backlogData = jsonbinData;
+                    firebaseRecords = firebaseData.registros;
+
+                    console.log('Dados carregados com sucesso!');
+                    showToast('Dados carregados com sucesso!');
+
+                    // Atualizar a interface
+                    populateMonthSelect();
+                    updateDashboardStats();
+                } catch (error) {
+                    console.error('Erro ao carregar dados iniciais:', error);
+                    showToast('Erro ao carregar dados. Verifique o console.', 'error');
+                }
+            }
+
+            // Iniciar o aplicativo
+            loadInitialData();
+        }
+    </script>
+</body>
+
+</html>
