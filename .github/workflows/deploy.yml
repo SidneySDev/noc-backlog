@@ -11,30 +11,36 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js (minimal)
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'  # Remova esta linha se não usar dependências
+          check-latest: true
+          cache: false  # Desativa cache para evitar busca por lockfile
 
-      - name: Disable package-lock creation
-        run: npm config set package-lock false
-
-      - name: Install Firebase CLI globally
-        run: npm install -g firebase-tools@12.9.0
-
-      - name: Prepare public directory
+      - name: Install Firebase CLI (direct)
         run: |
+          # Instala sem criar node_modules ou lockfile
+          npm install --global --no-package-lock firebase-tools@12.9.0
+          echo "Firebase CLI installed successfully"
+
+      - name: Prepare deployment files
+        run: |
+          # Cria estrutura de diretórios
           mkdir -p public
-          # Copia index.html para public/ se existir na raiz
-          [ -f "index.html" ] && cp index.html public/index.html || true
-          # Verifica se o arquivo existe em algum lugar
-          if [ ! -f "public/index.html" ]; then
+          
+          # Copia index.html se existir na raiz
+          if [ -f "index.html" ]; then
+            cp index.html public/index.html
+            echo "index.html copied to public/"
+          elif [ -f "public/index.html" ]; then
+            echo "index.html already in public directory"
+          else
             echo "::error::index.html not found in root or public directory!"
             exit 1
           fi
 
-      - name: Replace environment secrets
+      - name: Replace secrets securely
         env:
           FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
           FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
@@ -46,6 +52,7 @@ jobs:
           JSONBIN_MASTER_KEY: ${{ secrets.JSONBIN_MASTER_KEY }}
           JSONBIN_ACCESS_KEY: ${{ secrets.JSONBIN_ACCESS_KEY }}
         run: |
+          echo "Replacing secrets in public/index.html"
           sed -i.bak \
             -e "s|%%FIREBASE_API_KEY%%|$FIREBASE_API_KEY|g" \
             -e "s|%%FIREBASE_AUTH_DOMAIN%%|$FIREBASE_AUTH_DOMAIN|g" \
@@ -56,14 +63,14 @@ jobs:
             -e "s|%%JSONBIN_BIN_ID%%|$JSONBIN_BIN_ID|g" \
             -e "s|%%JSONBIN_MASTER_KEY%%|$JSONBIN_MASTER_KEY|g" \
             -e "s|%%JSONBIN_ACCESS_KEY%%|$JSONBIN_ACCESS_KEY|g" \
-            public/index.html && rm -f public/index.html.bak
-
-      - name: Verify deployment files
-        run: |
-          echo "Files in public directory:"
-          ls -la public/
-          echo -e "\nChecking for remaining placeholders:"
-          ! grep -q '%%' public/index.html || { echo "Placeholders found!"; exit 1; }
+            public/index.html
+          
+          # Verificação adicional
+          if grep -q '%%' public/index.html; then
+            echo "::error::Some placeholders were not replaced!"
+            exit 1
+          fi
+          rm -f public/index.html.bak
 
       - name: Deploy to Firebase
         uses: FirebaseExtended/action-hosting-deploy@v0
