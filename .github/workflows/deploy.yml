@@ -10,35 +10,34 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Importante para projetos Firebase
 
-      - name: Setup Node.js (minimal)
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           check-latest: true
-          # Removida completamente a linha do cache
 
-      - name: Install Firebase CLI (no lockfile)
+      - name: Install Firebase CLI
         run: |
-          echo "Installing Firebase CLI without generating lockfile..."
+          echo "Instalando Firebase CLI..."
           npm install --global --no-package-lock firebase-tools@12.9.0
-          firebase --version
+          echo "Versão do Firebase: $(firebase --version)"
 
-      - name: Prepare deployment files
+      - name: Prepare deployment structure
         run: |
           mkdir -p public
-          
           if [ -f "index.html" ]; then
-            cp index.html public/index.html
-            echo "✓ index.html copied to public/"
+            cp -v index.html public/
           elif [ -f "public/index.html" ]; then
-            echo "✓ index.html already in public directory"
+            echo "index.html já está no diretório public/"
           else
-            echo "::error::index.html not found in root or public directory!"
+            echo "::error::Arquivo index.html não encontrado!"
             exit 1
           fi
 
-      - name: Replace environment secrets
+      - name: Inject environment secrets
         env:
           FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
           FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
@@ -50,39 +49,39 @@ jobs:
           JSONBIN_MASTER_KEY: ${{ secrets.JSONBIN_MASTER_KEY }}
           JSONBIN_ACCESS_KEY: ${{ secrets.JSONBIN_ACCESS_KEY }}
         run: |
-          echo "🔒 Replacing secrets in public/index.html..."
-          sed -i.bak \
-            -e "s|%%FIREBASE_API_KEY%%|$FIREBASE_API_KEY|g" \
-            -e "s|%%FIREBASE_AUTH_DOMAIN%%|$FIREBASE_AUTH_DOMAIN|g" \
-            -e "s|%%FIREBASE_PROJECT_ID%%|$FIREBASE_PROJECT_ID|g" \
-            -e "s|%%FIREBASE_STORAGE_BUCKET%%|$FIREBASE_STORAGE_BUCKET|g" \
-            -e "s|%%FIREBASE_MESSAGING_SENDER_ID%%|$FIREBASE_MESSAGING_SENDER_ID|g" \
-            -e "s|%%FIREBASE_APP_ID%%|$FIREBASE_APP_ID|g" \
-            -e "s|%%JSONBIN_BIN_ID%%|$JSONBIN_BIN_ID|g" \
-            -e "s|%%JSONBIN_MASTER_KEY%%|$JSONBIN_MASTER_KEY|g" \
-            -e "s|%%JSONBIN_ACCESS_KEY%%|$JSONBIN_ACCESS_KEY|g" \
-            public/index.html
-          
-          echo "✅ Secret replacement completed"
-          rm -f public/index.html.bak
+          echo "Substituindo variáveis..."
+          for placeholder in $(grep -oP '%%\K[A-Z_]+(?=%%)' public/index.html | sort -u); do
+            var_name="${placeholder}"
+            var_value="${!var_name}"
+            
+            if [ -z "$var_value" ]; then
+              echo "::warning::Variável $placeholder não definida!"
+              continue
+            fi
+            
+            echo "Substituindo: ${placeholder} => [oculto]"
+            sed -i "s|%%${placeholder}%%|${var_value}|g" public/index.html
+          done
 
-          # Verificação final
+          echo "Verificando substituições..."
           if grep -q '%%' public/index.html; then
-            echo "::error::Some placeholders were not replaced!"
+            echo "::error::Placeholders não substituídos encontrados!"
+            grep -n '%%' public/index.html
             exit 1
           fi
 
-      - name: Verify deployment files
+      - name: Validate deployment
         run: |
-          echo "📂 Deployment files:"
+          echo "Estrutura final:"
           ls -la public/
-          echo -e "\n🔍 Checking index.html:"
-          head -n 20 public/index.html
+          echo -e "\nConteúdo inicial do index.html:"
+          head -n 10 public/index.html
 
-      - name: Deploy to Firebase
+      - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
           projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
           channelId: live
+          target: 'https://backlogproeqtl.web.app/'  # Adicione o ID do seu site Firebase
