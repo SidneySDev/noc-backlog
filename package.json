@@ -1,0 +1,13 @@
+{
+  "name": "noc-backlog",
+  "version": "1.0.0",
+  "description": "Backlog Management System",
+  "scripts": {
+    "postinstall": "npm install -g firebase-tools"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
