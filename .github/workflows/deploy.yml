@@ -10,8 +10,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -22,9 +20,11 @@ jobs:
       - name: Install Firebase CLI
         run: npm install -g firebase-tools@12.9.0
 
-      - name: Create minimal package.json
-        if: !exists('package.json')
-        run: echo '{"name":"noc-backlog","private":true}' > package.json
+      - name: Create package.json if missing
+        run: |
+          if [ ! -f "package.json" ]; then
+            echo '{"name":"noc-backlog","private":true}' > package.json
+          fi
 
       - name: Prepare public directory
         run: |
@@ -32,9 +32,10 @@ jobs:
           if [ -f "index.html" ]; then
             cp index.html public/index.html
           elif [ -f "public/index.html" ]; then
-            echo "index.html already in public/"
+            echo "index.html already in public directory"
           else
-            echo "Error: index.html not found!" && exit 1
+            echo "Error: index.html not found in root or public directory!"
+            exit 1
           fi
 
       - name: Replace environment secrets
@@ -62,10 +63,15 @@ jobs:
             public/index.html
           rm -f public/index.html.bak
 
-      - name: Verify files before deploy
+      - name: Verify secret replacement
         run: |
-          ls -la public/
-          grep -E '%%[A-Z_]+%%' public/index.html && exit 1 || echo "All secrets replaced successfully"
+          if grep -q '%%' public/index.html; then
+            echo "Error: Not all placeholders were replaced!"
+            grep -n '%%' public/index.html
+            exit 1
+          else
+            echo "All secrets replaced successfully"
+          fi
 
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
@@ -74,4 +80,3 @@ jobs:
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
           projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
           channelId: live
-          target: 'https://backlogproeqtl.web.app/'  
