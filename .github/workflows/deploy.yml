@@ -23,6 +23,11 @@ jobs:
         JSONBIN_MASTER_KEY: ${{ secrets.JSONBIN_MASTER_KEY }}
         JSONBIN_ACCESS_KEY: ${{ secrets.JSONBIN_ACCESS_KEY }}
       run: |
+        # Cria a pasta public se não existir
+        mkdir -p public
+        # Copia o index.html para public/
+        cp index.html public/index.html
+        # Substitui os placeholders
         sed -i "s|%%FIREBASE_API_KEY%%|$FIREBASE_API_KEY|g" public/index.html
         sed -i "s|%%FIREBASE_AUTH_DOMAIN%%|$FIREBASE_AUTH_DOMAIN|g" public/index.html
         sed -i "s|%%FIREBASE_PROJECT_ID%%|$FIREBASE_PROJECT_ID|g" public/index.html
