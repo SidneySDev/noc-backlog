@@ -16,31 +16,29 @@ jobs:
         with:
           node-version: '20'
           check-latest: true
-          cache: false  # Desativa cache para evitar busca por lockfile
+          # Removida completamente a linha do cache
 
-      - name: Install Firebase CLI (direct)
+      - name: Install Firebase CLI (no lockfile)
         run: |
-          # Instala sem criar node_modules ou lockfile
+          echo "Installing Firebase CLI without generating lockfile..."
           npm install --global --no-package-lock firebase-tools@12.9.0
-          echo "Firebase CLI installed successfully"
+          firebase --version
 
       - name: Prepare deployment files
         run: |
-          # Cria estrutura de diretórios
           mkdir -p public
           
-          # Copia index.html se existir na raiz
           if [ -f "index.html" ]; then
             cp index.html public/index.html
-            echo "index.html copied to public/"
+            echo "✓ index.html copied to public/"
           elif [ -f "public/index.html" ]; then
-            echo "index.html already in public directory"
+            echo "✓ index.html already in public directory"
           else
             echo "::error::index.html not found in root or public directory!"
             exit 1
           fi
 
-      - name: Replace secrets securely
+      - name: Replace environment secrets
         env:
           FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
           FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
@@ -52,7 +50,7 @@ jobs:
           JSONBIN_MASTER_KEY: ${{ secrets.JSONBIN_MASTER_KEY }}
           JSONBIN_ACCESS_KEY: ${{ secrets.JSONBIN_ACCESS_KEY }}
         run: |
-          echo "Replacing secrets in public/index.html"
+          echo "🔒 Replacing secrets in public/index.html..."
           sed -i.bak \
             -e "s|%%FIREBASE_API_KEY%%|$FIREBASE_API_KEY|g" \
             -e "s|%%FIREBASE_AUTH_DOMAIN%%|$FIREBASE_AUTH_DOMAIN|g" \
@@ -65,12 +63,21 @@ jobs:
             -e "s|%%JSONBIN_ACCESS_KEY%%|$JSONBIN_ACCESS_KEY|g" \
             public/index.html
           
-          # Verificação adicional
+          echo "✅ Secret replacement completed"
+          rm -f public/index.html.bak
+
+          # Verificação final
           if grep -q '%%' public/index.html; then
             echo "::error::Some placeholders were not replaced!"
             exit 1
           fi
-          rm -f public/index.html.bak
+
+      - name: Verify deployment files
+        run: |
+          echo "📂 Deployment files:"
+          ls -la public/
+          echo -e "\n🔍 Checking index.html:"
+          head -n 20 public/index.html
 
       - name: Deploy to Firebase
         uses: FirebaseExtended/action-hosting-deploy@v0
