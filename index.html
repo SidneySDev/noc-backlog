@@ -1262,6 +1262,39 @@
             margin-left: 0.5rem;
             vertical-align: middle;
         }
+
+        /* Estilo para links de INC */
+ .inc-link {
+    color: var(--light) !important;
+    font-weight: bold;
+    text-decoration: none !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
+    background-color: rgba(34, 112, 238, 0.2) !important;
+    border: 1.5px solid var(--accent) !important;
+    transition: var(--transition) !important;
+}
+
+.inc-link:hover {
+    background-color: rgba(66, 133, 244, 0.3) !important;
+    transform: translateY(-1px);
+}
+
+        .inc-link::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 1px;
+            background-color: #ff6b6b;
+            transform: scaleX(0);
+            transition: transform 0.2s ease;
+        }
+
+        .inc-link:hover::after {
+            transform: scaleX(1);
+        }
     </style>
 </head>
 
@@ -1605,6 +1638,17 @@
             let firebaseRecords = [];
             let analystChart = null;
 
+    function formatIncLinks(text) {
+    // Regex para capturar apenas "INC" seguido de 7 ou mais dígitos como palavra completa
+    const incRegex = /(^|\s)(INC\d{5,})(?=\s|$)/gi;
+    return text.replace(incRegex, (match, prefix) => {
+        // Mantém o espaço antes do INC se existir
+        const numeroINC = match.trim();
+        const serviceNowUrl = `https://equatorialenergia.service-now.com/incident.do?sysparm_query=number=${numeroINC}`;
+        return `${prefix}<span class="inc-link" data-url="${serviceNowUrl}">${numeroINC}</span>`;
+    });
+}
+
             // Função para mostrar toast
             function showToast(message, type = 'success', duration = 3000) {
                 toast.textContent = message;
@@ -1722,6 +1766,103 @@
             // Atualiza cor de fundo
             document.getElementById('bg-color').addEventListener('change', function () {
                 execCommand('hiliteColor', this.value);
+            });
+
+            // Adiciona evento para formatar links de INC quando o usuário digita
+          // Evento de input com tratamento especial para quebras de linha
+backlogText.addEventListener('input', function() {
+    clearTimeout(this.formattingTimeout);
+    
+    this.formattingTimeout = setTimeout(() => {
+        // Salva a seleção atual
+        const selection = window.getSelection();
+        const range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+        
+        // Obtém a posição do cursor relativa ao nó atual
+        let cursorNode = range ? range.startContainer : null;
+        let cursorOffset = range ? range.startOffset : 0;
+        let isCursorAtEnd = false;
+        
+        if (cursorNode && cursorNode === this.lastChild) {
+            isCursorAtEnd = true;
+        }
+        
+        // Formata o conteúdo
+        const currentHtml = this.innerHTML;
+        const formattedHtml = formatIncLinks(currentHtml);
+        
+        if (formattedHtml !== currentHtml) {
+            this.innerHTML = formattedHtml;
+            
+            // Restaura a posição do cursor
+            if (range && cursorNode) {
+                try {
+                    const newRange = document.createRange();
+                    
+                    if (isCursorAtEnd) {
+                        // Se estava no final, coloca no final do novo conteúdo
+                        newRange.setStart(this, this.childNodes.length);
+                    } else {
+                        // Tenta encontrar uma posição equivalente
+                        const textNodes = getTextNodes(this);
+                        let charCount = 0;
+                        let foundNode = null;
+                        let foundOffset = 0;
+                        
+                        for (const node of textNodes) {
+                            const length = node.nodeValue.length;
+                            
+                            if (charCount + length >= cursorOffset) {
+                                foundNode = node;
+                                foundOffset = cursorOffset - charCount;
+                                break;
+                            }
+                            charCount += length;
+                        }
+                        
+                        if (foundNode) {
+                            newRange.setStart(foundNode, foundOffset);
+                        } else {
+                            newRange.setStart(this, this.childNodes.length);
+                        }
+                    }
+                    
+                    newRange.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                } catch (e) {
+                    console.error("Erro ao restaurar posição do cursor:", e);
+                }
+            }
+        }
+    }, 300);
+});
+
+// Função auxiliar para obter todos os nós de texto
+function getTextNodes(node) {
+    const textNodes = [];
+    const walker = document.createTreeWalker(
+        node,
+        NodeFilter.SHOW_TEXT,
+        null,
+        false
+    );
+    
+    let textNode;
+    while (textNode = walker.nextNode()) {
+        textNodes.push(textNode);
+    }
+    
+    return textNodes;
+}
+            // Adiciona evento para abrir links de INC com duplo clique
+            backlogText.addEventListener('dblclick', function (e) {
+                const incLink = e.target.closest('.inc-link');
+                if (incLink) {
+                    e.preventDefault();
+                    const url = incLink.getAttribute('data-url');
+                    window.open(url, '_blank');
+                }
             });
 
             // Carregar dados do JSONBin (apenas leitura)
