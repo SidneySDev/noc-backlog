@@ -1264,21 +1264,23 @@
         }
 
         /* Estilo para links de INC */
- .inc-link {
-    color: var(--light) !important;
-    font-weight: bold;
-    text-decoration: none !important;
-    padding: 2px 8px !important;
-    border-radius: 4px !important;
-    background-color: rgba(34, 112, 238, 0.2) !important;
-    border: 1.5px solid var(--accent) !important;
-    transition: var(--transition) !important;
-}
+        .inc-link {
+            color: var(--light) !important;
+            font-weight: bold;
+            text-decoration: none !important;
+            padding: 2px 8px !important;
+            border-radius: 4px !important;
+            background-color: rgba(34, 112, 238, 0.2) !important;
+            border: 1.5px solid var(--accent) !important;
+            transition: var(--transition) !important;
+            display: inline-block;
+            position: relative;
+        }
 
-.inc-link:hover {
-    background-color: rgba(66, 133, 244, 0.3) !important;
-    transform: translateY(-1px);
-}
+        .inc-link:hover {
+            background-color: rgba(66, 133, 244, 0.3) !important;
+            transform: translateY(-1px);
+        }
 
         .inc-link::after {
             content: "";
@@ -1638,16 +1640,79 @@
             let firebaseRecords = [];
             let analystChart = null;
 
-    function formatIncLinks(text) {
-    // Regex para capturar apenas "INC" seguido de 7 ou mais dígitos como palavra completa
-    const incRegex = /(^|\s)(INC\d{5,})(?=\s|$)/gi;
-    return text.replace(incRegex, (match, prefix) => {
-        // Mantém o espaço antes do INC se existir
-        const numeroINC = match.trim();
-        const serviceNowUrl = `https://equatorialenergia.service-now.com/incident.do?sysparm_query=number=${numeroINC}`;
-        return `${prefix}<span class="inc-link" data-url="${serviceNowUrl}">${numeroINC}</span>`;
-    });
-}
+            // Função para formatar links INC com melhor tratamento de seleção e cursor
+            function formatIncLinks(text) {
+                // Regex para capturar INC seguido de 5 ou mais dígitos como palavra completa
+                const incRegex = /(^|\s)(INC\d{5,})(?=\s|$)/gi;
+                
+                // Criar um elemento temporário para manipulação do HTML
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = text;
+                
+                // Processar apenas nós de texto que não estão dentro de links INC já existentes
+                const walker = document.createTreeWalker(
+                    tempDiv,
+                    NodeFilter.SHOW_TEXT,
+                    {
+                        acceptNode: function(node) {
+                            // Ignorar nós de texto que estão dentro de elementos .inc-link
+                            if (node.parentNode.classList && node.parentNode.classList.contains('inc-link')) {
+                                return NodeFilter.FILTER_REJECT;
+                            }
+                            return NodeFilter.FILTER_ACCEPT;
+                        }
+                    }
+                );
+                
+                const textNodes = [];
+                let currentNode;
+                while (currentNode = walker.nextNode()) {
+                    textNodes.push(currentNode);
+                }
+                
+                // Processar cada nó de texto encontrado
+                textNodes.forEach(node => {
+                    const parent = node.parentNode;
+                    const text = node.nodeValue;
+                    
+                    // Criar um fragmento de documento para armazenar o novo conteúdo
+                    const fragment = document.createDocumentFragment();
+                    let lastIndex = 0;
+                    
+                    // Encontrar todas as ocorrências de INC no texto
+                    let match;
+                    while ((match = incRegex.exec(text)) !== null) {
+                        // Adicionar texto antes do INC
+                        if (match.index > lastIndex) {
+                            fragment.appendChild(document.createTextNode(text.substring(lastIndex, match.index)));
+                        }
+                        
+                        // Criar o link para o INC
+                        const numeroINC = match[2];
+                        const serviceNowUrl = `https://equatorialenergia.service-now.com/incident.do?sysparm_query=number=${numeroINC}`;
+                        
+                        const incLink = document.createElement('span');
+                        incLink.className = 'inc-link';
+                        incLink.setAttribute('data-url', serviceNowUrl);
+                        incLink.textContent = numeroINC;
+                        
+                        fragment.appendChild(incLink);
+                        lastIndex = match.index + match[0].length;
+                    }
+                    
+                    // Adicionar o texto restante após o último INC
+                    if (lastIndex < text.length) {
+                        fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
+                    }
+                    
+                    // Substituir o nó de texto original pelo fragmento processado
+                    if (fragment.childNodes.length > 0) {
+                        parent.replaceChild(fragment, node);
+                    }
+                });
+                
+                return tempDiv.innerHTML;
+            }
 
             // Função para mostrar toast
             function showToast(message, type = 'success', duration = 3000) {
@@ -1768,93 +1833,69 @@
                 execCommand('hiliteColor', this.value);
             });
 
-            // Adiciona evento para formatar links de INC quando o usuário digita
-          // Evento de input com tratamento especial para quebras de linha
-backlogText.addEventListener('input', function() {
-    clearTimeout(this.formattingTimeout);
-    
-    this.formattingTimeout = setTimeout(() => {
-        // Salva a seleção atual
-        const selection = window.getSelection();
-        const range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
-        
-        // Obtém a posição do cursor relativa ao nó atual
-        let cursorNode = range ? range.startContainer : null;
-        let cursorOffset = range ? range.startOffset : 0;
-        let isCursorAtEnd = false;
-        
-        if (cursorNode && cursorNode === this.lastChild) {
-            isCursorAtEnd = true;
-        }
-        
-        // Formata o conteúdo
-        const currentHtml = this.innerHTML;
-        const formattedHtml = formatIncLinks(currentHtml);
-        
-        if (formattedHtml !== currentHtml) {
-            this.innerHTML = formattedHtml;
-            
-            // Restaura a posição do cursor
-            if (range && cursorNode) {
-                try {
-                    const newRange = document.createRange();
+            // Evento de input para formatar links INC
+            backlogText.addEventListener('input', function() {
+                // Usar setTimeout para permitir que o conteúdo seja atualizado antes da formatação
+                setTimeout(() => {
+                    // Salvar a seleção atual
+                    const selection = window.getSelection();
+                    const range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
                     
-                    if (isCursorAtEnd) {
-                        // Se estava no final, coloca no final do novo conteúdo
-                        newRange.setStart(this, this.childNodes.length);
-                    } else {
-                        // Tenta encontrar uma posição equivalente
-                        const textNodes = getTextNodes(this);
-                        let charCount = 0;
-                        let foundNode = null;
-                        let foundOffset = 0;
-                        
-                        for (const node of textNodes) {
-                            const length = node.nodeValue.length;
-                            
-                            if (charCount + length >= cursorOffset) {
-                                foundNode = node;
-                                foundOffset = cursorOffset - charCount;
-                                break;
-                            }
-                            charCount += length;
-                        }
-                        
-                        if (foundNode) {
-                            newRange.setStart(foundNode, foundOffset);
-                        } else {
-                            newRange.setStart(this, this.childNodes.length);
-                        }
+                    // Salvar a posição do cursor
+                    let cursorOffset = 0;
+                    if (range) {
+                        const preSelectionRange = range.cloneRange();
+                        preSelectionRange.selectNodeContents(backlogText);
+                        preSelectionRange.setEnd(range.startContainer, range.startOffset);
+                        cursorOffset = preSelectionRange.toString().length;
                     }
                     
-                    newRange.collapse(true);
-                    selection.removeAllRanges();
-                    selection.addRange(newRange);
-                } catch (e) {
-                    console.error("Erro ao restaurar posição do cursor:", e);
-                }
-            }
-        }
-    }, 300);
-});
+                    // Formatar os links INC
+                    const currentHtml = backlogText.innerHTML;
+                    const formattedHtml = formatIncLinks(currentHtml);
+                    
+                    // Aplicar apenas se houve mudança
+                    if (formattedHtml !== currentHtml) {
+                        backlogText.innerHTML = formattedHtml;
+                        
+                        // Restaurar a posição do cursor
+                        if (range) {
+                            const newRange = document.createRange();
+                            let charCount = 0;
+                            let foundNode = null;
+                            let foundOffset = 0;
+                            
+                            // Encontrar a posição equivalente no novo conteúdo
+                            const walker = document.createTreeWalker(
+                                backlogText,
+                                NodeFilter.SHOW_TEXT,
+                                null,
+                                false
+                            );
+                            
+                            let node;
+                            while (node = walker.nextNode()) {
+                                const length = node.nodeValue.length;
+                                if (charCount + length >= cursorOffset) {
+                                    foundNode = node;
+                                    foundOffset = cursorOffset - charCount;
+                                    break;
+                                }
+                                charCount += length;
+                            }
+                            
+                            // Se encontrou a posição, restaurar a seleção
+                            if (foundNode) {
+                                newRange.setStart(foundNode, foundOffset);
+                                newRange.collapse(true);
+                                selection.removeAllRanges();
+                                selection.addRange(newRange);
+                            }
+                        }
+                    }
+                }, 0);
+            });
 
-// Função auxiliar para obter todos os nós de texto
-function getTextNodes(node) {
-    const textNodes = [];
-    const walker = document.createTreeWalker(
-        node,
-        NodeFilter.SHOW_TEXT,
-        null,
-        false
-    );
-    
-    let textNode;
-    while (textNode = walker.nextNode()) {
-        textNodes.push(textNode);
-    }
-    
-    return textNodes;
-}
             // Adiciona evento para abrir links de INC com duplo clique
             backlogText.addEventListener('dblclick', function (e) {
                 const incLink = e.target.closest('.inc-link');
