@@ -189,6 +189,23 @@
             display: flex;
         }
 
+        .validation-error {
+            background: rgba(234, 67, 53, 0.1);
+            border: 1px solid rgba(234, 67, 53, 0.3);
+            color: var(--danger);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .validation-error.show {
+            display: flex;
+        }
+
         .fc-event.has-tooltip {
             position: relative;
         }
@@ -1930,11 +1947,22 @@
             }, 3000);
         });
 
-        // Verificar autenticação
+        // CORREÇÃO 1: Sistema de autenticação melhorado com sessionStorage + localStorage
         function checkAuthentication() {
-            const currentUser = localStorage.getItem('currentUser');
+            // Primeiro verifica sessionStorage (para a sessão atual)
+            let currentUser = sessionStorage.getItem('currentUser');
+            
+            // Se não tem session, verifica localStorage (para "lembrar" entre sessões)
+            if (!currentUser) {
+                currentUser = localStorage.getItem('currentUser');
+                // Se encontrou no localStorage, restaura na sessionStorage
+                if (currentUser) {
+                    sessionStorage.setItem('currentUser', currentUser);
+                }
+            }
+            
             if (currentUser) {
-                // Usuário já está logado
+                // Usuário já está logado - inicia aplicação imediatamente
                 initApplication(currentUser);
             } else {
                 // Mostrar tela de login
@@ -1958,7 +1986,10 @@
                 loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
                 
                 setTimeout(function() {
-                    localStorage.setItem('currentUser', analista);
+                    // CORREÇÃO 2: Salvar em ambos sessionStorage e localStorage
+                    sessionStorage.setItem('currentUser', analista);
+                    localStorage.setItem('currentUser', analista); // Para persistir entre sessões
+                    
                     document.getElementById('login-screen').style.display = 'none';
                     initApplication(analista);
                 }, 1000);
@@ -1978,6 +2009,8 @@
         function setupLogout() {
             document.getElementById('logout-btn').addEventListener('click', function() {
                 if (confirm('Tem certeza que deseja sair do sistema?')) {
+                    // CORREÇÃO 3: Limpar ambos storages no logout
+                    sessionStorage.removeItem('currentUser');
                     localStorage.removeItem('currentUser');
                     location.reload();
                 }
@@ -2055,6 +2088,12 @@
             const muralLastUpdate = document.getElementById('mural-last-update');
             const muralAutoSave = document.getElementById('mural-auto-save');
 
+            // Criar elemento para mensagens de validação
+            const validationError = document.createElement('div');
+            validationError.className = 'validation-error';
+            validationError.innerHTML = '<i class="fas fa-exclamation-circle"></i><span id="validation-message"></span>';
+            backlogForm.insertBefore(validationError, backlogForm.querySelector('.action-buttons'));
+
             // Variáveis globais
             let backlogData = {
                 meta: {
@@ -2077,49 +2116,48 @@
             // Mostrar aplicação
             document.getElementById('app-container').style.display = 'flex';
 
-            // [RESTANTE DO CÓDIGO EXISTENTE - MANTIDO IGUAL]
-            // ... (todo o restante do código JavaScript existente permanece igual)
+            // Função para mostrar mensagens de validação
+            function showValidationError(message) {
+                validationError.classList.add('show');
+                document.getElementById('validation-message').textContent = message;
+                
+                setTimeout(() => {
+                    validationError.classList.remove('show');
+                }, 5000);
+            }
+
             // Função para limpar texto de contaminação
             function cleanBacklogText(text) {
                 if (!text) return '';
                 
                 return text
-                    // Remove tags HTML
                     .replace(/<br\s*\/?>/gi, '\n')
                     .replace(/<div>/gi, '')
                     .replace(/<\/div>/gi, '\n')
                     .replace(/<[^>]*>/g, '')
-                    // Remove entidades HTML
                     .replace(/&nbsp;/g, ' ')
                     .replace(/&lt;/g, '<')
                     .replace(/&gt;/g, '>')
                     .replace(/&amp;/g, '&')
-                    // Remove asteriscos extras e formatação
                     .replace(/\*\*/g, '')
                     .replace(/\*{2,}/g, '')
                     .replace(/^\*|\*$/gm, '')
-                    // Limpa espaços extras
                     .replace(/\n\s*\n/g, '\n\n')
                     .replace(/^\s+|\s+$/g, '')
                     .trim();
             }
 
-            // Função para formatar links INC com melhor tratamento de seleção e cursor
+            // Função para formatar links INC
             function formatIncLinks(text) {
-                // Regex para capturar INC seguido de 5 ou mais dígitos como palavra completa
                 const incRegex = /(^|\s)(INC\d{5,})(?=\s|$)/gi;
-                
-                // Criar um elemento temporário para manipulação do HTML
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = text;
                 
-                // Processar apenas nós de texto que não estão dentro de links INC já existentes
                 const walker = document.createTreeWalker(
                     tempDiv,
                     NodeFilter.SHOW_TEXT,
                     {
                         acceptNode: function(node) {
-                            // Ignorar nós de texto que estão dentro de elementos .inc-link
                             if (node.parentNode.classList && node.parentNode.classList.contains('inc-link')) {
                                 return NodeFilter.FILTER_REJECT;
                             }
@@ -2134,24 +2172,18 @@
                     textNodes.push(currentNode);
                 }
                 
-                // Processar cada nó de texto encontrado
                 textNodes.forEach(node => {
                     const parent = node.parentNode;
                     const text = node.nodeValue;
-                    
-                    // Criar um fragmento de documento para armazenar o novo conteúdo
                     const fragment = document.createDocumentFragment();
                     let lastIndex = 0;
                     
-                    // Encontrar todas as ocorrências de INC no texto
                     let match;
                     while ((match = incRegex.exec(text)) !== null) {
-                        // Adicionar texto antes do INC
                         if (match.index > lastIndex) {
                             fragment.appendChild(document.createTextNode(text.substring(lastIndex, match.index)));
                         }
                         
-                        // Criar o link para o INC
                         const numeroINC = match[2];
                         const serviceNowUrl = `https://equatorialenergia.service-now.com/incident.do?sysparm_query=number=${numeroINC}`;
                         
@@ -2164,12 +2196,10 @@
                         lastIndex = match.index + match[0].length;
                     }
                     
-                    // Adicionar o texto restante após o último INC
                     if (lastIndex < text.length) {
                         fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
                     }
                     
-                    // Substituir o nó de texto original pelo fragmento processado
                     if (fragment.childNodes.length > 0) {
                         parent.replaceChild(fragment, node);
                     }
@@ -2191,25 +2221,75 @@
 
             // Função para obter timestamp com fuso horário de Fortaleza (UTC-3)
             function getFortalezaTimestamp() {
-                // Cria uma data no fuso horário de Fortaleza
                 const now = new Date();
-
-                // Formata a data como string no formato ISO com offset -03:00
                 const timeString = now.toLocaleString('pt-BR', {
                     timeZone: 'America/Fortaleza',
                     hour12: false
                 });
 
-                // Extrai os componentes da data
                 const [datePart, timePart] = timeString.split(', ');
                 const [day, month, year] = datePart.split('/');
                 const [hours, minutes, seconds] = timePart.split(':');
-
-                // Obtém os milissegundos
                 const ms = now.getMilliseconds().toString().padStart(3, '0');
 
-                // Formata no padrão ISO 8601 com offset -03:00
                 return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${ms}-03:00`;
+            }
+
+            // CORREÇÃO 4: Função melhorada para verificar se o analista já salvou backlog na data
+            async function checkAnalistaBacklog(analista, data) {
+                try {
+                    const doc = await db.collection('backlog').doc('tHlAClzGU9769Sv95RNb').get();
+                    if (!doc.exists) return false;
+
+                    const registros = doc.data().registros || [];
+                    return registros.some(entry =>
+                        entry.analista === analista && entry.data === data
+                    );
+                } catch (error) {
+                    console.error('Erro ao verificar backlog do analista:', error);
+                    return false;
+                }
+            }
+
+            // CORREÇÃO 5: Função melhorada para contar analistas diferentes por dia
+            async function countAnalistasDia(data) {
+                try {
+                    const doc = await db.collection('backlog').doc('tHlAClzGU9769Sv95RNb').get();
+                    if (!doc.exists) return 0;
+
+                    const registros = doc.data().registros || [];
+                    const analistasDia = new Set();
+
+                    registros.forEach(record => {
+                        if (record.data === data) {
+                            analistasDia.add(record.analista);
+                        }
+                    });
+
+                    return analistasDia.size;
+                } catch (error) {
+                    console.error('Erro ao contar analistas do dia:', error);
+                    return 0;
+                }
+            }
+
+            // CORREÇÃO 6: Função para validar se pode salvar backlog
+            async function validateBacklogSave(analista, data) {
+                // Verificar se o analista já salvou hoje
+                const alreadySaved = await checkAnalistaBacklog(analista, data);
+                if (alreadySaved) {
+                    showValidationError('Este analista já salvou um backlog nesta data. Apenas um registro por analista por dia é permitido.');
+                    return false;
+                }
+
+                // Verificar limite de 3 analistas por dia
+                const analistasCount = await countAnalistasDia(data);
+                if (analistasCount >= 3) {
+                    showValidationError('Limite máximo de 3 analistas diferentes por dia atingido. Não é possível salvar mais backlogs nesta data.');
+                    return false;
+                }
+
+                return true;
             }
 
             // Toggle sidebar
@@ -2520,44 +2600,6 @@
                 }
             }
 
-            // Verificar se o analista já salvou backlog na data selecionada
-            async function checkAnalistaBacklog(analista, data) {
-                try {
-                    const doc = await db.collection('backlog').doc('tHlAClzGU9769Sv95RNb').get();
-                    if (!doc.exists) return false;
-
-                    const registros = doc.data().registros || [];
-                    return registros.some(entry =>
-                        entry.analista === analista && entry.data === data
-                    );
-                } catch (error) {
-                    console.error('Erro ao verificar backlog do analista:', error);
-                    return false;
-                }
-            }
-
-            // Verificar quantos analistas diferentes já salvaram backlog na data selecionada
-            async function countAnalistasDia(data) {
-                try {
-                    const doc = await db.collection('backlog').doc('tHlAClzGU9769Sv95RNb').get();
-                    if (!doc.exists) return 0;
-
-                    const registros = doc.data().registros || [];
-                    const analistasDia = new Set();
-
-                    registros.forEach(record => {
-                        if (record.data === data) {
-                            analistasDia.add(record.analista);
-                        }
-                    });
-
-                    return analistasDia.size;
-                } catch (error) {
-                    console.error('Erro ao contar analistas do dia:', error);
-                    return 0;
-                }
-            }
-
             // Navegação entre seções
             navItems.forEach(item => {
                 item.addEventListener('click', function (e) {
@@ -2593,11 +2635,11 @@
                 showToast('Formulário limpo com sucesso!');
             });
 
-            // Salvar backlog
+            // Salvar backlog - CORREÇÃO 7: Adicionar validação robusta
             backlogForm.addEventListener('submit', async function (e) {
                 e.preventDefault();
 
-                const analista = currentUser; // Usar o usuário logado
+                const analista = currentUser;
                 const data = dataBacklog.value;
                 let texto = backlogText.innerHTML.trim();
 
@@ -2606,21 +2648,13 @@
                     return;
                 }
 
+                // Validar antes de salvar
+                const canSave = await validateBacklogSave(analista, data);
+                if (!canSave) {
+                    return;
+                }
+
                 try {
-                    // Verificar se o analista já salvou hoje
-                    const alreadySaved = await checkAnalistaBacklog(analista, data);
-                    if (alreadySaved) {
-                        showToast('Este analista já salvou um backlog nesta data. Apenas um registro por analista por dia é permitido.', 'error');
-                        return;
-                    }
-
-                    // Verificar limite de 4 analistas por dia
-                    const analistasCount = await countAnalistasDia(data);
-                    if (analistasCount >= 4) {
-                        showToast('Limite máximo de 4 analistas diferentes por dia atingido. Não é possível salvar mais backlogs nesta data.', 'error');
-                        return;
-                    }
-
                     saveButton.disabled = true;
                     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
 
@@ -2636,12 +2670,11 @@
                     };
 
                     // Salvar apenas no Firebase
-                    const docId = await saveToFirebase(newRecord);
+                    await saveToFirebase(newRecord);
 
                     // Adicionar ao array local para exibição imediata
                     firebaseRecords.push({
                         ...newRecord,
-                        id: docId,
                         fonte: 'firebase'
                     });
 
@@ -3289,5 +3322,4 @@
         }
     </script>
 </body>
-
 </html>
