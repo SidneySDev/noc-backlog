@@ -1,6 +1,3 @@
-
-
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -2067,6 +2064,22 @@
                 return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${ms}-03:00`;
             }
 
+            // 🔧 **NOVA FUNÇÃO PARA ID DO DOCUMENTO POR MÊS**
+            function getBacklogDocId(data) {
+                const [ano, mes] = data.split('-');
+                
+                const meses = {
+                    '01': 'janeiro', '02': 'fevereiro', '03': 'março', '04': 'abril',
+                    '05': 'maio', '06': 'junho', '07': 'julho', '08': 'agosto',
+                    '09': 'setembro', '10': 'outubro', '11': 'novembro', '12': 'dezembro'
+                };
+                
+                const nomeMes = meses[mes];
+                const anoCurto = ano.slice(2);
+                
+                return `${nomeMes}${anoCurto}`;
+            }
+
             dataBacklog.value = getFortalezaDateString();
 
             const validationError = document.createElement('div');
@@ -2414,10 +2427,20 @@
                 }
             }
 
+            // 🔧 **FUNÇÃO ATUALIZADA PARA CARREGAR TODOS OS DADOS**
             async function loadFirebaseData() {
                 try {
-                    const doc = await db.collection('backlog').doc('tHlAClzGU9769Sv95RNb').get();
-                    const registros = doc.exists ? (doc.data().registros || []) : [];
+                    // Carrega todos os documentos da coleção backlog
+                    const snapshot = await db.collection('backlog').get();
+                    let allRegistros = [];
+                    
+                    snapshot.forEach(doc => {
+                        if (doc.id !== 'metadata') {
+                            const registros = doc.data().registros || [];
+                            allRegistros = [...allRegistros, ...registros];
+                        }
+                    });
+
                     return {
                         meta: {
                             sistema: "Backlog do NOC",
@@ -2425,7 +2448,7 @@
                             ultima_atualizacao: new Date().toISOString(),
                             criado_em: new Date().toISOString()
                         },
-                        registros
+                        registros: allRegistros
                     };
                 } catch (error) {
                     console.error('Erro ao carregar dados do Firebase:', error);
@@ -2441,9 +2464,10 @@
                 }
             }
 
-            // NOVA REGRA: 1 criação + até 4 sobrescritas em 1h
+            // 🔧 **NOVA FUNÇÃO SALVAR COM ORGANIZAÇÃO POR MÊS**
             async function saveBacklogRecord(analista, data, texto) {
-                const docRef = db.collection('backlog').doc('tHlAClzGU9769Sv95RNb');
+                const docId = getBacklogDocId(data);
+                const docRef = db.collection('backlog').doc(docId);
                 const metadataRef = db.collection('backlog').doc('metadata');
 
                 const now = new Date();
@@ -2493,13 +2517,6 @@
                         };
 
                         transaction.set(docRef, { registros }, { merge: true });
-                        transaction.set(metadataRef, {
-                            sistema: "Backlog do NOC",
-                            versao: "1.0",
-                            ultima_atualizacao: firebase.firestore.FieldValue.serverTimestamp(),
-                            criado_em: firebase.firestore.FieldValue.serverTimestamp()
-                        }, { merge: true });
-
                         return 'updated';
                     } else {
                         // Novo registro: checar limite de analistas/dia
@@ -2530,18 +2547,18 @@
                         };
 
                         registros.push(newRecord);
-
                         transaction.set(docRef, { registros }, { merge: true });
-                        transaction.set(metadataRef, {
-                            sistema: "Backlog do NOC",
-                            versao: "1.0",
-                            ultima_atualizacao: firebase.firestore.FieldValue.serverTimestamp(),
-                            criado_em: firebase.firestore.FieldValue.serverTimestamp()
-                        }, { merge: true });
-
                         return 'created';
                     }
                 });
+
+                // Atualiza metadata global
+                await metadataRef.set({
+                    sistema: "Backlog do NOC",
+                    versao: "1.0",
+                    ultima_atualizacao: firebase.firestore.FieldValue.serverTimestamp(),
+                    criado_em: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
 
                 return operationType;
             }
@@ -3184,5 +3201,3 @@
 </body>
 
 </html>
-
-
