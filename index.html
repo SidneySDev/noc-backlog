@@ -261,7 +261,7 @@
   .icon-center {
     width: 145px;
     height: 145px;
-    background: rgba(255, 255, 255, 0.95) !important;
+    background: rgba(255, 255, 255, 0.95) !important; /* Branco com leve transparência */
     border-radius: 70%;
     box-shadow: 
         0 0 25px rgba(56, 189, 248, 0.8),
@@ -1512,162 +1512,22 @@
     .inc-link:hover::after {
         transform: scaleX(1);
     }
-    
-    /* Aumentar o card body das anotações */
-    #notes-section .card-body {
-        min-height: 500px;
-    }
+/* Aumentar o card body das anotações */
+#notes-section .card-body {
+    min-height: 500px;
+}
 
-    /* Aumentar a área de edição */
-    #backlog-text {
-        min-height: 800px;
-    }
+/* Aumentar a área de edição */
+#backlog-text {
+    min-height: 800px;
+}
 
-    /* Para o mural também, se desejar */
-    #mural-section .editor-content {
-        min-height: 400px;
-    }
+/* Para o mural também, se desejar */
+#mural-section .editor-content {
+    min-height: 400px;
+}
 
-    /* Novos estilos para o mural colaborativo */
-    .user-cursor {
-        position: absolute;
-        width: 2px;
-        height: 1.2em;
-        background-color: currentColor;
-        pointer-events: none;
-        z-index: 100;
-    }
-
-    .user-selection {
-        position: absolute;
-        background-color: rgba(66, 133, 244, 0.2);
-        border: 1px solid rgba(66, 133, 244, 0.4);
-        pointer-events: none;
-        z-index: 99;
-    }
-
-    .user-label {
-        position: absolute;
-        background-color: rgba(26, 32, 44, 0.9);
-        border: 1px solid currentColor;
-        color: white;
-        padding: 2px 6px;
-        font-size: 0.7rem;
-        border-radius: 3px;
-        white-space: nowrap;
-        pointer-events: none;
-        z-index: 101;
-        transform: translateY(-100%);
-        margin-top: -5px;
-    }
-
-    .user-label::after {
-        content: '';
-        position: absolute;
-        bottom: -4px;
-        left: 50%;
-        transform: translateX(-50%);
-        border-width: 4px 4px 0;
-        border-style: solid;
-        border-color: currentColor transparent transparent;
-    }
-
-    /* Estilos para as funções de enumeração e detecção de duplicatas */
-    .duplicate-item {
-        position: relative;
-        background-color: rgba(234, 67, 53, 0.1) !important;
-        border-left: 3px solid var(--danger) !important;
-        padding-left: 10px !important;
-        margin-bottom: 10px !important;
-    }
-
-    .remove-duplicate-btn {
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        background: var(--danger) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 50% !important;
-        width: 20px !important;
-        height: 20px !important;
-        font-size: 12px !important;
-        cursor: pointer !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        z-index: 10;
-    }
-
-    .remove-duplicate-btn:hover {
-        background: #c53030 !important;
-    }
-
-    /* Novo botão de ordenação */
-    .order-btn {
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: 36px !important;
-        height: 36px !important;
-        padding: 0 !important;
-        margin: 0 2px !important;
-        font-weight: bold !important;
-        background-color: rgba(66, 133, 244, 0.2) !important;
-    }
-
-    .order-btn:hover {
-        background-color: rgba(66, 133, 244, 0.3) !important;
-    }
-
-    /* Estilos para o sistema de colaboração do mural */
-    .collaboration-info {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 10px;
-        padding: 8px 12px;
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 6px;
-        font-size: 0.85rem;
-    }
-
-    .active-user {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        padding: 3px 8px;
-        border-radius: 4px;
-        background: rgba(66, 133, 244, 0.1);
-        border: 1px solid rgba(66, 133, 244, 0.3);
-    }
-
-    .active-user-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background-color: var(--success);
-        animation: pulse 1.5s infinite;
-    }
-
-    @keyframes pulse {
-        0% { opacity: 0.7; }
-        50% { opacity: 1; }
-        100% { opacity: 0.7; }
-    }
-
-    .author-tag {
-        display: inline-block;
-        background-color: rgba(66, 133, 244, 0.2);
-        color: var(--accent);
-        font-size: 0.75rem;
-        padding: 2px 6px;
-        border-radius: 3px;
-        margin-right: 5px;
-        font-weight: 500;
-        border: 1px solid rgba(66, 133, 244, 0.3);
-    }
-    </style>
+</style>
 </head>
 
 <body>
@@ -1804,8 +1664,8 @@
                         <div class="card-header">
                             <h3 class="card-title">Registro de Backlog Diário</h3>
                             <div class="card-tools">
-                                <button class="btn btn-outline" id="detect-duplicates">
-                                    <i class="fas fa-search"></i> Detectar Duplicatas
+                                <button class="btn btn-outline">
+                                    <i class="fas fa-history"></i> Histórico
                                 </button>
                             </div>
                         </div>
@@ -1873,16 +1733,6 @@
                                                 <button type="button" class="toolbar-btn" data-command="redo"
                                                     title="Refazer (Ctrl+Y)">
                                                     <i class="fas fa-redo"></i>
-                                                </button>
-                                            </div>
-                                            
-                                            <!-- NOVOS BOTÕES DE ORDENAÇÃO -->
-                                            <div class="toolbar-group">
-                                                <button type="button" class="toolbar-btn order-btn" id="renumber-items" title="Renumerar itens (1-2-3)">
-                                                    123
-                                                </button>
-                                                <button type="button" class="toolbar-btn" id="find-duplicates" title="Detectar textos duplicados">
-                                                    <i class="fas fa-copy"></i>
                                                 </button>
                                             </div>
                                         </div>
@@ -1975,15 +1825,6 @@
                             <i class="fas fa-exclamation-triangle"></i>
                             <strong>Atenção:</strong> O mural é compartilhado entre todos os analistas e é limpo automaticamente às 00:00 de cada dia. Todas as alterações são salvas automaticamente.
                         </div>
-                        
-                        <!-- Nova seção de informações de colaboração -->
-                        <div class="collaboration-info" id="collaboration-info">
-                            <div>
-                                <i class="fas fa-users"></i> 
-                                <span id="active-users-count">1 usuário ativo</span>
-                            </div>
-                            <div id="active-users-list"></div>
-                        </div>
 
                         <div class="card">
                             <div class="card-header">
@@ -1992,15 +1833,12 @@
                                     <button class="btn btn-outline" id="clear-mural">
                                         <i class="fas fa-broom"></i> Limpar Mural
                                     </button>
-                                    <button class="btn btn-outline" id="toggle-authors">
-                                        <i class="fas fa-user-tag"></i> Mostrar Autores
-                                    </button>
                                 </div>
                             </div>
                             <div class="card-body">
                                 <div class="form-group">
                                     <label class="form-label">Conteúdo do Mural</label>
-                                    <div class="editor-container mural-editor" id="mural-editor-container">
+                                    <div class="editor-container mural-editor">
                                         <div class="toolbar">
                                             <div class="toolbar-group">
                                                 <button type="button" class="toolbar-btn" data-command="bold"
@@ -2024,11 +1862,6 @@
                                                 <button type="button" class="toolbar-btn"
                                                     data-command="insertOrderedList" title="Lista ordenada">
                                                     <i class="fas fa-list-ol"></i>
-                                                </button>
-                                            </div>
-                                            <div class="toolbar-group">
-                                                <button type="button" class="toolbar-btn" id="add-author-tag" title="Adicionar identificação">
-                                                    <i class="fas fa-user-plus"></i>
                                                 </button>
                                             </div>
                                         </div>
@@ -2189,8 +2022,6 @@
             const fullscreenToggle = document.getElementById('fullscreen-toggle');
             const pageTitle = document.querySelector('.page-title');
             const monthSelect = document.getElementById('month-select');
-            const renumberBtn = document.getElementById('renumber-items');
-            const findDuplicatesBtn = document.getElementById('find-duplicates');
 
             // Dashboard
             const validationsTodayEl = document.getElementById('validations-today');
@@ -2208,10 +2039,6 @@
             const clearMuralBtn = document.getElementById('clear-mural');
             const muralLastUpdate = document.getElementById('mural-last-update');
             const muralAutoSave = document.getElementById('mural-auto-save');
-            const toggleAuthorsBtn = document.getElementById('toggle-authors');
-            const addAuthorTagBtn = document.getElementById('add-author-tag');
-            const activeUsersCount = document.getElementById('active-users-count');
-            const activeUsersList = document.getElementById('active-users-list');
 
             // Usuário logado
             analistaDisplay.value = currentUser;
@@ -2274,9 +2101,6 @@
             let muralUnsubscribe = null;
             let muralSaveTimeout = null;
             let muralAutoSaveInitialized = false;
-            let collaborationUsers = {};
-            let showAuthors = false;
-            let collaborationUnsubscribe = null;
 
             setupLogout();
             document.getElementById('app-container').style.display = 'flex';
@@ -2366,116 +2190,6 @@
                 });
 
                 return tempDiv.innerHTML;
-            }
-
-            // 🔧 **NOVA FUNÇÃO PARA RENUMERAR ITENS**
-            function renumberListItems() {
-                const content = backlogText.innerHTML;
-                const lines = content.split('\n');
-                let itemCounter = 1;
-                let inListItem = false;
-                let hasRenumbered = false;
-                
-                const renumberedLines = lines.map(line => {
-                    // Verifica se a linha começa com um número seguido de ponto
-                    const match = line.match(/^(\s*)(\d+)\.\s*(.*)/);
-                    
-                    if (match) {
-                        hasRenumbered = true;
-                        const [, spaces, , rest] = match;
-                        return `${spaces}${itemCounter++}. ${rest}`;
-                    }
-                    
-                    // Verifica se é uma linha separadora ou vazia
-                    if (line.trim() === '' || line.includes('────') || line.includes('────────────────────')) {
-                        return line;
-                    }
-                    
-                    // Verifica se é o início de um novo item (começa com texto após separador)
-                    if (line.trim() && !line.match(/^[A-Za-z]/)) {
-                        return line;
-                    }
-                    
-                    return line;
-                });
-                
-                if (hasRenumbered) {
-                    backlogText.innerHTML = renumberedLines.join('\n');
-                    showToast('Itens renumerados com sucesso!', 'success');
-                } else {
-                    showToast('Nenhum item numerado encontrado para renumerar.', 'warning');
-                }
-            }
-
-            // 🔧 **NOVA FUNÇÃO PARA DETECTAR DUPLICATAS**
-            function findDuplicateItems() {
-                const content = backlogText.innerHTML;
-                
-                // Remove botões de remoção anteriores
-                content.querySelectorAll('.remove-duplicate-btn').forEach(btn => btn.remove());
-                content.querySelectorAll('.duplicate-item').forEach(item => {
-                    item.classList.remove('duplicate-item');
-                });
-                
-                const lines = content.split('\n');
-                const items = [];
-                const duplicates = [];
-                
-                // Extrai o conteúdo principal de cada item (ignorando números e espaços)
-                lines.forEach((line, index) => {
-                    const match = line.match(/^\s*\d+\.\s*(.*)/);
-                    if (match) {
-                        const content = match[1].trim();
-                        const incMatch = content.match(/INC\d+/);
-                        const incNumber = incMatch ? incMatch[0] : '';
-                        
-                        // Cria uma chave única baseada no conteúdo (sem o número do item)
-                        const key = content.toLowerCase().replace(/\s+/g, ' ');
-                        
-                        if (items.find(item => item.key === key && item.inc === incNumber)) {
-                            duplicates.push({ index, line, content });
-                        } else {
-                            items.push({ index, line, content, key, inc: incNumber });
-                        }
-                    }
-                });
-                
-                // Marca os itens duplicados
-                if (duplicates.length > 0) {
-                    let newContent = lines.map((line, index) => {
-                        const isDuplicate = duplicates.find(dup => dup.index === index);
-                        if (isDuplicate) {
-                            // Adiciona classe de duplicata e botão de remoção
-                            const lineWithButton = `<div class="duplicate-item">${line}<button class="remove-duplicate-btn" data-index="${index}" title="Remover item duplicado"><i class="fas fa-times"></i></button></div>`;
-                            return lineWithButton;
-                        }
-                        return line;
-                    }).join('\n');
-                    
-                    backlogText.innerHTML = newContent;
-                    
-                    // Adiciona event listeners aos botões de remoção
-                    backlogText.querySelectorAll('.remove-duplicate-btn').forEach(btn => {
-                        btn.addEventListener('click', function() {
-                            const index = parseInt(this.getAttribute('data-index'));
-                            removeDuplicateItem(index);
-                        });
-                    });
-                    
-                    showToast(`${duplicates.length} item(s) duplicado(s) encontrado(s).`, 'warning');
-                } else {
-                    showToast('Nenhum item duplicado encontrado.', 'success');
-                }
-            }
-
-            // 🔧 **NOVA FUNÇÃO PARA REMOVER ITEM DUPLICADO**
-            function removeDuplicateItem(index) {
-                const lines = backlogText.innerHTML.split('\n');
-                if (index >= 0 && index < lines.length) {
-                    lines.splice(index, 1);
-                    backlogText.innerHTML = lines.join('\n');
-                    showToast('Item duplicado removido.', 'success');
-                }
             }
 
             function showToast(message, type = 'success', duration = 3000) {
@@ -2585,16 +2299,6 @@
                     }
                 });
             });
-
-            // 🔧 **ADICIONAR EVENT LISTENER PARA O BOTÃO DE RENUMERAÇÃO**
-            if (renumberBtn) {
-                renumberBtn.addEventListener('click', renumberListItems);
-            }
-
-            // 🔧 **ADICIONAR EVENT LISTENER PARA O BOTÃO DE DETECTAR DUPLICATAS**
-            if (findDuplicatesBtn) {
-                findDuplicatesBtn.addEventListener('click', findDuplicateItems);
-            }
 
             const textColorPicker = document.getElementById('text-color');
             const bgColorPicker = document.getElementById('bg-color');
@@ -2726,6 +2430,7 @@
             // 🔧 **FUNÇÃO ATUALIZADA PARA CARREGAR TODOS OS DADOS**
             async function loadFirebaseData() {
                 try {
+                    // Carrega todos os documentos da coleção backlog
                     const snapshot = await db.collection('backlog').get();
                     let allRegistros = [];
                     
@@ -2847,6 +2552,7 @@
                     }
                 });
 
+                // Atualiza metadata global
                 await metadataRef.set({
                     sistema: "Backlog do NOC",
                     versao: "1.0",
@@ -2876,7 +2582,6 @@
                         updateDashboardStats();
                     } else if (section === 'mural') {
                         loadMuralContent();
-                        startCollaboration();
                     }
                 });
             });
@@ -3343,136 +3048,6 @@
                 }
             }
 
-            // 🔧 **SISTEMA DE COLABORAÇÃO DO MURAL**
-            function startCollaboration() {
-                // Registra usuário ativo
-                const userRef = db.collection('mural').doc('activeUsers').collection('users').doc(currentUser);
-                
-                // Atualiza presença do usuário
-                userRef.set({
-                    name: currentUser,
-                    color: getAnalystColor(currentUser),
-                    lastActive: firebase.firestore.FieldValue.serverTimestamp(),
-                    cursorPosition: null
-                }, { merge: true });
-                
-                // Escuta por outros usuários ativos
-                collaborationUnsubscribe = db.collection('mural').doc('activeUsers').collection('users')
-                    .onSnapshot((snapshot) => {
-                        collaborationUsers = {};
-                        const users = [];
-                        
-                        snapshot.forEach(doc => {
-                            const userData = doc.data();
-                            const lastActive = userData.lastActive?.toDate();
-                            const now = new Date();
-                            const diffMinutes = (now - lastActive) / (1000 * 60);
-                            
-                            // Remove usuários inativos por mais de 5 minutos
-                            if (diffMinutes < 5) {
-                                collaborationUsers[doc.id] = userData;
-                                users.push(userData.name);
-                            }
-                        });
-                        
-                        updateActiveUsersList(users);
-                    });
-                
-                // Atualiza cursor enquanto o usuário digita
-                let cursorUpdateInterval;
-                
-                muralContent.addEventListener('focus', () => {
-                    cursorUpdateInterval = setInterval(() => {
-                        const selection = window.getSelection();
-                        if (selection.rangeCount > 0) {
-                            const range = selection.getRangeAt(0);
-                            const rect = range.getBoundingClientRect();
-                            const editorRect = muralContent.getBoundingClientRect();
-                            
-                            if (rect.width > 0 || rect.height > 0) {
-                                userRef.update({
-                                    cursorPosition: {
-                                        x: rect.left - editorRect.left,
-                                        y: rect.top - editorRect.top,
-                                        height: rect.height
-                                    },
-                                    lastActive: firebase.firestore.FieldValue.serverTimestamp()
-                                });
-                            }
-                        }
-                    }, 1000);
-                });
-                
-                muralContent.addEventListener('blur', () => {
-                    clearInterval(cursorUpdateInterval);
-                    userRef.update({
-                        cursorPosition: null,
-                        lastActive: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                });
-                
-                // Limpa presença ao sair
-                window.addEventListener('beforeunload', () => {
-                    userRef.delete();
-                    if (collaborationUnsubscribe) {
-                        collaborationUnsubscribe();
-                    }
-                });
-            }
-            
-            function updateActiveUsersList(users) {
-                const uniqueUsers = [...new Set(users)];
-                activeUsersCount.textContent = `${uniqueUsers.length} usuário(s) ativo(s)`;
-                
-                activeUsersList.innerHTML = '';
-                uniqueUsers.forEach(user => {
-                    if (user !== currentUser) {
-                        const userEl = document.createElement('div');
-                        userEl.className = 'active-user';
-                        userEl.innerHTML = `
-                            <span class="active-user-dot"></span>
-                            <span>${user}</span>
-                        `;
-                        activeUsersList.appendChild(userEl);
-                    }
-                });
-            }
-            
-            // 🔧 **FUNÇÃO PARA ADICIONAR TAG DE AUTOR**
-            function addAuthorTag() {
-                const selection = window.getSelection();
-                if (selection.rangeCount > 0) {
-                    const range = selection.getRangeAt(0);
-                    const authorTag = document.createElement('span');
-                    authorTag.className = 'author-tag';
-                    authorTag.textContent = `${currentUser}:`;
-                    range.insertNode(authorTag);
-                    
-                    // Move cursor após a tag
-                    const newRange = document.createRange();
-                    newRange.setStartAfter(authorTag);
-                    newRange.collapse(true);
-                    selection.removeAllRanges();
-                    selection.addRange(newRange);
-                }
-            }
-            
-            // 🔧 **FUNÇÃO PARA MOSTRAR/OCULTAR AUTORES**
-            function toggleAuthorsVisibility() {
-                showAuthors = !showAuthors;
-                const tags = muralContent.querySelectorAll('.author-tag');
-                
-                if (showAuthors) {
-                    tags.forEach(tag => tag.style.display = 'inline-block');
-                    toggleAuthorsBtn.innerHTML = '<i class="fas fa-user-slash"></i> Ocultar Autores';
-                    showToast('Tags de autores visíveis', 'success');
-                } else {
-                    tags.forEach(tag => tag.style.display = 'none');
-                    toggleAuthorsBtn.innerHTML = '<i class="fas fa-user-tag"></i> Mostrar Autores';
-                    showToast('Tags de autores ocultas', 'success');
-                }
-            }
-
             async function loadMuralContent() {
                 try {
                     const muralDoc = await db.collection('mural').doc('daily').get();
@@ -3569,15 +3144,6 @@
                     }
                 }
             });
-            
-            // 🔧 **ADICIONAR EVENT LISTENERS PARA AS NOVAS FUNCIONALIDADES DO MURAL**
-            if (addAuthorTagBtn) {
-                addAuthorTagBtn.addEventListener('click', addAuthorTag);
-            }
-            
-            if (toggleAuthorsBtn) {
-                toggleAuthorsBtn.addEventListener('click', toggleAuthorsVisibility);
-            }
 
             function setupMuralAutoClear() {
                 const now = new Date();
@@ -3635,3 +3201,8 @@
 </body>
 
 </html>
+
+
+
+
+me traga essas correções completas no ponto de copiar e testar
