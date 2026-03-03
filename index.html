@@ -1739,7 +1739,7 @@
         <div class="login-container">
             <div class="login-header">
                 <div class="login-logo">
-                    <i class="fas fa-tasks logo-icon"></i>
+                    <i class="fa fa-file" aria-hidden="true"></i>
                     <span>Backlog NOC</span>
                 </div>
                 <h2 class="login-title">Acesso ao Sistema</h2>
@@ -1790,7 +1790,7 @@
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
-                    <i class="fas fa-tasks logo-icon"></i>
+                    <i class="fa fa-file" aria-hidden="true"></i>
                     <span>Backlog NOC</span>
                 </div>
             </div>
@@ -1857,9 +1857,7 @@
                         <div class="card-header">
                             <h3 class="card-title">Registro de Backlog Diário</h3>
                             <div class="card-tools">
-                                <button class="btn btn-outline">
-                                    <i class="fas fa-history"></i> Histórico
-                                </button>
+                               
                             </div>
                         </div>
 
@@ -1941,7 +1939,7 @@
                     <div class="analyst-stats-container">
                         <div class="card">
                             <div class="card-header">
-                                <h3 class="card-title">Calendário de Validações</h3>
+                                <h3 class="card-title">Calendário dos Analistas</h3>
                             </div>
                             <div class="card-body">
                                 <div id="calendar"></div>
@@ -2005,7 +2003,7 @@
                     <div class="mural-container">
                         <div class="mural-info mural-warning">
                             <i class="fas fa-exclamation-triangle"></i>
-                            <strong>Atenção:</strong> O mural é como um chat em grupo. Você pode copiar qualquer mensagem, editar e excluir apenas as suas. INCxxxxx vira botão clicável (duplo clique abre ServiceNow).
+                            <strong>Atenção:</strong> O mural é como um chat em grupo. Você pode copiar qualquer mensagem, editar e excluir apenas as suas.
                         </div>
 
                         <div class="mural-cyan">
@@ -2034,1555 +2032,1422 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/pt-br.js"></script>
-    <script>
-        // Usuários
-        const USERS = {
-            'DELANO': 'noc@2025',
-            'HERBETH': 'noc@2025',
-            'WELLIGTON': 'noc@2025',
-            'EDMUNDO': 'noc@2025',
-            'SIDNEY': 'noc@2025adm',
-            'MARCIO': 'noc@2025',
-            'HELIELTON': 'noc@2025',
-            'ROBSON': 'noc@2025',
-            'WYLLAME': 'noc@2025',
-            'DARLYSON': 'noc@2025',
-            'MURILO': 'noc@2025',
-            'ONOFRE': 'noc@2025',
-            'LYNNA': 'noc@2025'
-        };
 
-        // Splash
-        document.addEventListener('DOMContentLoaded', function () {
+   <script>
+    // Usuários
+    const USERS = {
+        'DELANO': 'noc@2025',
+        'HERBETH': 'noc@2025',
+        'WELLIGTON': 'noc@2025',
+        'EDMUNDO': 'noc@2025',
+        'SIDNEY': 'noc@2025adm',
+        'MARCIO': 'noc@2025',
+        'HELIELTON': 'noc@2025',
+        'ROBSON': 'noc@2025',
+        'WYLLAME': 'noc@2025',
+        'DARLYSON': 'noc@2025',
+        'MURILO': 'noc@2025',
+        'ONOFRE': 'noc@2025',
+        'LYNNA': 'noc@2025'
+    };
+
+    // Splash
+    document.addEventListener('DOMContentLoaded', function () {
+        setTimeout(function () {
+            const splash = document.getElementById('splash-screen');
+            splash.style.opacity = '0';
+
             setTimeout(function () {
-                const splash = document.getElementById('splash-screen');
-                splash.style.opacity = '0';
-
-                setTimeout(function () {
-                    splash.style.display = 'none';
-                    checkAuthentication();
-                }, 200);
-            }, 3000);
-        });
-
-        // Verifica login
-        function checkAuthentication() {
-            let currentUser = sessionStorage.getItem('currentUser');
-
-            if (!currentUser) {
-                currentUser = localStorage.getItem('currentUser');
-                if (currentUser) {
-                    sessionStorage.setItem('currentUser', currentUser);
-                }
-            }
-
-            if (currentUser) {
-                document.getElementById('login-screen').style.display = 'none';
-                initApplication(currentUser);
-            } else {
-                document.getElementById('login-screen').style.display = 'flex';
-            }
-        }
-
-        // Login
-        document.getElementById('login-form').addEventListener('submit', function (e) {
-            e.preventDefault();
-
-            const analista = document.getElementById('login-analista').value;
-            const password = document.getElementById('login-password').value;
-            const loginError = document.getElementById('login-error');
-            const loginBtn = document.getElementById('login-btn');
-
-            if (USERS[analista] && password === USERS[analista]) {
-                loginBtn.disabled = true;
-                loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
-
-                setTimeout(function () {
-                    sessionStorage.setItem('currentUser', analista);
-                    localStorage.setItem('currentUser', analista);
-
-                    document.getElementById('login-screen').style.display = 'none';
-                    initApplication(analista);
-                }, 1000);
-            } else {
-                loginError.classList.add('show');
-                document.getElementById('error-message').textContent = 'Analista ou senha incorretos';
-
-                setTimeout(function () {
-                    loginError.classList.remove('show');
-                }, 3000);
-            }
-        });
-
-        function setupLogout() {
-            document.getElementById('logout-btn').addEventListener('click', function () {
-                if (confirm('Tem certeza que deseja sair do sistema?')) {
-                    sessionStorage.removeItem('currentUser');
-                    localStorage.removeItem('currentUser');
-                    location.reload();
-                }
-            });
-        }
-
-        function initApplication(currentUser) {
-            // Firebase
-            const firebaseConfig = {
-                apiKey: "AIzaSyBWBGcnOlv2Gu_0hN17qIGW6RKL3uITbzY",
-                authDomain: "bancodedados-snzb.firebaseapp.com",
-                projectId: "bancodedados-snzb",
-                storageBucket: "bancodedados-snzb.appspot.com",
-                messagingSenderId: "573270416863",
-                appId: "1:573270416863:web:81455e206b4d252d29b86a"
-            };
-
-            const app = firebase.initializeApp(firebaseConfig);
-            const db = firebase.firestore();
-
-            // JSONBin (leitura)
-            const BIN_ID = '685632118960c979a5ae30ac';
-            const MASTER_KEY = '$2a$10$YMdKhRE5rs2j/addb0u2beEv8Buf0LgOpYvT5YQhwzDZqIfxBOsWK';
-            const ACCESS_KEY = '$2a$10$SpeE5.rHPveOV83qARbVqOkmjogz4ZOF6pahjv8ju7cEPDnPdt4rq';
-            const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
-
-            // Regras de edição
-            const BACKLOG_EDIT_WINDOW_MS = 60 * 60 * 1000; // 1 hora
-            const MAX_BACKLOG_SAVES = 5; // 1 criação + 4 sobrescritas
-
-            // Elementos
-            const sidebar = document.getElementById('sidebar');
-            const sidebarOverlay = document.getElementById('sidebar-overlay');
-            const menuToggle = document.getElementById('menu-toggle');
-            const navItems = document.querySelectorAll('.nav-item');
-            const sectionContents = document.querySelectorAll('.section-content');
-            const dataBacklog = document.getElementById('data-backlog');
-            const analistaDisplay = document.getElementById('analista-display');
-            const backlogText = document.getElementById('backlog-text');
-            const backlogForm = document.getElementById('backlog-form');
-            const clearFormBtn = document.getElementById('clear-form');
-            const saveButton = document.getElementById('save-backlog');
-            const toast = document.getElementById('toast');
-            const fullscreenToggle = document.getElementById('fullscreen-toggle');
-            const pageTitle = document.querySelector('.page-title');
-            const monthSelect = document.getElementById('month-select');
-
-            // Dashboard
-            const validationsTodayEl = document.getElementById('validations-today');
-            const todayChangeEl = document.getElementById('today-change');
-            const validationsMonthEl = document.getElementById('validations-month');
-            const monthChangeEl = document.getElementById('month-change');
-            const topAnalystEl = document.getElementById('top-analyst');
-            const topAnalystCountEl = document.getElementById('top-analyst-count');
-            const topAnalystsEl = document.getElementById('top-analysts');
-            const bottomAnalystsEl = document.getElementById('bottom-analysts');
-            const analystChartEl = document.getElementById('analystChart');
-
-            // Mural - NOVOS ELEMENTOS
-            const chatMessages = document.getElementById('chat-messages');
-            const chatInput = document.getElementById('chat-input');
-            const chatSend = document.getElementById('chat-send');
-
-            // Referências Firestore para o mural
-            const muralMessagesRef = db.collection('mural_messages');
-            const muralMetadataRef = db.collection('mural_metadata').doc('daily');
-
-            // Usuário logado
-            analistaDisplay.value = currentUser;
-            document.getElementById('user-name').textContent = currentUser;
-            document.getElementById('user-avatar').textContent = currentUser.charAt(0);
-
-            function getFortalezaDateString() {
-                return new Date().toLocaleDateString('pt-BR', {
-                    timeZone: 'America/Fortaleza'
-                }).split('/').reverse().join('-');
-            }
-
-            function getFortalezaTimestamp() {
-                const now = new Date();
-                const timeString = now.toLocaleString('pt-BR', {
-                    timeZone: 'America/Fortaleza',
-                    hour12: false
-                });
-                const [datePart, timePart] = timeString.split(', ');
-                const [day, month, year] = datePart.split('/');
-                const [hours, minutes, seconds] = timePart.split(':');
-                const ms = now.getMilliseconds().toString().padStart(3, '0');
-                return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${ms}-03:00`;
-            }
-
-            // Função para ID do documento por mês
-            function getBacklogDocId(data) {
-                const [ano, mes] = data.split('-');
-                const meses = {
-                    '01': 'janeiro', '02': 'fevereiro', '03': 'março', '04': 'abril',
-                    '05': 'maio', '06': 'junho', '07': 'julho', '08': 'agosto',
-                    '09': 'setembro', '10': 'outubro', '11': 'novembro', '12': 'dezembro'
-                };
-                const nomeMes = meses[mes];
-                const anoCurto = ano.slice(2);
-                return `${nomeMes}${anoCurto}`;
-            }
-
-            dataBacklog.value = getFortalezaDateString();
-
-            const validationError = document.createElement('div');
-            validationError.className = 'validation-error';
-            validationError.innerHTML = '<i class="fas fa-exclamation-circle"></i><span id="validation-message"></span>';
-            backlogForm.insertBefore(validationError, backlogForm.querySelector('.action-buttons'));
-
-            let backlogData = {
-                meta: {
-                    sistema: "Backlog do NOC",
-                    versao: "1.0",
-                    ultima_atualizacao: null,
-                    criado_em: new Date().toISOString()
-                },
-                registros: []
-            };
-            let firebaseRecords = [];
-            let analystChart = null;
-            let muralUnsubscribe = null;
-
-            setupLogout();
-            document.getElementById('app-container').style.display = 'flex';
-
-            function showValidationError(message) {
-                validationError.classList.add('show');
-                document.getElementById('validation-message').textContent = message;
-                setTimeout(() => {
-                    validationError.classList.remove('show');
-                }, 5000);
-            }
-
-            function cleanBacklogText(text) {
-                if (!text) return '';
-                return text
-                    .replace(/<br\s*\/?>/gi, '\n')
-                    .replace(/<div>/gi, '')
-                    .replace(/<\/div>/gi, '\n')
-                    .replace(/<[^>]*>/g, '')
-                    .replace(/&nbsp;/g, ' ')
-                    .replace(/&lt;/g, '<')
-                    .replace(/&gt;/g, '>')
-                    .replace(/&amp;/g, '&')
-                    .replace(/\*\*/g, '')
-                    .replace(/\*{2,}/g, '')
-                    .replace(/^\*|\*$/gm, '')
-                    .replace(/\n\s*\n/g, '\n\n')
-                    .replace(/^\s+|\s+$/g, '')
-                    .trim();
-            }
-
-            function formatIncLinks(text) {
-                const incRegex = /(^|\s)(INC\d{5,})(?=\s|$)/gi;
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = text;
-
-                const walker = document.createTreeWalker(
-                    tempDiv,
-                    NodeFilter.SHOW_TEXT,
-                    {
-                        acceptNode: function (node) {
-                            if (node.parentNode.classList && node.parentNode.classList.contains('inc-link')) {
-                                return NodeFilter.FILTER_REJECT;
-                            }
-                            return NodeFilter.FILTER_ACCEPT;
-                        }
-                    }
-                );
-
-                const textNodes = [];
-                let currentNode;
-                while (currentNode = walker.nextNode()) {
-                    textNodes.push(currentNode);
-                }
-
-                textNodes.forEach(node => {
-                    const parent = node.parentNode;
-                    const originalText = node.nodeValue;
-                    const fragment = document.createDocumentFragment();
-                    let lastIndex = 0;
-                    let match;
-
-                    while ((match = incRegex.exec(originalText)) !== null) {
-                        if (match.index > lastIndex) {
-                            fragment.appendChild(document.createTextNode(originalText.substring(lastIndex, match.index)));
-                        }
-
-                        const numeroINC = match[2];
-                        const serviceNowUrl = `https://equatorialenergia.service-now.com/incident.do?sysparm_query=number=${numeroINC}`;
-
-                        const incLink = document.createElement('span');
-                        incLink.className = 'inc-link';
-                        incLink.setAttribute('data-url', serviceNowUrl);
-                        incLink.textContent = numeroINC;
-
-                        fragment.appendChild(incLink);
-                        lastIndex = match.index + match[0].length;
-                    }
-
-                    if (lastIndex < originalText.length) {
-                        fragment.appendChild(document.createTextNode(originalText.substring(lastIndex)));
-                    }
-
-                    if (fragment.childNodes.length > 0) {
-                        parent.replaceChild(fragment, node);
-                    }
-                });
-
-                return tempDiv.innerHTML;
-            }
-
-            function showToast(message, type = 'success', duration = 3000) {
-                const toastEl = document.getElementById('toast');
-                const toastMsg = document.getElementById('toast-message');
-                const toastIcon = document.getElementById('toast-icon');
-                
-                toastMsg.textContent = message;
-                toastEl.className = `toast ${type}`;
-                
-                const icon = type === 'success' ? 'fa-circle-check' 
-                           : type === 'error' ? 'fa-triangle-exclamation' 
-                           : 'fa-circle-info';
-                toastIcon.innerHTML = `<i class="fa-solid ${icon}"></i>`;
-                
-                toastEl.classList.add('show');
-                setTimeout(() => {
-                    toastEl.classList.remove('show');
-                }, duration);
-            }
-
-            menuToggle.addEventListener('click', () => {
-                sidebar.classList.toggle('active');
-                sidebarOverlay.classList.toggle('active');
-            });
-
-            sidebarOverlay.addEventListener('click', () => {
-                sidebar.classList.remove('active');
-                sidebarOverlay.classList.remove('active');
-            });
-
-            fullscreenToggle.addEventListener('click', () => {
-                if (!document.fullscreenElement) {
-                    document.documentElement.requestFullscreen().catch(err => {
-                        showToast(`Erro ao entrar em tela cheia: ${err.message}`, 'error');
-                    });
-                    fullscreenToggle.innerHTML = '<i class="fas fa-compress"></i>';
-                } else if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                    fullscreenToggle.innerHTML = '<i class="fas fa-expand"></i>';
-                }
-            });
-
-            function execCommandOnEditor(editorElement, command, value = null) {
-                if (!editorElement) return;
-                editorElement.focus();
-                document.execCommand(command, false, value);
-            }
-
-            backlogText.addEventListener('keydown', function (e) {
-                if (e.ctrlKey && e.key === 'b') {
-                    e.preventDefault();
-                    execCommandOnEditor(backlogText, 'bold');
-                } else if (e.ctrlKey && e.key === 'i') {
-                    e.preventDefault();
-                    execCommandOnEditor(backlogText, 'italic');
-                } else if (e.ctrlKey && e.key === 'u') {
-                    e.preventDefault();
-                    execCommandOnEditor(backlogText, 'underline');
-                } else if (e.ctrlKey && e.key === 'z') {
-                    e.preventDefault();
-                    execCommandOnEditor(backlogText, 'undo');
-                } else if (e.ctrlKey && e.key === 'y') {
-                    e.preventDefault();
-                    execCommandOnEditor(backlogText, 'redo');
-                } else if (e.ctrlKey && e.key === 's') {
-                    e.preventDefault();
-                    document.getElementById('save-backlog').click();
-                }
-            });
-
-            backlogText.addEventListener('keydown', function (e) {
-                const selection = window.getSelection();
-                if (!selection.rangeCount) return;
-
-                const range = selection.getRangeAt(0);
-                const node = range.startContainer;
-                const incLink = node.parentNode.closest('.inc-link');
-                if (!incLink) return;
-
-                if (['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', 'End', 'Home', 'Escape'].includes(e.key)) {
-                    e.preventDefault();
-                    let newRange = document.createRange();
-                    let spaceNode;
-
-                    if (e.key === 'ArrowRight' || e.key === 'End') {
-                        spaceNode = document.createTextNode('   ');
-                        incLink.parentNode.insertBefore(spaceNode, incLink.nextSibling);
-                        newRange.setStartAfter(spaceNode);
-                    } else if (e.key === 'ArrowLeft' || e.key === 'Home') {
-                        newRange.setStartBefore(incLink);
-                    } else if (e.key === 'Escape') {
-                        spaceNode = document.createTextNode('   ');
-                        incLink.parentNode.insertBefore(spaceNode, incLink.nextSibling);
-                        newRange.setStartAfter(spaceNode);
-                    }
-
-                    newRange.collapse(true);
-                    selection.removeAllRanges();
-                    selection.addRange(newRange);
-                }
-            });
-
-            document.querySelectorAll('.toolbar-btn').forEach(button => {
-                button.addEventListener('click', function () {
-                    const command = this.dataset.command;
-                    const value = this.dataset.value;
-                    const editorContainer = this.closest('.editor-container');
-                    const editorContent = editorContainer
-                        ? editorContainer.querySelector('.editor-content')
-                        : backlogText;
-
-                    if (command === 'hiliteColor') {
-                        execCommandOnEditor(editorContent, 'hiliteColor', value || 'yellow');
-                    } else {
-                        execCommandOnEditor(editorContent, command);
-                    }
-                });
-            });
-
-            const textColorPicker = document.getElementById('text-color');
-            const bgColorPicker = document.getElementById('bg-color');
-
-            textColorPicker.addEventListener('change', function () {
-                execCommandOnEditor(backlogText, 'foreColor', this.value);
-            });
-
-            bgColorPicker.addEventListener('change', function () {
-                execCommandOnEditor(backlogText, 'hiliteColor', this.value);
-            });
-
-            backlogText.addEventListener('input', () => {
-                setTimeout(() => {
-                    const selection = window.getSelection();
-                    const range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
-                    let cursorOffset = 0;
-
-                    if (range) {
-                        const preRange = range.cloneRange();
-                        preRange.selectNodeContents(backlogText);
-                        preRange.setEnd(range.startContainer, range.startOffset);
-                        cursorOffset = preRange.toString().length;
-                    }
-
-                    const currentHtml = backlogText.innerHTML;
-                    const formattedHtml = formatIncLinks(currentHtml);
-
-                    if (formattedHtml !== currentHtml) {
-                        backlogText.innerHTML = formattedHtml;
-
-                        if (range) {
-                            const newRange = document.createRange();
-                            let charCount = 0;
-                            let foundNode = null;
-                            let foundOffset = 0;
-
-                            const walker = document.createTreeWalker(
-                                backlogText,
-                                NodeFilter.SHOW_TEXT,
-                                null,
-                                false
-                            );
-
-                            let node;
-                            while (node = walker.nextNode()) {
-                                const length = node.nodeValue.length;
-                                if (charCount + length >= cursorOffset) {
-                                    foundNode = node;
-                                    foundOffset = cursorOffset - charCount;
-                                    break;
-                                }
-                                charCount += length;
-                            }
-
-                            if (foundNode) {
-                                newRange.setStart(foundNode, foundOffset);
-                                newRange.collapse(true);
-                                selection.removeAllRanges();
-                                selection.addRange(newRange);
-                            }
-                        }
-                    }
-                }, 0);
-            });
-
-            backlogText.addEventListener('dblclick', function (e) {
-                const incLink = e.target.closest('.inc-link');
-                if (incLink) {
-                    e.preventDefault();
-                    const url = incLink.getAttribute('data-url');
-                    window.open(url, '_blank');
-                }
-            });
-
-            async function loadJsonBinData() {
-                try {
-                    showToast('Carregando dados do JSONBin...', 'info');
-                    const response = await fetch(API_URL, {
-                        headers: {
-                            'X-Master-Key': MASTER_KEY,
-                            'X-Access-Key': ACCESS_KEY
-                        }
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`Erro HTTP: ${response.status}`);
-                    }
-
-                    const jsonData = await response.json();
-
-                    if (!jsonData.record || Object.keys(jsonData.record).length === 0) {
-                        return {
-                            meta: {
-                                sistema: "Backlog do NOC",
-                                versao: "1.0",
-                                ultima_atualizacao: null,
-                                criado_em: new Date().toISOString()
-                            },
-                            registros: []
-                        };
-                    }
-
-                    const recordsWithTag = jsonData.record.registros.map(record => ({
-                        ...record,
-                        texto: record.texto + ' <span class="jsonbin-tag">[snz-b]</span>',
-                        fonte: 'jsonbin'
-                    }));
-
-                    return {
-                        ...jsonData.record,
-                        registros: recordsWithTag
-                    };
-                } catch (error) {
-                    console.error('Erro ao carregar dados do JSONBin:', error);
-                    showToast('Erro ao carregar dados do JSONBin. Verifique o console.', 'error');
-                    return {
-                        meta: {
-                            sistema: "Backlog do NOC",
-                            versao: "1.0",
-                            ultima_atualizacao: null,
-                            criado_em: new Date().toISOString()
-                        },
-                        registros: []
-                    };
-                }
-            }
-
-            async function loadFirebaseData() {
-                try {
-                    const snapshot = await db.collection('backlog').get();
-                    let allRegistros = [];
-
-                    snapshot.forEach(doc => {
-                        if (doc.id !== 'metadata') {
-                            const registros = doc.data().registros || [];
-                            allRegistros = [...allRegistros, ...registros];
-                        }
-                    });
-
-                    return {
-                        meta: {
-                            sistema: "Backlog do NOC",
-                            versao: "1.0",
-                            ultima_atualizacao: new Date().toISOString(),
-                            criado_em: new Date().toISOString()
-                        },
-                        registros: allRegistros
-                    };
-                } catch (error) {
-                    console.error('Erro ao carregar dados do Firebase:', error);
-                    return {
-                        meta: {
-                            sistema: "Backlog do NOC",
-                            versao: "1.0",
-                            ultima_atualizacao: null,
-                            criado_em: new Date().toISOString()
-                        },
-                        registros: []
-                    };
-                }
-            }
-
-            async function saveBacklogRecord(analista, data, texto) {
-                const docId = getBacklogDocId(data);
-                const docRef = db.collection('backlog').doc(docId);
-                const metadataRef = db.collection('backlog').doc('metadata');
-
-                const now = new Date();
-                const nowTimestampString = getFortalezaTimestamp();
-                const nowFirestoreTs = firebase.firestore.Timestamp.now();
-
-                const operationType = await db.runTransaction(async (transaction) => {
-                    const doc = await transaction.get(docRef);
-                    let registros = [];
-                    if (doc.exists && doc.data().registros) {
-                        registros = [...doc.data().registros];
-                    }
-
-                    const idx = registros.findIndex(r => r.analista === analista && r.data === data);
-
-                    if (idx >= 0) {
-                        const existing = registros[idx];
-
-                        let createdAt;
-                        if (existing.createdAt && typeof existing.createdAt.toDate === 'function') {
-                            createdAt = existing.createdAt.toDate();
-                        } else if (existing.createdAt) {
-                            createdAt = new Date(existing.createdAt);
-                        } else if (existing.timestamp) {
-                            createdAt = new Date(existing.timestamp);
-                        } else {
-                            createdAt = now;
-                        }
-
-                        const saveCount = existing.saveCount ? Number(existing.saveCount) : 1;
-                        const elapsedMs = now.getTime() - createdAt.getTime();
-
-                        if (elapsedMs > BACKLOG_EDIT_WINDOW_MS) {
-                            throw new Error('BACKLOG_EDIT_TIME_EXCEEDED');
-                        }
-                        if (saveCount >= MAX_BACKLOG_SAVES) {
-                            throw new Error('BACKLOG_SAVE_LIMIT_REACHED');
-                        }
-
-                        registros[idx] = {
-                            ...existing,
-                            texto,
-                            timestamp: nowTimestampString,
-                            updatedAt: nowFirestoreTs,
-                            createdAt: existing.createdAt || nowFirestoreTs,
-                            saveCount: saveCount + 1
-                        };
-
-                        transaction.set(docRef, { registros }, { merge: true });
-                        return 'updated';
-                    } else {
-                        const analistasDiaSet = new Set(
-                            registros
-                                .filter(r => r.data === data)
-                                .map(r => r.analista)
-                        );
-
-                        if (!analistasDiaSet.has(analista) && analistasDiaSet.size >= 3) {
-                            throw new Error('BACKLOG_MAX_ANALYSTS_REACHED');
-                        }
-
-                        const nextId = registros.reduce((max, r) => {
-                            const idVal = typeof r.id === 'number' ? r.id : parseInt(r.id || 0, 10) || 0;
-                            return Math.max(max, idVal);
-                        }, 0) + 1;
-
-                        const newRecord = {
-                            id: nextId,
-                            analista,
-                            data,
-                            texto,
-                            timestamp: nowTimestampString,
-                            createdAt: nowFirestoreTs,
-                            updatedAt: nowFirestoreTs,
-                            saveCount: 1
-                        };
-
-                        registros.push(newRecord);
-                        transaction.set(docRef, { registros }, { merge: true });
-                        return 'created';
-                    }
-                });
-
-                await metadataRef.set({
-                    sistema: "Backlog do NOC",
-                    versao: "1.0",
-                    ultima_atualizacao: firebase.firestore.FieldValue.serverTimestamp(),
-                    criado_em: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
-
-                return operationType;
-            }
-
-            navItems.forEach(item => {
-                item.addEventListener('click', function (e) {
-                    e.preventDefault();
-
-                    navItems.forEach(nav => nav.classList.remove('active'));
-                    this.classList.add('active');
-
-                    const section = this.getAttribute('data-section');
-                    sectionContents.forEach(content => content.style.display = 'none');
-                    document.getElementById(`${section}-section`).style.display = 'block';
-
-                    const sectionTitle = this.querySelector('span').textContent;
-                    pageTitle.textContent = sectionTitle;
-
-                    if (section === 'dashboard') {
-                        initCalendar();
-                        updateDashboardStats();
-                    } else if (section === 'mural') {
-                        initializeMural();
-                    }
-                });
-            });
-
-            clearFormBtn.addEventListener('click', function () {
-                if (backlogText.innerHTML.trim() !== '' &&
-                    !confirm('Tem certeza que deseja limpar o formulário? Todo o conteúdo não salvo será perdido.')) {
-                    return;
-                }
-                dataBacklog.value = getFortalezaDateString();
-                backlogText.innerHTML = '';
-                showToast('Formulário limpo com sucesso!');
-            });
-
-            backlogForm.addEventListener('submit', async function (e) {
-                e.preventDefault();
-
-                const analista = currentUser;
-                const data = dataBacklog.value;
-                let texto = backlogText.innerHTML.trim();
-
-                if (!analista || !data || !texto) {
-                    showToast('Por favor, preencha todos os campos obrigatórios!', 'error');
-                    return;
-                }
-
-                texto = cleanBacklogText(texto);
-
-                try {
-                    saveButton.disabled = true;
-                    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
-
-                    const op = await saveBacklogRecord(analista, data, texto);
-
-                    const firebaseData = await loadFirebaseData();
-                    firebaseRecords = firebaseData.registros.map(r => ({
-                        ...r,
-                        fonte: 'firebase'
-                    }));
-
-                    const msg = op === 'updated'
-                        ? 'Backlog atualizado com sucesso (dentro de 1 hora, limite de sobrescritas respeitado)!'
-                        : 'Backlog salvo com sucesso!';
-
-                    saveButton.innerHTML = '<i class="fas fa-check"></i> Salvo!';
-                    saveButton.style.backgroundColor = '#34a853';
-                    showToast(msg);
-
-                    setTimeout(() => {
-                        saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Backlog';
-                        saveButton.style.backgroundColor = '';
-                        saveButton.disabled = false;
-                    }, 2000);
-
-                    backlogText.innerHTML = '';
-
-                    if (document.getElementById('dashboard-section').style.display !== 'none') {
-                        initCalendar();
-                        updateDashboardStats();
-                    }
-                } catch (error) {
-                    console.error('Erro ao salvar:', error);
-
-                    if (error.message === 'BACKLOG_EDIT_TIME_EXCEEDED') {
-                        showValidationError('O backlog só pode ser alterado dentro de 1 hora após o primeiro registro.');
-                    } else if (error.message === 'BACKLOG_SAVE_LIMIT_REACHED') {
-                        showValidationError('Limite de 4 sobrescritas atingido para este backlog (analista + dia).');
-                    } else if (error.message === 'BACKLOG_MAX_ANALYSTS_REACHED') {
-                        showValidationError('Limite máximo de 3 analistas diferentes por dia atingido. Não é possível salvar mais backlogs nesta data.');
-                    } else {
-                        showToast('Erro ao salvar os dados. Verifique o console para detalhes.', 'error');
-                    }
-
-                    saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Backlog';
-                    saveButton.disabled = false;
-                }
-            });
-
-            function getAnalystColor(analista) {
-                const colors = {
-                    'DELANO': '#65a30d',
-                    'HERBETH': '#dc2626',
-                    'WELLIGTON': '#ea580c',
-                    'EDMUNDO': '#8b5cf6',
-                    'SIDNEY': '#14b8a6',
-                    'MARCIO': '#ec4899',
-                    'HELIELTON': '#3b82f6',
-                    'ROBSON': '#f59e0b',
-                    'WYLLAME': '#059669',
-                    'DARLYSON': '#d946ef',
-                    'MURILO': '#06b6d4',
-                    'ONOFRE': '#f97316',
-                    'LYNNA': '#be185d'
-                };
-                return colors[analista] || '#3b82f6';
-            }
-
-            function updateDashboardStats() {
-                const allRecords = [
-                    ...backlogData.registros,
-                    ...firebaseRecords
-                ];
-
-                const today = getFortalezaDateString();
-                const currentMonth = new Date().getMonth() + 1;
-                const currentYear = new Date().getFullYear();
-
-                const selectedMonth = monthSelect.value;
-                let filteredRecords = allRecords;
-
-                if (selectedMonth) {
-                    const [year, month] = selectedMonth.split('-');
-                    filteredRecords = allRecords.filter(record => {
-                        const recordDate = new Date(record.data);
-                        return recordDate.getFullYear() == year &&
-                            (recordDate.getMonth() + 1) == month;
-                    });
-                }
-
-                const todayValidations = filteredRecords.filter(r => r.data === today).length;
-                const yesterday = new Date(new Date(today).getTime() - 86400000).toISOString().split('T')[0];
-                const yesterdayValidations = filteredRecords.filter(r => r.data === yesterday).length;
-
-                validationsTodayEl.textContent = todayValidations;
-
-                let todayChange = 0;
-                if (yesterdayValidations > 0) {
-                    todayChange = Math.round(((todayValidations - yesterdayValidations) / yesterdayValidations) * 100);
-                } else if (todayValidations > 0) {
-                    todayChange = 100;
-                }
-
-                if (todayChange > 0) {
-                    todayChangeEl.innerHTML = `<i class="fas fa-caret-up"></i> ${todayChange}% em relação a ontem`;
-                    todayChangeEl.className = 'stat-change positive';
-                } else if (todayChange < 0) {
-                    todayChangeEl.innerHTML = `<i class="fas fa-caret-down"></i> ${Math.abs(todayChange)}% em relação a ontem`;
-                    todayChangeEl.className = 'stat-change negative';
-                } else {
-                    todayChangeEl.innerHTML = `<i class="fas fa-equals"></i> 0% em relação a ontem`;
-                    todayChangeEl.className = 'stat-change';
-                }
-
-                const currentMonthValidations = filteredRecords.filter(record => {
-                    const d = new Date(record.data);
-                    return d.getMonth() + 1 === currentMonth &&
-                        d.getFullYear() === currentYear;
-                }).length;
-
-                const lastMonth = currentMonth === 1 ? 12 : currentMonth - 1;
-                const lastMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
-                const lastMonthValidations = filteredRecords.filter(record => {
-                    const d = new Date(record.data);
-                    return d.getMonth() + 1 === lastMonth &&
-                        d.getFullYear() === lastMonthYear;
-                }).length;
-
-                validationsMonthEl.textContent = currentMonthValidations;
-
-                let monthChange = 0;
-                if (lastMonthValidations > 0) {
-                    monthChange = Math.round(((currentMonthValidations - lastMonthValidations) / lastMonthValidations) * 100);
-                } else if (currentMonthValidations > 0) {
-                    monthChange = 100;
-                }
-
-                if (monthChange > 0) {
-                    monthChangeEl.innerHTML = `<i class="fas fa-caret-up"></i> ${monthChange}% em relação ao mês passado`;
-                    monthChangeEl.className = 'stat-change positive';
-                } else if (monthChange < 0) {
-                    monthChangeEl.innerHTML = `<i class="fas fa-caret-down"></i> ${Math.abs(monthChange)}% em relação ao mês passado`;
-                    monthChangeEl.className = 'stat-change negative';
-                } else {
-                    monthChangeEl.innerHTML = `<i class="fas fa-equals"></i> 0% em relação ao mês passado`;
-                    monthChangeEl.className = 'stat-change';
-                }
-
-                const analystCounts = {};
-                filteredRecords.forEach(record => {
-                    if (!analystCounts[record.analista]) {
-                        analystCounts[record.analista] = 0;
-                    }
-                    analystCounts[record.analista]++;
-                });
-
-                const sortedAnalysts = Object.entries(analystCounts).sort((a, b) => b[1] - a[1]);
-
-                if (sortedAnalysts.length > 0) {
-                    topAnalystEl.textContent = sortedAnalysts[0][0];
-                    topAnalystCountEl.textContent = `${sortedAnalysts[0][1]} validações`;
-                } else {
-                    topAnalystEl.textContent = 'N/A';
-                    topAnalystCountEl.textContent = '0 validações';
-                }
-
-                topAnalystsEl.innerHTML = '';
-                sortedAnalysts.slice(0, 3).forEach((analyst, index) => {
-                    const medalClass = index === 0 ? 'gold' : index === 1 ? 'silver' : 'bronze';
-
-                    const analystElDiv = document.createElement('div');
-                    analystElDiv.className = 'analyst-item';
-                    analystElDiv.innerHTML = `
-                        <div>
-                            <span class="medal ${medalClass}"><i class="fas fa-medal"></i></span>
-                            <span class="analyst-name">${analyst[0]}</span>
-                        </div>
-                        <span class="analyst-count">${analyst[1]} validações</span>
-                    `;
-                    topAnalystsEl.appendChild(analystElDiv);
-                });
-
-                bottomAnalystsEl.innerHTML = '';
-                if (sortedAnalysts.length > 3) {
-                    sortedAnalysts.slice(-3).reverse().forEach(analyst => {
-                        const el = document.createElement('div');
-                        el.className = 'analyst-item';
-                        el.innerHTML = `
-                            <span class="analyst-name">${analyst[0]}</span>
-                            <span class="analyst-count">${analyst[1]} validação${analyst[1] !== 1 ? 's' : ''}</span>
-                        `;
-                        bottomAnalystsEl.appendChild(el);
-                    });
-                } else if (sortedAnalysts.length > 0) {
-                    bottomAnalystsEl.innerHTML = '<p>Todos os analistas estão no ranking!</p>';
-                } else {
-                    bottomAnalystsEl.innerHTML = '<p>Nenhum dado disponível</p>';
-                }
-
-                updateAnalystChart(sortedAnalysts);
-            }
-
-            function updateAnalystChart(sortedAnalysts) {
-                const labels = sortedAnalysts.map(item => item[0]);
-                const data = sortedAnalysts.map(item => item[1]);
-                const backgroundColors = sortedAnalysts.map(item => getAnalystColor(item[0]));
-
-                if (analystChart) {
-                    analystChart.data.labels = labels;
-                    analystChart.data.datasets[0].data = data;
-                    analystChart.data.datasets[0].backgroundColor = backgroundColors;
-                    analystChart.update();
-                } else {
-                    const ctx = analystChartEl.getContext('2d');
-                    analystChart = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels,
-                            datasets: [{
-                                label: 'Validações por Analista',
-                                data,
-                                backgroundColor: backgroundColors,
-                                borderColor: 'rgba(255, 255, 255, 0.1)',
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: { display: false },
-                                tooltip: {
-                                    backgroundColor: 'rgba(26, 32, 44, 0.9)',
-                                    titleColor: '#e2e8f0',
-                                    bodyColor: '#a0aec0',
-                                    borderColor: 'rgba(255, 255, 255, 0.1)',
-                                    borderWidth: 1,
-                                    padding: 12,
-                                    usePointStyle: true
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                                    ticks: { color: '#a0aec0' }
-                                },
-                                x: {
-                                    grid: { display: false },
-                                    ticks: { color: '#a0aec0' }
-                                }
-                            }
-                        }
-                    });
-                }
-            }
-
-            function populateMonthSelect() {
-                monthSelect.innerHTML = '<option value="">Todos os meses</option>';
-
-                const allRecords = [
-                    ...backlogData.registros,
-                    ...firebaseRecords
-                ];
-
-                if (allRecords.length === 0) return;
-
-                const months = new Set();
-                allRecords.forEach(record => {
-                    const d = new Date(record.data);
-                    const y = d.getFullYear();
-                    const m = d.getMonth() + 1;
-                    months.add(`${y}-${m.toString().padStart(2, '0')}`);
-                });
-
-                const sortedMonths = Array.from(months).sort((a, b) => new Date(b) - new Date(a));
-
-                sortedMonths.forEach(month => {
-                    const [year, monthNum] = month.split('-');
-                    const monthName = new Date(`${year}-${monthNum}-01`).toLocaleDateString('pt-BR', {
-                        month: 'long',
-                        year: 'numeric'
-                    });
-
-                    const option = document.createElement('option');
-                    option.value = month;
-                    option.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
-                    monthSelect.appendChild(option);
-                });
-
-                monthSelect.addEventListener('change', updateDashboardStats);
-            }
-
-            async function initCalendar() {
-                try {
-                    const calendarEl = document.getElementById('calendar');
-                    calendarEl.innerHTML = '';
-
-                    const allRecords = [
-                        ...backlogData.registros,
-                        ...firebaseRecords
-                    ];
-
-                    const events = allRecords.map(entry => ({
-                        title: entry.analista,
-                        start: entry.data,
-                        extendedProps: {
-                            texto: entry.texto,
-                            analista: entry.analista,
-                            fonte: entry.fonte
-                        },
-                        className: `event-${entry.analista.toLowerCase()} fc-event-analyst has-tooltip`
-                    }));
-
-                    const calendar = new FullCalendar.Calendar(calendarEl, {
-                        initialView: 'dayGridMonth',
-                        locale: 'pt-br',
-                        headerToolbar: {
-                            left: 'prev,next today',
-                            center: 'title',
-                            right: 'dayGridMonth,dayGridWeek,dayGridDay'
-                        },
-                        events,
-                        eventContent: function (arg) {
-                            const eventEl = document.createElement('div');
-                            eventEl.className = 'fc-event-content';
-                            eventEl.style.display = 'flex';
-                            eventEl.style.alignItems = 'center';
-                            eventEl.style.padding = '0.25rem 0.5rem';
-                            eventEl.style.gap = '0.5rem';
-
-                            const iconEl = document.createElement('i');
-                            iconEl.className = 'fas fa-user-check';
-                            iconEl.style.fontSize = '0.8em';
-
-                            const titleEl = document.createElement('span');
-                            titleEl.className = 'fc-event-title';
-                            titleEl.textContent = arg.event.title;
-
-                            const tooltipEl = document.createElement('div');
-                            tooltipEl.className = 'tooltip';
-                            tooltipEl.textContent = arg.event.extendedProps.fonte === 'jsonbin'
-                                ? 'Origem: JSONBin' : 'Origem: Firebase';
-
-                            eventEl.appendChild(iconEl);
-                            eventEl.appendChild(titleEl);
-                            eventEl.appendChild(tooltipEl);
-
-                            return { domNodes: [eventEl] };
-                        },
-                        eventClick: function (info) {
-                            const modal = document.createElement('div');
-                            modal.className = 'fc-event-modal';
-
-                            const modalContent = document.createElement('div');
-                            modalContent.className = 'fc-event-modal-content';
-
-                            const modalHeader = document.createElement('div');
-                            modalHeader.className = 'fc-event-modal-header';
-
-                            const modalTitle = document.createElement('h3');
-                            modalTitle.className = 'fc-event-modal-title';
-                            modalTitle.textContent = 'Detalhes da Validação';
-
-                            const closeButton = document.createElement('button');
-                            closeButton.className = 'fc-event-modal-close';
-                            closeButton.innerHTML = '<i class="fas fa-times"></i>';
-                            closeButton.addEventListener('click', () => {
-                                document.body.removeChild(modal);
-                            });
-
-                            modalHeader.appendChild(modalTitle);
-                            modalHeader.appendChild(closeButton);
-
-                            const modalBody = document.createElement('div');
-
-                            const dateEl = document.createElement('div');
-                            dateEl.style.marginBottom = '1.5rem';
-                            dateEl.style.fontSize = '0.95rem';
-                            dateEl.style.color = 'var(--gray)';
-                            dateEl.innerHTML = `<i class="far fa-calendar-alt" style="margin-right: 0.5rem;"></i> ${new Date(info.event.start).toLocaleDateString('pt-BR')}`;
-
-                            const sourceEl = document.createElement('div');
-                            sourceEl.style.marginBottom = '1rem';
-                            sourceEl.style.fontSize = '0.85rem';
-                            sourceEl.style.color = 'var(--gray)';
-                            sourceEl.innerHTML = `<i class="fas fa-database" style="margin-right: 0.5rem;"></i> ${info.event.extendedProps.fonte === 'jsonbin' ? 'JSONBin' : 'Firebase'}`;
-
-                            const analystItem = document.createElement('div');
-                            analystItem.className = 'fc-event-analyst-item';
-
-                            const analystName = document.createElement('div');
-                            analystName.className = 'fc-event-analyst-name';
-                            analystName.innerHTML = `<i class="fas fa-user-tie" style="color: ${getAnalystColor(info.event.extendedProps.analista)}"></i> ${info.event.extendedProps.analista}`;
-
-                            const analystContent = document.createElement('div');
-                            analystContent.className = 'fc-event-analyst-content';
-                            analystContent.innerHTML = (info.event.extendedProps.texto || '')
-                                .replace('<span class="jsonbin-tag">[snz-b]</span>', '');
-
-                            analystItem.appendChild(analystName);
-                            analystItem.appendChild(analystContent);
-
-                            modalBody.appendChild(dateEl);
-                            modalBody.appendChild(sourceEl);
-                            modalBody.appendChild(analystItem);
-
-                            modalContent.appendChild(modalHeader);
-                            modalContent.appendChild(modalBody);
-                            modal.appendChild(modalContent);
-                            document.body.appendChild(modal);
-                        },
-                        viewDidMount: function () {
-                            const header = document.querySelector('.fc-header-toolbar');
-                            if (header) {
-                                header.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                                header.style.backdropFilter = 'blur(10px)';
-                                header.style.borderRadius = '1rem 1rem 0 0';
-                                header.style.padding = '1.5rem';
-                                header.style.borderBottom = '1px solid var(--glass-border)';
-                            }
-
-                            const buttons = document.querySelectorAll('.fc-button');
-                            buttons.forEach(button => {
-                                button.style.backdropFilter = 'blur(5px)';
-                                button.style.border = '1px solid var(--glass-border)';
-                            });
-                        }
-                    });
-
-                    calendar.render();
-                } catch (error) {
-                    console.error('Erro ao inicializar calendário:', error);
-                    showToast('Erro ao carregar o calendário', 'error');
-                }
-            }
-
-            // ========== FUNÇÕES DO MURAL CYAN/TEAL ==========
-            
-            function formatTime(date) {
-                if (!date) return '';
-                return date.toLocaleTimeString('pt-BR', { 
-                    hour: '2-digit', 
-                    minute: '2-digit',
-                    timeZone: 'America/Fortaleza'
-                });
-            }
-
-            function escHTML(str) {
-                return String(str)
-                    .replaceAll("&", "&amp;")
-                    .replaceAll("<", "&lt;")
-                    .replaceAll(">", "&gt;")
-                    .replaceAll('"', "&quot;")
-                    .replaceAll("'", "&#039;");
-            }
-
-            function formatTextWithINCs(text) {
-                const safe = escHTML(text).replace(/\n/g, '<br>');
-                const incRegex = /(^|\s)(INC\d{5,})(?=\s|$)/gi;
-                return safe.replace(incRegex, (m, p1, incRaw) => {
-                    const sp = p1 || '';
-                    const inc = incRaw.toUpperCase();
-                    const url = `https://equatorialenergia.service-now.com/incident.do?sysparm_query=number=${inc}`;
-                    return `${sp}<span class="inc-pill" data-inc="${inc}" data-url="${url}"><i class="fa-solid fa-link"></i>${inc}</span>`;
-                });
-            }
-
-            async function copyPlain(html) {
-                const tmp = document.createElement('div');
-                tmp.innerHTML = html;
-                await navigator.clipboard.writeText(tmp.innerText);
-            }
-
-            function flash(element) {
-                if (!element) return;
-                element.classList.remove('flash');
-                void element.offsetWidth;
-                element.classList.add('flash');
-                setTimeout(() => element.classList.remove('flash'), 380);
-            }
-
-            // Auto-resize da textarea
-            if (chatInput) {
-                chatInput.addEventListener('input', function() {
-                    this.style.height = '0px';
-                    const h = Math.min(this.scrollHeight, 140);
-                    this.style.height = h + 'px';
-                });
-            }
-
-            // FUNÇÃO CORRIGIDA PARA LIMPAR MENSAGENS ANTIGAS
-            async function checkAndClearOldMessages() {
-                const today = getFortalezaDateString();
-                
-                try {
-                    const metadataDoc = await muralMetadataRef.get();
-                    let lastClearDate = metadataDoc.exists ? metadataDoc.data().lastClearDate : null;
-
-                    if (!lastClearDate || lastClearDate !== today) {
-                        console.log('Verificando mensagens antigas do mural...');
-                        
-                        const snapshot = await muralMessagesRef.get();
-                        
-                        if (!snapshot.empty) {
-                            const batch = db.batch();
-                            let deletedCount = 0;
-                            
-                            snapshot.forEach(doc => {
-                                const msgData = doc.data();
-                                const msgDate = msgData.date;
-                                
-                                if (msgDate !== today) {
-                                    batch.delete(doc.ref);
-                                    deletedCount++;
-                                }
-                            });
-                            
-                            if (deletedCount > 0) {
-                                await batch.commit();
-                                console.log(`Mural limpo: ${deletedCount} mensagens antigas removidas.`);
-                                showToast(`Mural limpo: ${deletedCount} mensagens de dias anteriores foram removidas`, 'info', 3000);
-                            }
-                        }
-                        
-                        await muralMetadataRef.set({ 
-                            lastClearDate: today, 
-                            lastUpdate: firebase.firestore.FieldValue.serverTimestamp() 
-                        }, { merge: true });
-                    }
-                } catch (error) {
-                    console.error('Erro ao limpar mensagens antigas:', error);
-                }
-            }
-
-            // Função para agendar limpeza à meia-noite
-            function scheduleMidnightCleanup() {
-                const now = new Date();
-                const night = new Date(
-                    now.getFullYear(),
-                    now.getMonth(),
-                    now.getDate() + 1,
-                    0, 0, 0
-                );
-                const msToMidnight = night.getTime() - now.getTime();
-                
-                setTimeout(() => {
-                    checkAndClearOldMessages();
-                    scheduleMidnightCleanup();
-                }, msToMidnight);
-                
-                console.log(`Próxima limpeza automática em ${Math.round(msToMidnight / 1000 / 60)} minutos`);
-            }
-
-            // Função para habilitar edição
-            function enableEdit(messageDiv, msgId, oldText) {
-                const bubble = messageDiv.querySelector('.message-bubble');
-                const originalContent = bubble.innerHTML;
-
-                bubble.innerHTML = `
-                    <div class="edit-mode">
-                        <textarea id="edit-textarea-${msgId}">${oldText.replace(/<br>/g, '\n')}</textarea>
-                        <div class="edit-actions">
-                            <button class="save-edit" data-id="${msgId}"><i class="fa-solid fa-check"></i>Salvar</button>
-                            <button class="cancel-edit cancel" data-id="${msgId}"><i class="fa-solid fa-xmark"></i>Cancelar</button>
-                        </div>
-                    </div>
-                `;
-
-                const textarea = bubble.querySelector('textarea');
-                textarea.focus();
-
-                const autoResize = () => {
-                    textarea.style.height = '0px';
-                    textarea.style.height = Math.min(textarea.scrollHeight, 240) + 'px';
-                };
-                
-                textarea.addEventListener('input', autoResize);
-                autoResize();
-
-                bubble.querySelector('.save-edit').addEventListener('click', async () => {
-                    const newText = textarea.value.trim();
-                    if (!newText) return;
-
-                    try {
-                        await muralMessagesRef.doc(msgId).update({
-                            text: newText,
-                            edited: true,
-                            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                        showToast('Mensagem editada', 'success');
-                    } catch (error) {
-                        console.error('Erro ao editar:', error);
-                        showToast('Erro ao editar', 'error');
-                    }
-                });
-
-                bubble.querySelector('.cancel-edit').addEventListener('click', () => {
-                    bubble.innerHTML = originalContent;
-                });
-            }
-
-            // Função para apagar mensagem
-            async function deleteMessage(messageDiv, msgId) {
-                if (!confirm('Tem certeza que deseja apagar esta mensagem?')) return;
-                
-                messageDiv.classList.add('deleting');
-                
-                setTimeout(async () => {
-                    try {
-                        await muralMessagesRef.doc(msgId).delete();
-                        showToast('Mensagem apagada!', 'success');
-                    } catch (error) {
-                        console.error('Erro ao apagar:', error);
-                        showToast('Erro ao apagar mensagem', 'error');
-                    }
-                }, 220);
-            }
-
-            // FUNÇÃO CORRIGIDA PARA CARREGAR MENSAGENS (só do dia atual)
-// FUNÇÃO FINAL - sem mensagem automática
-function loadMuralMessages() {
-    const today = getFortalezaDateString();
-    
-    const q = db.collection('mural_messages').where('date', '==', today);
-    
-    const unsubscribe = q.onSnapshot(snapshot => {
-        let html = '';
-        
-        if (!snapshot.empty) {
-            const messages = [];
-            snapshot.forEach(doc => {
-                messages.push({
-                    id: doc.id,
-                    ...doc.data()
-                });
-            });
-            
-            messages.sort((a, b) => {
-                const timeA = a.timestamp?.toDate?.() || new Date(0);
-                const timeB = b.timestamp?.toDate?.() || new Date(0);
-                return timeA - timeB;
-            });
-            
-            messages.forEach(msg => {
-                const isOwn = msg.analyst === currentUser;
-                const timeStr = msg.timestamp?.toDate ? formatTime(msg.timestamp.toDate()) : '';
-                const editedHtml = msg.edited ? '<span class="edited-badge">(editado)</span>' : '';
-                const isSystem = msg.system ? 'system' : '';
-
-                const contentHTML = formatTextWithINCs(msg.text);
-
-                html += `
-                    <div class="message-wrapper ${isOwn ? 'own' : ''} ${isSystem}" data-id="${msg.id}">
-                        <div class="message-bubble">
-                            <div class="message-header">
-                                <span class="message-author">${escHTML(msg.analyst)}</span>
-                                <span class="message-time">${timeStr} ${editedHtml}</span>
-                            </div>
-                            <div class="message-content">${contentHTML}</div>
-                            <div class="message-footer">
-                                <button class="copy-msg" data-id="${msg.id}"><i class="fa-regular fa-copy"></i>Copiar</button>
-                                ${isOwn && !msg.system ? `
-                                    <button class="edit-msg" data-id="${msg.id}"><i class="fa-solid fa-pen"></i>Editar</button>
-                                    <button class="delete-msg danger" data-id="${msg.id}"><i class="fa-solid fa-trash"></i>Excluir</button>
-                                ` : ''}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-        
-        if (html === '') {
-            html = '<div style="text-align:center; color:rgba(232,251,255,.45); padding:20px;">👋 Nenhuma mensagem ainda. Comece a conversa!</div>';
-        }
-        
-        chatMessages.innerHTML = html;
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-        
-    }, error => {
-        console.error('Erro no listener do mural:', error);
-        showToast('Erro ao carregar mensagens do mural', 'error');
+                splash.style.display = 'none';
+                checkAuthentication();
+            }, 200);
+        }, 3000);
     });
 
-    return unsubscribe;
-}
+    // Verifica login
+    function checkAuthentication() {
+        let currentUser = sessionStorage.getItem('currentUser');
 
-            // Função para enviar mensagem
-            async function sendMessage() {
-                const text = chatInput.value.trim();
-                if (!text) return;
+        if (!currentUser) {
+            currentUser = localStorage.getItem('currentUser');
+            if (currentUser) {
+                sessionStorage.setItem('currentUser', currentUser);
+            }
+        }
 
-                const today = getFortalezaDateString();
-                
-                chatSend.disabled = true;
-                
-                try {
-                    await muralMessagesRef.add({
-                        analyst: currentUser,
-                        text: text,
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                        date: today,
-                        edited: false
-                    });
-                    
-                    chatInput.value = '';
-                    chatInput.style.height = '24px';
-                    showToast('Mensagem enviada!', 'success');
-                    
-                } catch (error) {
-                    console.error('Erro ao enviar:', error);
-                    showToast('Erro ao enviar mensagem', 'error');
-                } finally {
-                    chatSend.disabled = false;
+        if (currentUser) {
+            document.getElementById('login-screen').style.display = 'none';
+            initApplication(currentUser);
+        } else {
+            document.getElementById('login-screen').style.display = 'flex';
+        }
+    }
+
+    // Login
+    document.getElementById('login-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const analista = document.getElementById('login-analista').value;
+        const password = document.getElementById('login-password').value;
+        const loginError = document.getElementById('login-error');
+        const loginBtn = document.getElementById('login-btn');
+
+        if (USERS[analista] && password === USERS[analista]) {
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
+
+            setTimeout(function () {
+                sessionStorage.setItem('currentUser', analista);
+                localStorage.setItem('currentUser', analista);
+
+                document.getElementById('login-screen').style.display = 'none';
+                initApplication(analista);
+            }, 1000);
+        } else {
+            loginError.classList.add('show');
+            document.getElementById('error-message').textContent = 'Analista ou senha incorretos';
+
+            setTimeout(function () {
+                loginError.classList.remove('show');
+            }, 3000);
+        }
+    });
+
+    function setupLogout() {
+        document.getElementById('logout-btn').addEventListener('click', function () {
+            if (confirm('Tem certeza que deseja sair do sistema?')) {
+                sessionStorage.removeItem('currentUser');
+                localStorage.removeItem('currentUser');
+                location.reload();
+            }
+        });
+    }
+
+    function initApplication(currentUser) {
+        // Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBWBGcnOlv2Gu_0hN17qIGW6RKL3uITbzY",
+            authDomain: "bancodedados-snzb.firebaseapp.com",
+            projectId: "bancodedados-snzb",
+            storageBucket: "bancodedados-snzb.appspot.com",
+            messagingSenderId: "573270416863",
+            appId: "1:573270416863:web:81455e206b4d252d29b86a"
+        };
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // JSONBin (leitura)
+        const BIN_ID = '685632118960c979a5ae30ac';
+        const MASTER_KEY = '$2a$10$YMdKhRE5rs2j/addb0u2beEv8Buf0LgOpYvT5YQhwzDZqIfxBOsWK';
+        const ACCESS_KEY = '$2a$10$SpeE5.rHPveOV83qARbVqOkmjogz4ZOF6pahjv8ju7cEPDnPdt4rq';
+        const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+        // Regras de edição
+        const BACKLOG_EDIT_WINDOW_MS = 60 * 60 * 1000; // 1 hora
+        const MAX_BACKLOG_SAVES = 5; // 1 criação + 4 sobrescritas
+
+        // Elementos
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        const menuToggle = document.getElementById('menu-toggle');
+        const navItems = document.querySelectorAll('.nav-item');
+        const sectionContents = document.querySelectorAll('.section-content');
+        const dataBacklog = document.getElementById('data-backlog');
+        const analistaDisplay = document.getElementById('analista-display');
+        const backlogText = document.getElementById('backlog-text');
+        const backlogForm = document.getElementById('backlog-form');
+        const clearFormBtn = document.getElementById('clear-form');
+        const saveButton = document.getElementById('save-backlog');
+        const toast = document.getElementById('toast');
+        const fullscreenToggle = document.getElementById('fullscreen-toggle');
+        const pageTitle = document.querySelector('.page-title');
+        const monthSelect = document.getElementById('month-select');
+
+        // Dashboard
+        const validationsTodayEl = document.getElementById('validations-today');
+        const todayChangeEl = document.getElementById('today-change');
+        const validationsMonthEl = document.getElementById('validations-month');
+        const monthChangeEl = document.getElementById('month-change');
+        const topAnalystEl = document.getElementById('top-analyst');
+        const topAnalystCountEl = document.getElementById('top-analyst-count');
+        const topAnalystsEl = document.getElementById('top-analysts');
+        const bottomAnalystsEl = document.getElementById('bottom-analysts');
+        const analystChartEl = document.getElementById('analystChart');
+
+        // Mural - NOVOS ELEMENTOS
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const chatSend = document.getElementById('chat-send');
+
+        // Referências Firestore para o mural
+        const muralMessagesRef = db.collection('mural_messages');
+        const muralMetadataRef = db.collection('mural_metadata').doc('daily');
+
+        // Usuário logado
+        analistaDisplay.value = currentUser;
+        document.getElementById('user-name').textContent = currentUser;
+        document.getElementById('user-avatar').textContent = currentUser.charAt(0);
+
+        function getFortalezaDateString() {
+            return new Date().toLocaleDateString('pt-BR', {
+                timeZone: 'America/Fortaleza'
+            }).split('/').reverse().join('-');
+        }
+
+        function getFortalezaTimestamp() {
+            const now = new Date();
+            const timeString = now.toLocaleString('pt-BR', {
+                timeZone: 'America/Fortaleza',
+                hour12: false
+            });
+            const [datePart, timePart] = timeString.split(', ');
+            const [day, month, year] = datePart.split('/');
+            const [hours, minutes, seconds] = timePart.split(':');
+            const ms = now.getMilliseconds().toString().padStart(3, '0');
+            return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${ms}-03:00`;
+        }
+
+        // Função para ID do documento por mês
+        function getBacklogDocId(data) {
+            const [ano, mes] = data.split('-');
+            const meses = {
+                '01': 'janeiro', '02': 'fevereiro', '03': 'março', '04': 'abril',
+                '05': 'maio', '06': 'junho', '07': 'julho', '08': 'agosto',
+                '09': 'setembro', '10': 'outubro', '11': 'novembro', '12': 'dezembro'
+            };
+            const nomeMes = meses[mes];
+            const anoCurto = ano.slice(2);
+            return `${nomeMes}${anoCurto}`;
+        }
+
+        dataBacklog.value = getFortalezaDateString();
+
+        const validationError = document.createElement('div');
+        validationError.className = 'validation-error';
+        validationError.innerHTML = '<i class="fas fa-exclamation-circle"></i><span id="validation-message"></span>';
+        backlogForm.insertBefore(validationError, backlogForm.querySelector('.action-buttons'));
+
+        let backlogData = {
+            meta: {
+                sistema: "Backlog do NOC",
+                versao: "1.0",
+                ultima_atualizacao: null,
+                criado_em: new Date().toISOString()
+            },
+            registros: []
+        };
+        let firebaseRecords = [];
+        let analystChart = null;
+        let muralUnsubscribe = null;
+
+        setupLogout();
+        document.getElementById('app-container').style.display = 'flex';
+
+        function showValidationError(message) {
+            validationError.classList.add('show');
+            document.getElementById('validation-message').textContent = message;
+            setTimeout(() => {
+                validationError.classList.remove('show');
+            }, 5000);
+        }
+
+        function cleanBacklogText(text) {
+            if (!text) return '';
+            return text
+                .replace(/<br\s*\/?>/gi, '\n')
+                .replace(/<div>/gi, '')
+                .replace(/<\/div>/gi, '\n')
+                .replace(/<[^>]*>/g, '')
+                .replace(/&nbsp;/g, ' ')
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/&amp;/g, '&')
+                .replace(/\*\*/g, '')
+                .replace(/\*{2,}/g, '')
+                .replace(/^\*|\*$/gm, '')
+                .replace(/\n\s*\n/g, '\n\n')
+                .replace(/^\s+|\s+$/g, '')
+                .trim();
+        }
+
+        function showToast(message, type = 'success', duration = 3000) {
+            const toastEl = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
+            
+            toastMsg.textContent = message;
+            toastEl.className = `toast ${type}`;
+            
+            const icon = type === 'success' ? 'fa-circle-check' 
+                       : type === 'error' ? 'fa-triangle-exclamation' 
+                       : 'fa-circle-info';
+            toastIcon.innerHTML = `<i class="fa-solid ${icon}"></i>`;
+            
+            toastEl.classList.add('show');
+            setTimeout(() => {
+                toastEl.classList.remove('show');
+            }, duration);
+        }
+
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+            sidebarOverlay.classList.toggle('active');
+        });
+
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+            sidebarOverlay.classList.remove('active');
+        });
+
+        fullscreenToggle.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    showToast(`Erro ao entrar em tela cheia: ${err.message}`, 'error');
+                });
+                fullscreenToggle.innerHTML = '<i class="fas fa-compress"></i>';
+            } else if (document.exitFullscreen) {
+                document.exitFullscreen();
+                fullscreenToggle.innerHTML = '<i class="fas fa-expand"></i>';
+            }
+        });
+
+        function execCommandOnEditor(editorElement, command, value = null) {
+            if (!editorElement) return;
+            editorElement.focus();
+            document.execCommand(command, false, value);
+        }
+
+        backlogText.addEventListener('keydown', function (e) {
+            if (e.ctrlKey && e.key === 'b') {
+                e.preventDefault();
+                execCommandOnEditor(backlogText, 'bold');
+            } else if (e.ctrlKey && e.key === 'i') {
+                e.preventDefault();
+                execCommandOnEditor(backlogText, 'italic');
+            } else if (e.ctrlKey && e.key === 'u') {
+                e.preventDefault();
+                execCommandOnEditor(backlogText, 'underline');
+            } else if (e.ctrlKey && e.key === 'z') {
+                e.preventDefault();
+                execCommandOnEditor(backlogText, 'undo');
+            } else if (e.ctrlKey && e.key === 'y') {
+                e.preventDefault();
+                execCommandOnEditor(backlogText, 'redo');
+            } else if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                document.getElementById('save-backlog').click();
+            }
+        });
+
+        document.querySelectorAll('.toolbar-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const command = this.dataset.command;
+                const value = this.dataset.value;
+                const editorContainer = this.closest('.editor-container');
+                const editorContent = editorContainer
+                    ? editorContainer.querySelector('.editor-content')
+                    : backlogText;
+
+                if (command === 'hiliteColor') {
+                    execCommandOnEditor(editorContent, 'hiliteColor', value || 'yellow');
+                } else {
+                    execCommandOnEditor(editorContent, command);
                 }
-            }
+            });
+        });
 
-            // Event delegation para botões do mural
-            if (chatMessages) {
-                chatMessages.addEventListener('click', async (e) => {
-                    const inc = e.target.closest('.inc-pill');
-                    if (inc) {
-                        try {
-                            await navigator.clipboard.writeText(inc.dataset.inc);
-                            showToast(`${inc.dataset.inc} copiado!`, "success", 1500);
-                            flash(inc.closest('.message-bubble'));
-                        } catch {
-                            showToast("Falha ao copiar INC", "error");
-                        }
-                        return;
-                    }
+        const textColorPicker = document.getElementById('text-color');
+        const bgColorPicker = document.getElementById('bg-color');
 
-                    const target = e.target.closest('button');
-                    if (!target) return;
+        textColorPicker.addEventListener('change', function () {
+            execCommandOnEditor(backlogText, 'foreColor', this.value);
+        });
 
-                    const messageDiv = target.closest('.message-wrapper');
-                    if (!messageDiv) return;
+        bgColorPicker.addEventListener('change', function () {
+            execCommandOnEditor(backlogText, 'hiliteColor', this.value);
+        });
 
-                    const msgId = messageDiv.dataset.id;
-                    const contentDiv = messageDiv.querySelector('.message-content');
-
-                    if (target.classList.contains('copy-msg')) {
-                        try {
-                            await copyPlain(contentDiv.innerHTML);
-                            showToast('Mensagem copiada!', 'success');
-                            flash(messageDiv.querySelector('.message-bubble'));
-                        } catch {
-                            showToast('Erro ao copiar', 'error');
-                        }
-                    }
-
-                    if (target.classList.contains('edit-msg')) {
-                        const oldText = contentDiv.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
-                        enableEdit(messageDiv, msgId, oldText);
-                    }
-                    
-                    if (target.classList.contains('delete-msg')) {
-                        deleteMessage(messageDiv, msgId);
+        async function loadJsonBinData() {
+            try {
+                showToast('Carregando dados do JSONBin...', 'info');
+                const response = await fetch(API_URL, {
+                    headers: {
+                        'X-Master-Key': MASTER_KEY,
+                        'X-Access-Key': ACCESS_KEY
                     }
                 });
 
-                // Duplo clique no INC abre ServiceNow
-                chatMessages.addEventListener('dblclick', (e) => {
-                    const inc = e.target.closest('.inc-pill');
-                    if (inc) {
-                        window.open(inc.dataset.url, '_blank');
-                    }
-                });
-            }
-
-            // Eventos do mural
-            if (chatInput) {
-                chatInput.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage();
-                    }
-                });
-            }
-
-            if (chatSend) {
-                chatSend.addEventListener('click', sendMessage);
-            }
-
-            // Executar limpeza de dias anteriores e iniciar listener
-            async function initializeMural() {
-                await checkAndClearOldMessages();
-                if (muralUnsubscribe) {
-                    muralUnsubscribe();
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status}`);
                 }
-                muralUnsubscribe = loadMuralMessages();
+
+                const jsonData = await response.json();
+
+                if (!jsonData.record || Object.keys(jsonData.record).length === 0) {
+                    return {
+                        meta: {
+                            sistema: "Backlog do NOC",
+                            versao: "1.0",
+                            ultima_atualizacao: null,
+                            criado_em: new Date().toISOString()
+                        },
+                        registros: []
+                    };
+                }
+
+                const recordsWithTag = jsonData.record.registros.map(record => ({
+                    ...record,
+                    texto: record.texto + ' <span class="jsonbin-tag">[snz-b]</span>',
+                    fonte: 'jsonbin'
+                }));
+
+                return {
+                    ...jsonData.record,
+                    registros: recordsWithTag
+                };
+            } catch (error) {
+                console.error('Erro ao carregar dados do JSONBin:', error);
+                showToast('Erro ao carregar dados do JSONBin. Verifique o console.', 'error');
+                return {
+                    meta: {
+                        sistema: "Backlog do NOC",
+                        versao: "1.0",
+                        ultima_atualizacao: null,
+                        criado_em: new Date().toISOString()
+                    },
+                    registros: []
+                };
             }
+        }
 
-            // Inicia o agendamento da limpeza à meia-noite
-            scheduleMidnightCleanup();
+        async function loadFirebaseData() {
+            try {
+                const snapshot = await db.collection('backlog').get();
+                let allRegistros = [];
 
-            // Verificar limpeza sempre que a janela for focada
-            window.addEventListener('focus', async () => {
-                await checkAndClearOldMessages();
+                snapshot.forEach(doc => {
+                    if (doc.id !== 'metadata') {
+                        const registros = doc.data().registros || [];
+                        allRegistros = [...allRegistros, ...registros];
+                    }
+                });
+
+                return {
+                    meta: {
+                        sistema: "Backlog do NOC",
+                        versao: "1.0",
+                        ultima_atualizacao: new Date().toISOString(),
+                        criado_em: new Date().toISOString()
+                    },
+                    registros: allRegistros
+                };
+            } catch (error) {
+                console.error('Erro ao carregar dados do Firebase:', error);
+                return {
+                    meta: {
+                        sistema: "Backlog do NOC",
+                        versao: "1.0",
+                        ultima_atualizacao: null,
+                        criado_em: new Date().toISOString()
+                    },
+                    registros: []
+                };
+            }
+        }
+
+        async function saveBacklogRecord(analista, data, texto) {
+            const docId = getBacklogDocId(data);
+            const docRef = db.collection('backlog').doc(docId);
+            const metadataRef = db.collection('backlog').doc('metadata');
+
+            const now = new Date();
+            const nowTimestampString = getFortalezaTimestamp();
+            const nowFirestoreTs = firebase.firestore.Timestamp.now();
+
+            const operationType = await db.runTransaction(async (transaction) => {
+                const doc = await transaction.get(docRef);
+                let registros = [];
+                if (doc.exists && doc.data().registros) {
+                    registros = [...doc.data().registros];
+                }
+
+                const idx = registros.findIndex(r => r.analista === analista && r.data === data);
+
+                if (idx >= 0) {
+                    const existing = registros[idx];
+
+                    let createdAt;
+                    if (existing.createdAt && typeof existing.createdAt.toDate === 'function') {
+                        createdAt = existing.createdAt.toDate();
+                    } else if (existing.createdAt) {
+                        createdAt = new Date(existing.createdAt);
+                    } else if (existing.timestamp) {
+                        createdAt = new Date(existing.timestamp);
+                    } else {
+                        createdAt = now;
+                    }
+
+                    const saveCount = existing.saveCount ? Number(existing.saveCount) : 1;
+                    const elapsedMs = now.getTime() - createdAt.getTime();
+
+                    if (elapsedMs > BACKLOG_EDIT_WINDOW_MS) {
+                        throw new Error('BACKLOG_EDIT_TIME_EXCEEDED');
+                    }
+                    if (saveCount >= MAX_BACKLOG_SAVES) {
+                        throw new Error('BACKLOG_SAVE_LIMIT_REACHED');
+                    }
+
+                    registros[idx] = {
+                        ...existing,
+                        texto,
+                        timestamp: nowTimestampString,
+                        updatedAt: nowFirestoreTs,
+                        createdAt: existing.createdAt || nowFirestoreTs,
+                        saveCount: saveCount + 1
+                    };
+
+                    transaction.set(docRef, { registros }, { merge: true });
+                    return 'updated';
+                } else {
+                    const analistasDiaSet = new Set(
+                        registros
+                            .filter(r => r.data === data)
+                            .map(r => r.analista)
+                    );
+
+                    if (!analistasDiaSet.has(analista) && analistasDiaSet.size >= 3) {
+                        throw new Error('BACKLOG_MAX_ANALYSTS_REACHED');
+                    }
+
+                    const nextId = registros.reduce((max, r) => {
+                        const idVal = typeof r.id === 'number' ? r.id : parseInt(r.id || 0, 10) || 0;
+                        return Math.max(max, idVal);
+                    }, 0) + 1;
+
+                    const newRecord = {
+                        id: nextId,
+                        analista,
+                        data,
+                        texto,
+                        timestamp: nowTimestampString,
+                        createdAt: nowFirestoreTs,
+                        updatedAt: nowFirestoreTs,
+                        saveCount: 1
+                    };
+
+                    registros.push(newRecord);
+                    transaction.set(docRef, { registros }, { merge: true });
+                    return 'created';
+                }
             });
 
-            async function loadInitialData() {
-                try {
-                    const [jsonbinData, firebaseData] = await Promise.all([
-                        loadJsonBinData(),
-                        loadFirebaseData()
-                    ]);
+            await metadataRef.set({
+                sistema: "Backlog do NOC",
+                versao: "1.0",
+                ultima_atualizacao: firebase.firestore.FieldValue.serverTimestamp(),
+                criado_em: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
 
-                    backlogData = jsonbinData;
-                    firebaseRecords = firebaseData.registros.map(r => ({
-                        ...r,
-                        fonte: 'firebase'
-                    }));
+            return operationType;
+        }
 
-                    showToast('Dados carregados com sucesso!');
-                    populateMonthSelect();
+        navItems.forEach(item => {
+            item.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                navItems.forEach(nav => nav.classList.remove('active'));
+                this.classList.add('active');
+
+                const section = this.getAttribute('data-section');
+                sectionContents.forEach(content => content.style.display = 'none');
+                document.getElementById(`${section}-section`).style.display = 'block';
+
+                const sectionTitle = this.querySelector('span').textContent;
+                pageTitle.textContent = sectionTitle;
+
+                if (section === 'dashboard') {
+                    initCalendar();
                     updateDashboardStats();
-
-                } catch (error) {
-                    console.error('Erro ao carregar dados iniciais:', error);
-                    showToast('Erro ao carregar dados. Verifique o console.', 'error');
+                } else if (section === 'mural') {
+                    initializeMural();
                 }
+            });
+        });
+
+        clearFormBtn.addEventListener('click', function () {
+            if (backlogText.innerHTML.trim() !== '' &&
+                !confirm('Tem certeza que deseja limpar o formulário? Todo o conteúdo não salvo será perdido.')) {
+                return;
+            }
+            dataBacklog.value = getFortalezaDateString();
+            backlogText.innerHTML = '';
+            showToast('Formulário limpo com sucesso!');
+        });
+
+        backlogForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const analista = currentUser;
+            const data = dataBacklog.value;
+            let texto = backlogText.innerHTML.trim();
+
+            if (!analista || !data || !texto) {
+                showToast('Por favor, preencha todos os campos obrigatórios!', 'error');
+                return;
             }
 
-            loadInitialData();
+            texto = cleanBacklogText(texto);
+
+            try {
+                saveButton.disabled = true;
+                saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+
+                const op = await saveBacklogRecord(analista, data, texto);
+
+                const firebaseData = await loadFirebaseData();
+                firebaseRecords = firebaseData.registros.map(r => ({
+                    ...r,
+                    fonte: 'firebase'
+                }));
+
+                const msg = op === 'updated'
+                    ? 'Backlog atualizado com sucesso (dentro de 1 hora, limite de sobrescritas respeitado)!'
+                    : 'Backlog salvo com sucesso!';
+
+                saveButton.innerHTML = '<i class="fas fa-check"></i> Salvo!';
+                saveButton.style.backgroundColor = '#34a853';
+                showToast(msg);
+
+                setTimeout(() => {
+                    saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Backlog';
+                    saveButton.style.backgroundColor = '';
+                    saveButton.disabled = false;
+                }, 2000);
+
+                backlogText.innerHTML = '';
+
+                if (document.getElementById('dashboard-section').style.display !== 'none') {
+                    initCalendar();
+                    updateDashboardStats();
+                }
+            } catch (error) {
+                console.error('Erro ao salvar:', error);
+
+                if (error.message === 'BACKLOG_EDIT_TIME_EXCEEDED') {
+                    showValidationError('O backlog só pode ser alterado dentro de 1 hora após o primeiro registro.');
+                } else if (error.message === 'BACKLOG_SAVE_LIMIT_REACHED') {
+                    showValidationError('Limite de 4 sobrescritas atingido para este backlog (analista + dia).');
+                } else if (error.message === 'BACKLOG_MAX_ANALYSTS_REACHED') {
+                    showValidationError('Limite máximo de 3 analistas diferentes por dia atingido. Não é possível salvar mais backlogs nesta data.');
+                } else {
+                    showToast('Erro ao salvar os dados. Verifique o console para detalhes.', 'error');
+                }
+
+                saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Backlog';
+                saveButton.disabled = false;
+            }
+        });
+
+        function getAnalystColor(analista) {
+            const colors = {
+                'DELANO': '#65a30d',
+                'HERBETH': '#dc2626',
+                'WELLIGTON': '#ea580c',
+                'EDMUNDO': '#8b5cf6',
+                'SIDNEY': '#14b8a6',
+                'MARCIO': '#ec4899',
+                'HELIELTON': '#3b82f6',
+                'ROBSON': '#f59e0b',
+                'WYLLAME': '#059669',
+                'DARLYSON': '#d946ef',
+                'MURILO': '#06b6d4',
+                'ONOFRE': '#f97316',
+                'LYNNA': '#be185d'
+            };
+            return colors[analista] || '#3b82f6';
         }
-    </script>
+
+        function updateDashboardStats() {
+            const allRecords = [
+                ...backlogData.registros,
+                ...firebaseRecords
+            ];
+
+            const today = getFortalezaDateString();
+            const currentMonth = new Date().getMonth() + 1;
+            const currentYear = new Date().getFullYear();
+
+            const selectedMonth = monthSelect.value;
+            let filteredRecords = allRecords;
+
+            if (selectedMonth) {
+                const [year, month] = selectedMonth.split('-');
+                filteredRecords = allRecords.filter(record => {
+                    const recordDate = new Date(record.data);
+                    return recordDate.getFullYear() == year &&
+                        (recordDate.getMonth() + 1) == month;
+                });
+            }
+
+            const todayValidations = filteredRecords.filter(r => r.data === today).length;
+            const yesterday = new Date(new Date(today).getTime() - 86400000).toISOString().split('T')[0];
+            const yesterdayValidations = filteredRecords.filter(r => r.data === yesterday).length;
+
+            validationsTodayEl.textContent = todayValidations;
+
+            let todayChange = 0;
+            if (yesterdayValidations > 0) {
+                todayChange = Math.round(((todayValidations - yesterdayValidations) / yesterdayValidations) * 100);
+            } else if (todayValidations > 0) {
+                todayChange = 100;
+            }
+
+            if (todayChange > 0) {
+                todayChangeEl.innerHTML = `<i class="fas fa-caret-up"></i> ${todayChange}% em relação a ontem`;
+                todayChangeEl.className = 'stat-change positive';
+            } else if (todayChange < 0) {
+                todayChangeEl.innerHTML = `<i class="fas fa-caret-down"></i> ${Math.abs(todayChange)}% em relação a ontem`;
+                todayChangeEl.className = 'stat-change negative';
+            } else {
+                todayChangeEl.innerHTML = `<i class="fas fa-equals"></i> 0% em relação a ontem`;
+                todayChangeEl.className = 'stat-change';
+            }
+
+            const currentMonthValidations = filteredRecords.filter(record => {
+                const d = new Date(record.data);
+                return d.getMonth() + 1 === currentMonth &&
+                    d.getFullYear() === currentYear;
+            }).length;
+
+            const lastMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+            const lastMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
+            const lastMonthValidations = filteredRecords.filter(record => {
+                const d = new Date(record.data);
+                return d.getMonth() + 1 === lastMonth &&
+                    d.getFullYear() === lastMonthYear;
+            }).length;
+
+            validationsMonthEl.textContent = currentMonthValidations;
+
+            let monthChange = 0;
+            if (lastMonthValidations > 0) {
+                monthChange = Math.round(((currentMonthValidations - lastMonthValidations) / lastMonthValidations) * 100);
+            } else if (currentMonthValidations > 0) {
+                monthChange = 100;
+            }
+
+            if (monthChange > 0) {
+                monthChangeEl.innerHTML = `<i class="fas fa-caret-up"></i> ${monthChange}% em relação ao mês passado`;
+                monthChangeEl.className = 'stat-change positive';
+            } else if (monthChange < 0) {
+                monthChangeEl.innerHTML = `<i class="fas fa-caret-down"></i> ${Math.abs(monthChange)}% em relação ao mês passado`;
+                monthChangeEl.className = 'stat-change negative';
+            } else {
+                monthChangeEl.innerHTML = `<i class="fas fa-equals"></i> 0% em relação ao mês passado`;
+                monthChangeEl.className = 'stat-change';
+            }
+
+            const analystCounts = {};
+            filteredRecords.forEach(record => {
+                if (!analystCounts[record.analista]) {
+                    analystCounts[record.analista] = 0;
+                }
+                analystCounts[record.analista]++;
+            });
+
+            const sortedAnalysts = Object.entries(analystCounts).sort((a, b) => b[1] - a[1]);
+
+            if (sortedAnalysts.length > 0) {
+                topAnalystEl.textContent = sortedAnalysts[0][0];
+                topAnalystCountEl.textContent = `${sortedAnalysts[0][1]} validações`;
+            } else {
+                topAnalystEl.textContent = 'N/A';
+                topAnalystCountEl.textContent = '0 validações';
+            }
+
+            topAnalystsEl.innerHTML = '';
+            sortedAnalysts.slice(0, 3).forEach((analyst, index) => {
+                const medalClass = index === 0 ? 'gold' : index === 1 ? 'silver' : 'bronze';
+
+                const analystElDiv = document.createElement('div');
+                analystElDiv.className = 'analyst-item';
+                analystElDiv.innerHTML = `
+                    <div>
+                        <span class="medal ${medalClass}"><i class="fas fa-medal"></i></span>
+                        <span class="analyst-name">${analyst[0]}</span>
+                    </div>
+                    <span class="analyst-count">${analyst[1]} validações</span>
+                `;
+                topAnalystsEl.appendChild(analystElDiv);
+            });
+
+            bottomAnalystsEl.innerHTML = '';
+            if (sortedAnalysts.length > 3) {
+                sortedAnalysts.slice(-3).reverse().forEach(analyst => {
+                    const el = document.createElement('div');
+                    el.className = 'analyst-item';
+                    el.innerHTML = `
+                        <span class="analyst-name">${analyst[0]}</span>
+                        <span class="analyst-count">${analyst[1]} validação${analyst[1] !== 1 ? 's' : ''}</span>
+                    `;
+                    bottomAnalystsEl.appendChild(el);
+                });
+            } else if (sortedAnalysts.length > 0) {
+                bottomAnalystsEl.innerHTML = '<p>Todos os analistas estão no ranking!</p>';
+            } else {
+                bottomAnalystsEl.innerHTML = '<p>Nenhum dado disponível</p>';
+            }
+
+            updateAnalystChart(sortedAnalysts);
+        }
+
+        function updateAnalystChart(sortedAnalysts) {
+            const labels = sortedAnalysts.map(item => item[0]);
+            const data = sortedAnalysts.map(item => item[1]);
+            const backgroundColors = sortedAnalysts.map(item => getAnalystColor(item[0]));
+
+            if (analystChart) {
+                analystChart.data.labels = labels;
+                analystChart.data.datasets[0].data = data;
+                analystChart.data.datasets[0].backgroundColor = backgroundColors;
+                analystChart.update();
+            } else {
+                const ctx = analystChartEl.getContext('2d');
+                analystChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Validações por Analista',
+                            data,
+                            backgroundColor: backgroundColors,
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(26, 32, 44, 0.9)',
+                                titleColor: '#e2e8f0',
+                                bodyColor: '#a0aec0',
+                                borderColor: 'rgba(255, 255, 255, 0.1)',
+                                borderWidth: 1,
+                                padding: 12,
+                                usePointStyle: true
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                                ticks: { color: '#a0aec0' }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: '#a0aec0' }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function populateMonthSelect() {
+            monthSelect.innerHTML = '<option value="">Todos os meses</option>';
+
+            const allRecords = [
+                ...backlogData.registros,
+                ...firebaseRecords
+            ];
+
+            if (allRecords.length === 0) return;
+
+            const months = new Set();
+            allRecords.forEach(record => {
+                const d = new Date(record.data);
+                const y = d.getFullYear();
+                const m = d.getMonth() + 1;
+                months.add(`${y}-${m.toString().padStart(2, '0')}`);
+            });
+
+            const sortedMonths = Array.from(months).sort((a, b) => new Date(b) - new Date(a));
+
+            sortedMonths.forEach(month => {
+                const [year, monthNum] = month.split('-');
+                const monthName = new Date(`${year}-${monthNum}-01`).toLocaleDateString('pt-BR', {
+                    month: 'long',
+                    year: 'numeric'
+                });
+
+                const option = document.createElement('option');
+                option.value = month;
+                option.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+                monthSelect.appendChild(option);
+            });
+
+            monthSelect.addEventListener('change', updateDashboardStats);
+        }
+
+        async function initCalendar() {
+            try {
+                const calendarEl = document.getElementById('calendar');
+                calendarEl.innerHTML = '';
+
+                const allRecords = [
+                    ...backlogData.registros,
+                    ...firebaseRecords
+                ];
+
+                const events = allRecords.map(entry => ({
+                    title: entry.analista,
+                    start: entry.data,
+                    extendedProps: {
+                        texto: entry.texto,
+                        analista: entry.analista,
+                        fonte: entry.fonte
+                    },
+                    className: `event-${entry.analista.toLowerCase()} fc-event-analyst has-tooltip`
+                }));
+
+                const calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    locale: 'pt-br',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,dayGridWeek,dayGridDay'
+                    },
+                    events,
+                    eventContent: function (arg) {
+                        const eventEl = document.createElement('div');
+                        eventEl.className = 'fc-event-content';
+                        eventEl.style.display = 'flex';
+                        eventEl.style.alignItems = 'center';
+                        eventEl.style.padding = '0.25rem 0.5rem';
+                        eventEl.style.gap = '0.5rem';
+
+                        const iconEl = document.createElement('i');
+                        iconEl.className = 'fas fa-user-check';
+                        iconEl.style.fontSize = '0.8em';
+
+                        const titleEl = document.createElement('span');
+                        titleEl.className = 'fc-event-title';
+                        titleEl.textContent = arg.event.title;
+
+                        const tooltipEl = document.createElement('div');
+                        tooltipEl.className = 'tooltip';
+                        tooltipEl.textContent = arg.event.extendedProps.fonte === 'jsonbin'
+                            ? 'Origem: JSONBin' : 'Origem: Firebase';
+
+                        eventEl.appendChild(iconEl);
+                        eventEl.appendChild(titleEl);
+                        eventEl.appendChild(tooltipEl);
+
+                        return { domNodes: [eventEl] };
+                    },
+                    eventClick: function (info) {
+                        const modal = document.createElement('div');
+                        modal.className = 'fc-event-modal';
+
+                        const modalContent = document.createElement('div');
+                        modalContent.className = 'fc-event-modal-content';
+
+                        const modalHeader = document.createElement('div');
+                        modalHeader.className = 'fc-event-modal-header';
+
+                        const modalTitle = document.createElement('h3');
+                        modalTitle.className = 'fc-event-modal-title';
+                        modalTitle.textContent = 'Detalhes da Validação';
+
+                        const closeButton = document.createElement('button');
+                        closeButton.className = 'fc-event-modal-close';
+                        closeButton.innerHTML = '<i class="fas fa-times"></i>';
+                        closeButton.addEventListener('click', () => {
+                            document.body.removeChild(modal);
+                        });
+
+                        modalHeader.appendChild(modalTitle);
+                        modalHeader.appendChild(closeButton);
+
+                        const modalBody = document.createElement('div');
+
+                        const dateEl = document.createElement('div');
+                        dateEl.style.marginBottom = '1.5rem';
+                        dateEl.style.fontSize = '0.95rem';
+                        dateEl.style.color = 'var(--gray)';
+                        dateEl.innerHTML = `<i class="far fa-calendar-alt" style="margin-right: 0.5rem;"></i> ${new Date(info.event.start).toLocaleDateString('pt-BR')}`;
+
+                        const sourceEl = document.createElement('div');
+                        sourceEl.style.marginBottom = '1rem';
+                        sourceEl.style.fontSize = '0.85rem';
+                        sourceEl.style.color = 'var(--gray)';
+                        sourceEl.innerHTML = `<i class="fas fa-database" style="margin-right: 0.5rem;"></i> ${info.event.extendedProps.fonte === 'jsonbin' ? 'JSONBin' : 'Firebase'}`;
+
+                        const analystItem = document.createElement('div');
+                        analystItem.className = 'fc-event-analyst-item';
+
+                        const analystName = document.createElement('div');
+                        analystName.className = 'fc-event-analyst-name';
+                        analystName.innerHTML = `<i class="fas fa-user-tie" style="color: ${getAnalystColor(info.event.extendedProps.analista)}"></i> ${info.event.extendedProps.analista}`;
+
+                        const analystContent = document.createElement('div');
+                        analystContent.className = 'fc-event-analyst-content';
+                        analystContent.innerHTML = (info.event.extendedProps.texto || '')
+                            .replace('<span class="jsonbin-tag">[snz-b]</span>', '');
+
+                        analystItem.appendChild(analystName);
+                        analystItem.appendChild(analystContent);
+
+                        modalBody.appendChild(dateEl);
+                        modalBody.appendChild(sourceEl);
+                        modalBody.appendChild(analystItem);
+
+                        modalContent.appendChild(modalHeader);
+                        modalContent.appendChild(modalBody);
+                        modal.appendChild(modalContent);
+                        document.body.appendChild(modal);
+                    },
+                    viewDidMount: function () {
+                        const header = document.querySelector('.fc-header-toolbar');
+                        if (header) {
+                            header.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                            header.style.backdropFilter = 'blur(10px)';
+                            header.style.borderRadius = '1rem 1rem 0 0';
+                            header.style.padding = '1.5rem';
+                            header.style.borderBottom = '1px solid var(--glass-border)';
+                        }
+
+                        const buttons = document.querySelectorAll('.fc-button');
+                        buttons.forEach(button => {
+                            button.style.backdropFilter = 'blur(5px)';
+                            button.style.border = '1px solid var(--glass-border)';
+                        });
+                    }
+                });
+
+                calendar.render();
+            } catch (error) {
+                console.error('Erro ao inicializar calendário:', error);
+                showToast('Erro ao carregar o calendário', 'error');
+            }
+        }
+
+        // ========== FUNÇÕES DO MURAL - SEM FORMATAÇÃO DE INCS ==========
+        
+        function formatTime(date) {
+            if (!date) return '';
+            return date.toLocaleTimeString('pt-BR', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                timeZone: 'America/Fortaleza'
+            });
+        }
+
+        function escHTML(str) {
+            return String(str)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        // FUNÇÃO SIMPLIFICADA - APENAS ESCAPA HTML E MANTÉM QUEBRAS DE LINHA
+        function formatTextWithoutINCs(text) {
+            // Escapa HTML e converte quebras de linha para <br>
+            return escHTML(text).replace(/\n/g, '<br>');
+        }
+
+        // FUNÇÃO DE CÓPIA SIMPLIFICADA - APENAS O TEXTO PURO
+        async function copyPlainText(contentElement) {
+            try {
+                // Extrai apenas o texto puro, sem qualquer formatação HTML
+                const plainText = contentElement.innerText || contentElement.textContent;
+                
+                // Copia para área de transferência
+                await navigator.clipboard.writeText(plainText);
+                
+                // Feedback visual
+                flash(contentElement.closest('.message-bubble'));
+                showToast('✅ Mensagem copiada!', 'success');
+                
+            } catch (error) {
+                console.error('Erro ao copiar:', error);
+                showToast('Erro ao copiar mensagem', 'error');
+            }
+        }
+
+        // Evento global de cópia simplificado
+        document.addEventListener('copy', function(e) {
+            // Verifica se a cópia está vindo de uma mensagem do mural
+            const selection = window.getSelection();
+            const messageContent = selection.anchorNode?.closest?.('.message-content');
+            
+            if (messageContent) {
+                // Obtém o texto puro da seleção
+                const selectedText = selection.toString();
+                
+                // Substitui o conteúdo da cópia
+                e.clipboardData.setData('text/plain', selectedText);
+                e.preventDefault();
+                
+                // Feedback visual
+                flash(messageContent.closest('.message-bubble'));
+                showToast('✅ Texto copiado!', 'success', 1500);
+            }
+        });
+
+        function flash(element) {
+            if (!element) return;
+            element.classList.remove('flash');
+            void element.offsetWidth;
+            element.classList.add('flash');
+            setTimeout(() => element.classList.remove('flash'), 380);
+        }
+
+        // Auto-resize da textarea
+        if (chatInput) {
+            chatInput.addEventListener('input', function() {
+                this.style.height = '0px';
+                const h = Math.min(this.scrollHeight, 140);
+                this.style.height = h + 'px';
+            });
+        }
+
+        // FUNÇÃO PARA LIMPAR MENSAGENS ANTIGAS
+        async function checkAndClearOldMessages() {
+            const today = getFortalezaDateString();
+            
+            try {
+                const metadataDoc = await muralMetadataRef.get();
+                let lastClearDate = metadataDoc.exists ? metadataDoc.data().lastClearDate : null;
+
+                if (!lastClearDate || lastClearDate !== today) {
+                    console.log('Verificando mensagens antigas do mural...');
+                    
+                    const snapshot = await muralMessagesRef.get();
+                    
+                    if (!snapshot.empty) {
+                        const batch = db.batch();
+                        let deletedCount = 0;
+                        
+                        snapshot.forEach(doc => {
+                            const msgData = doc.data();
+                            const msgDate = msgData.date;
+                            
+                            if (msgDate !== today) {
+                                batch.delete(doc.ref);
+                                deletedCount++;
+                            }
+                        });
+                        
+                        if (deletedCount > 0) {
+                            await batch.commit();
+                            console.log(`Mural limpo: ${deletedCount} mensagens antigas removidas.`);
+                            showToast(`Mural limpo: ${deletedCount} mensagens de dias anteriores foram removidas`, 'info', 3000);
+                        }
+                    }
+                    
+                    await muralMetadataRef.set({ 
+                        lastClearDate: today, 
+                        lastUpdate: firebase.firestore.FieldValue.serverTimestamp() 
+                    }, { merge: true });
+                }
+            } catch (error) {
+                console.error('Erro ao limpar mensagens antigas:', error);
+            }
+        }
+
+        // Função para agendar limpeza à meia-noite
+        function scheduleMidnightCleanup() {
+            const now = new Date();
+            const night = new Date(
+                now.getFullYear(),
+                now.getMonth(),
+                now.getDate() + 1,
+                0, 0, 0
+            );
+            const msToMidnight = night.getTime() - now.getTime();
+            
+            setTimeout(() => {
+                checkAndClearOldMessages();
+                scheduleMidnightCleanup();
+            }, msToMidnight);
+            
+            console.log(`Próxima limpeza automática em ${Math.round(msToMidnight / 1000 / 60)} minutos`);
+        }
+
+        // Função para habilitar edição
+        function enableEdit(messageDiv, msgId, oldText) {
+            const bubble = messageDiv.querySelector('.message-bubble');
+            const originalContent = bubble.innerHTML;
+
+            bubble.innerHTML = `
+                <div class="edit-mode">
+                    <textarea id="edit-textarea-${msgId}">${oldText.replace(/<br>/g, '\n')}</textarea>
+                    <div class="edit-actions">
+                        <button class="save-edit" data-id="${msgId}"><i class="fa-solid fa-check"></i>Salvar</button>
+                        <button class="cancel-edit cancel" data-id="${msgId}"><i class="fa-solid fa-xmark"></i>Cancelar</button>
+                    </div>
+                </div>
+            `;
+
+            const textarea = bubble.querySelector('textarea');
+            textarea.focus();
+
+            const autoResize = () => {
+                textarea.style.height = '0px';
+                textarea.style.height = Math.min(textarea.scrollHeight, 240) + 'px';
+            };
+            
+            textarea.addEventListener('input', autoResize);
+            autoResize();
+
+            bubble.querySelector('.save-edit').addEventListener('click', async () => {
+                const newText = textarea.value.trim();
+                if (!newText) return;
+
+                try {
+                    await muralMessagesRef.doc(msgId).update({
+                        text: newText,
+                        edited: true,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    showToast('Mensagem editada', 'success');
+                } catch (error) {
+                    console.error('Erro ao editar:', error);
+                    showToast('Erro ao editar', 'error');
+                }
+            });
+
+            bubble.querySelector('.cancel-edit').addEventListener('click', () => {
+                bubble.innerHTML = originalContent;
+            });
+        }
+
+        // Função para apagar mensagem
+        async function deleteMessage(messageDiv, msgId) {
+            if (!confirm('Tem certeza que deseja apagar esta mensagem?')) return;
+            
+            messageDiv.classList.add('deleting');
+            
+            setTimeout(async () => {
+                try {
+                    await muralMessagesRef.doc(msgId).delete();
+                    showToast('Mensagem apagada!', 'success');
+                } catch (error) {
+                    console.error('Erro ao apagar:', error);
+                    showToast('Erro ao apagar mensagem', 'error');
+                }
+            }, 220);
+        }
+
+        // FUNÇÃO PARA CARREGAR MENSAGENS DO MURAL - SEM FORMATAÇÃO DE INCS
+        function loadMuralMessages() {
+            const today = getFortalezaDateString();
+            
+            // Filtra apenas mensagens de hoje
+            const q = db.collection('mural_messages')
+                .where('date', '==', today);
+            
+            const unsubscribe = q.onSnapshot(snapshot => {
+                let html = '';
+                let hasMessages = false;
+                
+                if (!snapshot.empty) {
+                    const messages = [];
+                    snapshot.forEach(doc => {
+                        const msgData = doc.data();
+                        // SÓ INCLUI mensagens que NÃO são do sistema
+                        if (!msgData.system && msgData.analyst !== 'SISTEMA') {
+                            messages.push({
+                                id: doc.id,
+                                ...msgData
+                            });
+                        }
+                    });
+                    
+                    if (messages.length > 0) {
+                        hasMessages = true;
+                        
+                        // Ordenar por timestamp
+                        messages.sort((a, b) => {
+                            const timeA = a.timestamp?.toDate?.() || new Date(0);
+                            const timeB = b.timestamp?.toDate?.() || new Date(0);
+                            return timeA - timeB;
+                        });
+                        
+                        messages.forEach(msg => {
+                            const isOwn = msg.analyst === currentUser;
+                            const timeStr = msg.timestamp?.toDate ? formatTime(msg.timestamp.toDate()) : '';
+                            const editedHtml = msg.edited ? '<span class="edited-badge">(editado)</span>' : '';
+
+                            // USA A FUNÇÃO SIMPLIFICADA - SEM FORMATAÇÃO DE INCS
+                            const contentHTML = formatTextWithoutINCs(msg.text);
+
+                            html += `
+                                <div class="message-wrapper ${isOwn ? 'own' : ''}" data-id="${msg.id}">
+                                    <div class="message-bubble">
+                                        <div class="message-header">
+                                            <span class="message-author">${escHTML(msg.analyst)}</span>
+                                            <span class="message-time">${timeStr} ${editedHtml}</span>
+                                        </div>
+                                        <div class="message-content">${contentHTML}</div>
+                                        <div class="message-footer">
+                                            <button class="copy-msg" data-id="${msg.id}"><i class="fa-regular fa-copy"></i>Copiar</button>
+                                            ${isOwn ? `
+                                                <button class="edit-msg" data-id="${msg.id}"><i class="fa-solid fa-pen"></i>Editar</button>
+                                                <button class="delete-msg danger" data-id="${msg.id}"><i class="fa-solid fa-trash"></i>Excluir</button>
+                                            ` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+                }
+                
+                if (!hasMessages) {
+                    html = '<div style="text-align:center; color:rgba(232,251,255,.45); padding:20px;">📝 Nenhuma anotação ainda. Seja o primeiro a escrever!</div>';
+                }
+                
+                chatMessages.innerHTML = html;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+            }, error => {
+                console.error('Erro no listener do mural:', error);
+                showToast('Erro ao carregar mensagens do mural', 'error');
+            });
+
+            return unsubscribe;
+        }
+
+        // Função para enviar mensagem
+        async function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+
+            const today = getFortalezaDateString();
+            
+            chatSend.disabled = true;
+            
+            try {
+                await muralMessagesRef.add({
+                    analyst: currentUser,
+                    text: text,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    date: today,
+                    edited: false
+                });
+                
+                chatInput.value = '';
+                chatInput.style.height = '24px';
+                showToast('Mensagem enviada!', 'success');
+                
+            } catch (error) {
+                console.error('Erro ao enviar:', error);
+                showToast('Erro ao enviar mensagem', 'error');
+            } finally {
+                chatSend.disabled = false;
+            }
+        }
+
+        // Event delegation para botões do mural
+        if (chatMessages) {
+            chatMessages.addEventListener('click', async (e) => {
+                const target = e.target.closest('button');
+                if (!target) return;
+
+                const messageDiv = target.closest('.message-wrapper');
+                if (!messageDiv) return;
+
+                const msgId = messageDiv.dataset.id;
+                const contentDiv = messageDiv.querySelector('.message-content');
+
+                if (target.classList.contains('copy-msg')) {
+                    // USA A FUNÇÃO SIMPLIFICADA DE CÓPIA
+                    await copyPlainText(contentDiv);
+                    return;
+                }
+
+                if (target.classList.contains('edit-msg')) {
+                    const oldText = contentDiv.innerText || contentDiv.textContent;
+                    enableEdit(messageDiv, msgId, oldText);
+                }
+                
+                if (target.classList.contains('delete-msg')) {
+                    deleteMessage(messageDiv, msgId);
+                }
+            });
+        }
+
+        // Eventos do mural
+        if (chatInput) {
+            chatInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+        }
+
+        if (chatSend) {
+            chatSend.addEventListener('click', sendMessage);
+        }
+
+        // Executar limpeza de dias anteriores e iniciar listener
+        async function initializeMural() {
+            await checkAndClearOldMessages();
+            if (muralUnsubscribe) {
+                muralUnsubscribe();
+            }
+            muralUnsubscribe = loadMuralMessages();
+        }
+
+        // Inicia o agendamento da limpeza à meia-noite
+        scheduleMidnightCleanup();
+
+        // Verificar limpeza sempre que a janela for focada
+        window.addEventListener('focus', async () => {
+            await checkAndClearOldMessages();
+        });
+
+        async function loadInitialData() {
+            try {
+                const [jsonbinData, firebaseData] = await Promise.all([
+                    loadJsonBinData(),
+                    loadFirebaseData()
+                ]);
+
+                backlogData = jsonbinData;
+                firebaseRecords = firebaseData.registros.map(r => ({
+                    ...r,
+                    fonte: 'firebase'
+                }));
+
+                showToast('Dados carregados com sucesso!');
+                populateMonthSelect();
+                updateDashboardStats();
+
+            } catch (error) {
+                console.error('Erro ao carregar dados iniciais:', error);
+                showToast('Erro ao carregar dados. Verifique o console.', 'error');
+            }
+        }
+
+        loadInitialData();
+    }
+</script>
+    
+    
 </body>
 </html>
+
+
+
+
