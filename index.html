@@ -1719,6 +1719,42 @@
             transform: scaleX(1);
         }
 
+
+        /* Transição suave ao mudar de mês */
+.fc-view-harness {
+    transition: opacity 0.3s ease;
+}
+
+.fc-view-harness.fc-changing {
+    opacity: 0.5;
+    transform: scale(0.98);
+}
+
+/* Efeito de slide nos dias */
+@keyframes slideInDay {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.fc-daygrid-day {
+    animation: slideInDay 0.3s ease-out;
+    animation-fill-mode: both;
+}
+
+.fc-daygrid-day:nth-child(7n+1) { animation-delay: 0.05s; }
+.fc-daygrid-day:nth-child(7n+2) { animation-delay: 0.10s; }
+.fc-daygrid-day:nth-child(7n+3) { animation-delay: 0.15s; }
+.fc-daygrid-day:nth-child(7n+4) { animation-delay: 0.20s; }
+.fc-daygrid-day:nth-child(7n+5) { animation-delay: 0.25s; }
+.fc-daygrid-day:nth-child(7n+6) { animation-delay: 0.30s; }
+.fc-daygrid-day:nth-child(7n+7) { animation-delay: 0.35s; }
+
         #notes-section .card-body { min-height: 500px; }
         #backlog-text { min-height: 800px; }
     </style>
@@ -3313,7 +3349,7 @@
                 }
                 
                 if (!hasMessages) {
-                    html = '<div style="text-align:center; color:rgba(232,251,255,.45); padding:20px;">📝 Nenhuma anotação ainda. Seja o primeiro a escrever!</div>';
+                    html = '<div style="text-align:center; color:rgba(232,251,255,.45); padding:20px;">📝 Nenhuma anotação ainda.</div>';
                 }
                 
                 chatMessages.innerHTML = html;
