@@ -2307,6 +2307,67 @@
                 .trim();
         }
 
+        // FUNÇÃO RESTAURADA - RECONHECE INCS E CRIA LINKS
+        function formatIncLinks(text) {
+            const incRegex = /(^|\s)(INC\d{5,})(?=\s|$)/gi;
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = text;
+
+            const walker = document.createTreeWalker(
+                tempDiv,
+                NodeFilter.SHOW_TEXT,
+                {
+                    acceptNode: function (node) {
+                        if (node.parentNode.classList && node.parentNode.classList.contains('inc-link')) {
+                            return NodeFilter.FILTER_REJECT;
+                        }
+                        return NodeFilter.FILTER_ACCEPT;
+                    }
+                }
+            );
+
+            const textNodes = [];
+            let currentNode;
+            while (currentNode = walker.nextNode()) {
+                textNodes.push(currentNode);
+            }
+
+            textNodes.forEach(node => {
+                const parent = node.parentNode;
+                const originalText = node.nodeValue;
+                const fragment = document.createDocumentFragment();
+                let lastIndex = 0;
+                let match;
+
+                while ((match = incRegex.exec(originalText)) !== null) {
+                    if (match.index > lastIndex) {
+                        fragment.appendChild(document.createTextNode(originalText.substring(lastIndex, match.index)));
+                    }
+
+                    const numeroINC = match[2];
+                    const serviceNowUrl = `https://equatorialenergia.service-now.com/incident.do?sysparm_query=number=${numeroINC}`;
+
+                    const incLink = document.createElement('span');
+                    incLink.className = 'inc-link';
+                    incLink.setAttribute('data-url', serviceNowUrl);
+                    incLink.textContent = numeroINC;
+
+                    fragment.appendChild(incLink);
+                    lastIndex = match.index + match[0].length;
+                }
+
+                if (lastIndex < originalText.length) {
+                    fragment.appendChild(document.createTextNode(originalText.substring(lastIndex)));
+                }
+
+                if (fragment.childNodes.length > 0) {
+                    parent.replaceChild(fragment, node);
+                }
+            });
+
+            return tempDiv.innerHTML;
+        }
+
         function showToast(message, type = 'success', duration = 3000) {
             const toastEl = document.getElementById('toast');
             const toastMsg = document.getElementById('toast-message');
@@ -2376,6 +2437,39 @@
             }
         });
 
+        // EVENTO RESTAURADO - PARA NAVEGAÇÃO COM SETAS DENTRO DOS LINKS
+        backlogText.addEventListener('keydown', function (e) {
+            const selection = window.getSelection();
+            if (!selection.rangeCount) return;
+
+            const range = selection.getRangeAt(0);
+            const node = range.startContainer;
+            const incLink = node.parentNode.closest('.inc-link');
+            if (!incLink) return;
+
+            if (['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', 'End', 'Home', 'Escape'].includes(e.key)) {
+                e.preventDefault();
+                let newRange = document.createRange();
+                let spaceNode;
+
+                if (e.key === 'ArrowRight' || e.key === 'End') {
+                    spaceNode = document.createTextNode('   ');
+                    incLink.parentNode.insertBefore(spaceNode, incLink.nextSibling);
+                    newRange.setStartAfter(spaceNode);
+                } else if (e.key === 'ArrowLeft' || e.key === 'Home') {
+                    newRange.setStartBefore(incLink);
+                } else if (e.key === 'Escape') {
+                    spaceNode = document.createTextNode('   ');
+                    incLink.parentNode.insertBefore(spaceNode, incLink.nextSibling);
+                    newRange.setStartAfter(spaceNode);
+                }
+
+                newRange.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+            }
+        });
+
         document.querySelectorAll('.toolbar-btn').forEach(button => {
             button.addEventListener('click', function () {
                 const command = this.dataset.command;
@@ -2402,6 +2496,71 @@
 
         bgColorPicker.addEventListener('change', function () {
             execCommandOnEditor(backlogText, 'hiliteColor', this.value);
+        });
+
+        // EVENTO DE INPUT RESTAURADO - FORMATA INCS AUTOMATICAMENTE
+        backlogText.addEventListener('input', () => {
+            setTimeout(() => {
+                const selection = window.getSelection();
+                const range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+                let cursorOffset = 0;
+
+                if (range) {
+                    const preRange = range.cloneRange();
+                    preRange.selectNodeContents(backlogText);
+                    preRange.setEnd(range.startContainer, range.startOffset);
+                    cursorOffset = preRange.toString().length;
+                }
+
+                const currentHtml = backlogText.innerHTML;
+                const formattedHtml = formatIncLinks(currentHtml);
+
+                if (formattedHtml !== currentHtml) {
+                    backlogText.innerHTML = formattedHtml;
+
+                    if (range) {
+                        const newRange = document.createRange();
+                        let charCount = 0;
+                        let foundNode = null;
+                        let foundOffset = 0;
+
+                        const walker = document.createTreeWalker(
+                            backlogText,
+                            NodeFilter.SHOW_TEXT,
+                            null,
+                            false
+                        );
+
+                        let node;
+                        while (node = walker.nextNode()) {
+                            const length = node.nodeValue.length;
+                            if (charCount + length >= cursorOffset) {
+                                foundNode = node;
+                                foundOffset = cursorOffset - charCount;
+                                break;
+                            }
+                            charCount += length;
+                        }
+
+                        if (foundNode) {
+                            newRange.setStart(foundNode, foundOffset);
+                            newRange.collapse(true);
+                            selection.removeAllRanges();
+                            selection.addRange(newRange);
+                        }
+                    }
+                }
+            }, 0);
+        });
+
+        // EVENTO DE DUPLO CLIQUE RESTAURADO - ABRE LINK DO INC
+        backlogText.addEventListener('dblclick', function (e) {
+            const incLink = e.target.closest('.inc-link');
+            if (incLink) {
+                e.preventDefault();
+                const url = incLink.getAttribute('data-url');
+                window.open(url, '_blank');
+            }
         });
 
         async function loadJsonBinData() {
@@ -3349,7 +3508,7 @@
                 }
                 
                 if (!hasMessages) {
-                    html = '<div style="text-align:center; color:rgba(232,251,255,.45); padding:20px;">📝 Nenhuma anotação ainda.</div>';
+                    html = '<div style="text-align:center; color:rgba(232,251,255,.45); padding:20px;">📝 Nenhuma anotação ainda. Seja o primeiro a escrever!</div>';
                 }
                 
                 chatMessages.innerHTML = html;
@@ -3480,10 +3639,8 @@
     }
 </script>
     
-    
 </body>
 </html>
-
 
 
 
