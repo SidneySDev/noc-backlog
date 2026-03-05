@@ -355,6 +355,7 @@
             --glass: rgba(26, 32, 44, 0.7);
             --glass-border: rgba(255, 255, 255, 0.1);
             --navbar-height: 60px;
+            --gold: #FFD700;
         }
 
         * {
@@ -993,6 +994,28 @@
             border-color: rgba(190, 24, 93, 0.3) !important;
         }
 
+        /* Estilo para eventos inseridos pelo admin */
+        .event-admin {
+            position: relative;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 215, 0, 0.5)) !important;
+            border: 2px solid gold !important;
+            box-shadow: 0 0 15px gold !important;
+        }
+
+        .admin-badge {
+            display: inline-flex;
+            align-items: center;
+            background: gold;
+            color: #000;
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            margin-left: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         .fc-event-modal {
             position: fixed;
             top: 0;
@@ -1036,6 +1059,21 @@
             font-weight: 600;
             color: var(--light);
             margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .admin-title-badge {
+            background: gold;
+            color: #000;
+            font-size: 0.9rem;
+            font-weight: bold;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
         }
 
         .fc-event-modal-close {
@@ -1719,41 +1757,169 @@
             transform: scaleX(1);
         }
 
+        /* Modal Admin */
+        .admin-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10001;
+        }
+
+        .admin-modal-content {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border-radius: 24px;
+            padding: 2rem;
+            max-width: 700px;
+            width: 90%;
+            border: 2px solid gold;
+            box-shadow: 0 0 30px gold;
+            animation: adminModalPop 0.3s ease-out;
+        }
+
+        @keyframes adminModalPop {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .admin-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid gold;
+        }
+
+        .admin-modal-header h3 {
+            color: white;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .admin-modal-header h3 i {
+            color: gold;
+        }
+
+        .admin-badge-large {
+            background: gold;
+            color: #000;
+            font-weight: bold;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .admin-modal-close {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .admin-modal-close:hover {
+            background: #ef4444;
+            transform: rotate(90deg);
+        }
+
+        .admin-modal-body {
+            margin-bottom: 1.5rem;
+        }
+
+        .admin-info-row {
+            background: rgba(255, 215, 0, 0.1);
+            border-left: 4px solid gold;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .admin-info-icon {
+            width: 40px;
+            height: 40px;
+            background: gold;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-size: 1.2rem;
+        }
+
+        .admin-info-text p {
+            color: #e2e8f0;
+            margin: 0.2rem 0;
+        }
+
+        .admin-info-text strong {
+            color: gold;
+        }
+
+        .admin-modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
 
         /* Transição suave ao mudar de mês */
-.fc-view-harness {
-    transition: opacity 0.3s ease;
-}
+        .fc-view-harness {
+            transition: opacity 0.3s ease;
+        }
 
-.fc-view-harness.fc-changing {
-    opacity: 0.5;
-    transform: scale(0.98);
-}
+        .fc-view-harness.fc-changing {
+            opacity: 0.5;
+            transform: scale(0.98);
+        }
 
-/* Efeito de slide nos dias */
-@keyframes slideInDay {
-    from {
-        opacity: 0;
-        transform: translateX(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
+        /* Efeito de slide nos dias */
+        @keyframes slideInDay {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
 
-.fc-daygrid-day {
-    animation: slideInDay 0.3s ease-out;
-    animation-fill-mode: both;
-}
+        .fc-daygrid-day {
+            animation: slideInDay 0.3s ease-out;
+            animation-fill-mode: both;
+        }
 
-.fc-daygrid-day:nth-child(7n+1) { animation-delay: 0.05s; }
-.fc-daygrid-day:nth-child(7n+2) { animation-delay: 0.10s; }
-.fc-daygrid-day:nth-child(7n+3) { animation-delay: 0.15s; }
-.fc-daygrid-day:nth-child(7n+4) { animation-delay: 0.20s; }
-.fc-daygrid-day:nth-child(7n+5) { animation-delay: 0.25s; }
-.fc-daygrid-day:nth-child(7n+6) { animation-delay: 0.30s; }
-.fc-daygrid-day:nth-child(7n+7) { animation-delay: 0.35s; }
+        .fc-daygrid-day:nth-child(7n+1) { animation-delay: 0.05s; }
+        .fc-daygrid-day:nth-child(7n+2) { animation-delay: 0.10s; }
+        .fc-daygrid-day:nth-child(7n+3) { animation-delay: 0.15s; }
+        .fc-daygrid-day:nth-child(7n+4) { animation-delay: 0.20s; }
+        .fc-daygrid-day:nth-child(7n+5) { animation-delay: 0.25s; }
+        .fc-daygrid-day:nth-child(7n+6) { animation-delay: 0.30s; }
+        .fc-daygrid-day:nth-child(7n+7) { animation-delay: 0.35s; }
 
         #notes-section .card-body { min-height: 500px; }
         #backlog-text { min-height: 800px; }
@@ -2065,6 +2231,94 @@
         </div>
     </div>
 
+    <!-- Modal Admin (inicialmente oculto) -->
+    <div id="admin-modal" class="admin-modal" style="display: none;">
+        <div class="admin-modal-content">
+            <div class="admin-modal-header">
+                <h3>
+                    <i class="fas fa-crown"></i>
+                    Admin: Inserir Backlog
+                    <span class="admin-badge-large"><i class="fas fa-star"></i> SIDNEY</span>
+                </h3>
+                <button class="admin-modal-close" id="admin-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="admin-modal-body">
+                <div class="admin-info-row">
+                    <div class="admin-info-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="admin-info-text">
+                        <p><strong>Data selecionada:</strong> <span id="admin-selected-date"></span></p>
+                        <p><strong>Horário do clique:</strong> <span id="admin-click-time"></span></p>
+                        <p><i class="fas fa-info-circle" style="color: gold;"></i> Você está inserindo um backlog em nome de outro analista</p>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label class="form-label">Selecione o Analista</label>
+                    <select class="form-control form-select" id="admin-analista-select" required>
+                        <option value="">Selecione o analista</option>
+                        <option value="DELANO">DELANO</option>
+                        <option value="HERBETH">HERBETH</option>
+                        <option value="WELLIGTON">WELLIGTON</option>
+                        <option value="EDMUNDO">EDMUNDO</option>
+                        <option value="MARCIO">MARCIO</option>
+                        <option value="HELIELTON">HELIELTON</option>
+                        <option value="ROBSON">ROBSON</option>
+                        <option value="WYLLAME">WYLLAME</option>
+                        <option value="DARLYSON">DARLYSON</option>
+                        <option value="MURILO">MURILO</option>
+                        <option value="ONOFRE">ONOFRE</option>
+                        <option value="LYNNA">LYNNA</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Backlog Validado</label>
+                    <div class="editor-container">
+                        <div class="toolbar">
+                            <div class="toolbar-group">
+                                <button type="button" class="toolbar-btn" data-command="bold" title="Negrito">
+                                    <i class="fas fa-bold"></i>
+                                </button>
+                                <button type="button" class="toolbar-btn" data-command="italic" title="Itálico">
+                                    <i class="fas fa-italic"></i>
+                                </button>
+                                <button type="button" class="toolbar-btn" data-command="underline" title="Sublinhado">
+                                    <i class="fas fa-underline"></i>
+                                </button>
+                            </div>
+                            <div class="toolbar-group">
+                                <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="Lista">
+                                    <i class="fas fa-list-ul"></i>
+                                </button>
+                                <button type="button" class="toolbar-btn" data-command="insertOrderedList" title="Lista ordenada">
+                                    <i class="fas fa-list-ol"></i>
+                                </button>
+                            </div>
+                            <div class="toolbar-group">
+                                <button type="button" class="toolbar-btn" data-command="hiliteColor" data-value="yellow" title="Marcador">
+                                    <i class="fas fa-highlighter"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="editor-content" id="admin-backlog-text" contenteditable="true" placeholder="Descreva detalhadamente o backlog validado..."></div>
+                    </div>
+                </div>
+            </div>
+            <div class="admin-modal-footer">
+                <button class="btn btn-outline" id="admin-modal-cancel">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button class="btn btn-primary" id="admin-modal-save" style="background: gold; color: #000; border: none;">
+                    <i class="fas fa-save"></i> Salvar como Admin
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/pt-br.js"></script>
@@ -2200,6 +2454,16 @@
         const pageTitle = document.querySelector('.page-title');
         const monthSelect = document.getElementById('month-select');
 
+        // Elementos do Modal Admin
+        const adminModal = document.getElementById('admin-modal');
+        const adminModalClose = document.getElementById('admin-modal-close');
+        const adminModalCancel = document.getElementById('admin-modal-cancel');
+        const adminModalSave = document.getElementById('admin-modal-save');
+        const adminSelectedDate = document.getElementById('admin-selected-date');
+        const adminClickTime = document.getElementById('admin-click-time');
+        const adminAnalistaSelect = document.getElementById('admin-analista-select');
+        const adminBacklogText = document.getElementById('admin-backlog-text');
+
         // Dashboard
         const validationsTodayEl = document.getElementById('validations-today');
         const todayChangeEl = document.getElementById('today-change');
@@ -2224,6 +2488,10 @@
         analistaDisplay.value = currentUser;
         document.getElementById('user-name').textContent = currentUser;
         document.getElementById('user-avatar').textContent = currentUser.charAt(0);
+
+        // Variável para armazenar a data do clique no calendário
+        let selectedCalendarDate = null;
+        let clickTimestamp = null;
 
         function getFortalezaDateString() {
             return new Date().toLocaleDateString('pt-BR', {
@@ -2307,6 +2575,67 @@
                 .trim();
         }
 
+        // FUNÇÃO RESTAURADA - RECONHECE INCS E CRIA LINKS
+        function formatIncLinks(text) {
+            const incRegex = /(^|\s)(INC\d{5,})(?=\s|$)/gi;
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = text;
+
+            const walker = document.createTreeWalker(
+                tempDiv,
+                NodeFilter.SHOW_TEXT,
+                {
+                    acceptNode: function (node) {
+                        if (node.parentNode.classList && node.parentNode.classList.contains('inc-link')) {
+                            return NodeFilter.FILTER_REJECT;
+                        }
+                        return NodeFilter.FILTER_ACCEPT;
+                    }
+                }
+            );
+
+            const textNodes = [];
+            let currentNode;
+            while (currentNode = walker.nextNode()) {
+                textNodes.push(currentNode);
+            }
+
+            textNodes.forEach(node => {
+                const parent = node.parentNode;
+                const originalText = node.nodeValue;
+                const fragment = document.createDocumentFragment();
+                let lastIndex = 0;
+                let match;
+
+                while ((match = incRegex.exec(originalText)) !== null) {
+                    if (match.index > lastIndex) {
+                        fragment.appendChild(document.createTextNode(originalText.substring(lastIndex, match.index)));
+                    }
+
+                    const numeroINC = match[2];
+                    const serviceNowUrl = `https://equatorialenergia.service-now.com/incident.do?sysparm_query=number=${numeroINC}`;
+
+                    const incLink = document.createElement('span');
+                    incLink.className = 'inc-link';
+                    incLink.setAttribute('data-url', serviceNowUrl);
+                    incLink.textContent = numeroINC;
+
+                    fragment.appendChild(incLink);
+                    lastIndex = match.index + match[0].length;
+                }
+
+                if (lastIndex < originalText.length) {
+                    fragment.appendChild(document.createTextNode(originalText.substring(lastIndex)));
+                }
+
+                if (fragment.childNodes.length > 0) {
+                    parent.replaceChild(fragment, node);
+                }
+            });
+
+            return tempDiv.innerHTML;
+        }
+
         function showToast(message, type = 'success', duration = 3000) {
             const toastEl = document.getElementById('toast');
             const toastMsg = document.getElementById('toast-message');
@@ -2376,6 +2705,39 @@
             }
         });
 
+        // EVENTO RESTAURADO - PARA NAVEGAÇÃO COM SETAS DENTRO DOS LINKS
+        backlogText.addEventListener('keydown', function (e) {
+            const selection = window.getSelection();
+            if (!selection.rangeCount) return;
+
+            const range = selection.getRangeAt(0);
+            const node = range.startContainer;
+            const incLink = node.parentNode.closest('.inc-link');
+            if (!incLink) return;
+
+            if (['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', 'End', 'Home', 'Escape'].includes(e.key)) {
+                e.preventDefault();
+                let newRange = document.createRange();
+                let spaceNode;
+
+                if (e.key === 'ArrowRight' || e.key === 'End') {
+                    spaceNode = document.createTextNode('   ');
+                    incLink.parentNode.insertBefore(spaceNode, incLink.nextSibling);
+                    newRange.setStartAfter(spaceNode);
+                } else if (e.key === 'ArrowLeft' || e.key === 'Home') {
+                    newRange.setStartBefore(incLink);
+                } else if (e.key === 'Escape') {
+                    spaceNode = document.createTextNode('   ');
+                    incLink.parentNode.insertBefore(spaceNode, incLink.nextSibling);
+                    newRange.setStartAfter(spaceNode);
+                }
+
+                newRange.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+            }
+        });
+
         document.querySelectorAll('.toolbar-btn').forEach(button => {
             button.addEventListener('click', function () {
                 const command = this.dataset.command;
@@ -2402,6 +2764,71 @@
 
         bgColorPicker.addEventListener('change', function () {
             execCommandOnEditor(backlogText, 'hiliteColor', this.value);
+        });
+
+        // EVENTO DE INPUT RESTAURADO - FORMATA INCS AUTOMATICAMENTE
+        backlogText.addEventListener('input', () => {
+            setTimeout(() => {
+                const selection = window.getSelection();
+                const range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+                let cursorOffset = 0;
+
+                if (range) {
+                    const preRange = range.cloneRange();
+                    preRange.selectNodeContents(backlogText);
+                    preRange.setEnd(range.startContainer, range.startOffset);
+                    cursorOffset = preRange.toString().length;
+                }
+
+                const currentHtml = backlogText.innerHTML;
+                const formattedHtml = formatIncLinks(currentHtml);
+
+                if (formattedHtml !== currentHtml) {
+                    backlogText.innerHTML = formattedHtml;
+
+                    if (range) {
+                        const newRange = document.createRange();
+                        let charCount = 0;
+                        let foundNode = null;
+                        let foundOffset = 0;
+
+                        const walker = document.createTreeWalker(
+                            backlogText,
+                            NodeFilter.SHOW_TEXT,
+                            null,
+                            false
+                        );
+
+                        let node;
+                        while (node = walker.nextNode()) {
+                            const length = node.nodeValue.length;
+                            if (charCount + length >= cursorOffset) {
+                                foundNode = node;
+                                foundOffset = cursorOffset - charCount;
+                                break;
+                            }
+                            charCount += length;
+                        }
+
+                        if (foundNode) {
+                            newRange.setStart(foundNode, foundOffset);
+                            newRange.collapse(true);
+                            selection.removeAllRanges();
+                            selection.addRange(newRange);
+                        }
+                    }
+                }
+            }, 0);
+        });
+
+        // EVENTO DE DUPLO CLIQUE RESTAURADO - ABRE LINK DO INC
+        backlogText.addEventListener('dblclick', function (e) {
+            const incLink = e.target.closest('.inc-link');
+            if (incLink) {
+                e.preventDefault();
+                const url = incLink.getAttribute('data-url');
+                window.open(url, '_blank');
+            }
         });
 
         async function loadJsonBinData() {
@@ -2492,7 +2919,7 @@
             }
         }
 
-        async function saveBacklogRecord(analista, data, texto) {
+        async function saveBacklogRecord(analista, data, texto, isAdmin = false) {
             const docId = getBacklogDocId(data);
             const docRef = db.collection('backlog').doc(docId);
             const metadataRef = db.collection('backlog').doc('metadata');
@@ -2500,6 +2927,12 @@
             const now = new Date();
             const nowTimestampString = getFortalezaTimestamp();
             const nowFirestoreTs = firebase.firestore.Timestamp.now();
+
+            // Se for admin, usa o timestamp do clique em vez do timestamp atual
+            let recordTimestamp = nowTimestampString;
+            if (isAdmin && clickTimestamp) {
+                recordTimestamp = clickTimestamp;
+            }
 
             const operationType = await db.runTransaction(async (transaction) => {
                 const doc = await transaction.get(docRef);
@@ -2537,10 +2970,12 @@
                     registros[idx] = {
                         ...existing,
                         texto,
-                        timestamp: nowTimestampString,
+                        timestamp: recordTimestamp,
                         updatedAt: nowFirestoreTs,
                         createdAt: existing.createdAt || nowFirestoreTs,
-                        saveCount: saveCount + 1
+                        saveCount: saveCount + 1,
+                        insertedByAdmin: isAdmin ? true : false,
+                        adminName: isAdmin ? currentUser : null
                     };
 
                     transaction.set(docRef, { registros }, { merge: true });
@@ -2566,10 +3001,12 @@
                         analista,
                         data,
                         texto,
-                        timestamp: nowTimestampString,
+                        timestamp: recordTimestamp,
                         createdAt: nowFirestoreTs,
                         updatedAt: nowFirestoreTs,
-                        saveCount: 1
+                        saveCount: 1,
+                        insertedByAdmin: isAdmin ? true : false,
+                        adminName: isAdmin ? currentUser : null
                     };
 
                     registros.push(newRecord);
@@ -2639,7 +3076,7 @@
                 saveButton.disabled = true;
                 saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
 
-                const op = await saveBacklogRecord(analista, data, texto);
+                const op = await saveBacklogRecord(analista, data, texto, false);
 
                 const firebaseData = await loadFirebaseData();
                 firebaseRecords = firebaseData.registros.map(r => ({
@@ -2929,6 +3366,113 @@
             monthSelect.addEventListener('change', updateDashboardStats);
         }
 
+        // Função para abrir modal admin
+        function openAdminModal(date) {
+            if (currentUser !== 'SIDNEY') {
+                return; // Apenas SIDNEY pode abrir o modal admin
+            }
+
+            selectedCalendarDate = date;
+            clickTimestamp = getFortalezaTimestamp();
+            
+            // Formatar data para exibição
+            const dateObj = new Date(date + 'T12:00:00');
+            const formattedDate = dateObj.toLocaleDateString('pt-BR', {
+                timeZone: 'America/Fortaleza',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+            
+            adminSelectedDate.textContent = formattedDate;
+            adminClickTime.textContent = new Date().toLocaleTimeString('pt-BR', {
+                timeZone: 'America/Fortaleza',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            
+            // Limpar campos
+            adminAnalistaSelect.value = '';
+            adminBacklogText.innerHTML = '';
+            
+            adminModal.style.display = 'flex';
+        }
+
+        // Fechar modal admin
+        function closeAdminModal() {
+            adminModal.style.display = 'none';
+            selectedCalendarDate = null;
+            clickTimestamp = null;
+        }
+
+        // Event listeners do modal admin
+        adminModalClose.addEventListener('click', closeAdminModal);
+        adminModalCancel.addEventListener('click', closeAdminModal);
+
+        adminModalSave.addEventListener('click', async function() {
+            if (currentUser !== 'SIDNEY') {
+                showToast('Apenas SIDNEY pode usar esta funcionalidade!', 'error');
+                closeAdminModal();
+                return;
+            }
+
+            const analista = adminAnalistaSelect.value;
+            const data = selectedCalendarDate;
+            let texto = adminBacklogText.innerHTML.trim();
+
+            if (!analista || !data || !texto) {
+                showToast('Por favor, selecione um analista e preencha o backlog!', 'error');
+                return;
+            }
+
+            // Adicionar marcador de admin ao texto
+            texto = texto + ' <span class="admin-badge">ADM</span>';
+
+            try {
+                adminModalSave.disabled = true;
+                adminModalSave.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+
+                const op = await saveBacklogRecord(analista, data, texto, true);
+
+                const firebaseData = await loadFirebaseData();
+                firebaseRecords = firebaseData.registros.map(r => ({
+                    ...r,
+                    fonte: 'firebase'
+                }));
+
+                const msg = op === 'updated'
+                    ? 'Backlog atualizado por admin com sucesso!'
+                    : 'Backlog inserido por admin com sucesso!';
+
+                showToast(msg, 'success');
+                
+                // Atualizar calendário se estiver visível
+                if (document.getElementById('dashboard-section').style.display !== 'none') {
+                    initCalendar();
+                    updateDashboardStats();
+                }
+
+                closeAdminModal();
+
+            } catch (error) {
+                console.error('Erro ao salvar como admin:', error);
+
+                if (error.message === 'BACKLOG_EDIT_TIME_EXCEEDED') {
+                    showValidationError('O backlog só pode ser alterado dentro de 1 hora após o primeiro registro.');
+                } else if (error.message === 'BACKLOG_SAVE_LIMIT_REACHED') {
+                    showValidationError('Limite de 4 sobrescritas atingido para este backlog (analista + dia).');
+                } else if (error.message === 'BACKLOG_MAX_ANALYSTS_REACHED') {
+                    showValidationError('Limite máximo de 3 analistas diferentes por dia atingido. Não é possível salvar mais backlogs nesta data.');
+                } else {
+                    showToast('Erro ao salvar os dados. Verifique o console.', 'error');
+                }
+            } finally {
+                adminModalSave.disabled = false;
+                adminModalSave.innerHTML = '<i class="fas fa-save"></i> Salvar como Admin';
+            }
+        });
+
         async function initCalendar() {
             try {
                 const calendarEl = document.getElementById('calendar');
@@ -2939,16 +3483,26 @@
                     ...firebaseRecords
                 ];
 
-                const events = allRecords.map(entry => ({
-                    title: entry.analista,
-                    start: entry.data,
-                    extendedProps: {
-                        texto: entry.texto,
-                        analista: entry.analista,
-                        fonte: entry.fonte
-                    },
-                    className: `event-${entry.analista.toLowerCase()} fc-event-analyst has-tooltip`
-                }));
+                const events = allRecords.map(entry => {
+                    // Determinar classe do evento baseado em quem inseriu
+                    let eventClass = `event-${entry.analista.toLowerCase()} fc-event-analyst has-tooltip`;
+                    if (entry.insertedByAdmin) {
+                        eventClass += ' event-admin';
+                    }
+                    
+                    return {
+                        title: entry.analista,
+                        start: entry.data,
+                        extendedProps: {
+                            texto: entry.texto,
+                            analista: entry.analista,
+                            fonte: entry.fonte,
+                            insertedByAdmin: entry.insertedByAdmin || false,
+                            adminName: entry.adminName || null
+                        },
+                        className: eventClass
+                    };
+                });
 
                 const calendar = new FullCalendar.Calendar(calendarEl, {
                     initialView: 'dayGridMonth',
@@ -2966,10 +3520,14 @@
                         eventEl.style.alignItems = 'center';
                         eventEl.style.padding = '0.25rem 0.5rem';
                         eventEl.style.gap = '0.5rem';
+                        eventEl.style.flexWrap = 'wrap';
 
                         const iconEl = document.createElement('i');
-                        iconEl.className = 'fas fa-user-check';
+                        iconEl.className = arg.event.extendedProps.insertedByAdmin ? 'fas fa-crown' : 'fas fa-user-check';
                         iconEl.style.fontSize = '0.8em';
+                        if (arg.event.extendedProps.insertedByAdmin) {
+                            iconEl.style.color = 'gold';
+                        }
 
                         const titleEl = document.createElement('span');
                         titleEl.className = 'fc-event-title';
@@ -2977,11 +3535,20 @@
 
                         const tooltipEl = document.createElement('div');
                         tooltipEl.className = 'tooltip';
-                        tooltipEl.textContent = arg.event.extendedProps.fonte === 'jsonbin'
-                            ? 'Origem: JSONBin' : 'Origem: Firebase';
+                        tooltipEl.textContent = arg.event.extendedProps.insertedByAdmin 
+                            ? `Inserido por admin (${arg.event.extendedProps.adminName})` 
+                            : (arg.event.extendedProps.fonte === 'jsonbin' ? 'Origem: JSONBin' : 'Origem: Firebase');
 
                         eventEl.appendChild(iconEl);
                         eventEl.appendChild(titleEl);
+                        
+                        if (arg.event.extendedProps.insertedByAdmin) {
+                            const adminBadge = document.createElement('span');
+                            adminBadge.className = 'admin-badge';
+                            adminBadge.textContent = 'ADM';
+                            eventEl.appendChild(adminBadge);
+                        }
+                        
                         eventEl.appendChild(tooltipEl);
 
                         return { domNodes: [eventEl] };
@@ -3026,10 +3593,22 @@
 
                         const analystItem = document.createElement('div');
                         analystItem.className = 'fc-event-analyst-item';
+                        if (info.event.extendedProps.insertedByAdmin) {
+                            analystItem.style.border = '2px solid gold';
+                            analystItem.style.background = 'rgba(255, 215, 0, 0.1)';
+                        }
 
                         const analystName = document.createElement('div');
                         analystName.className = 'fc-event-analyst-name';
                         analystName.innerHTML = `<i class="fas fa-user-tie" style="color: ${getAnalystColor(info.event.extendedProps.analista)}"></i> ${info.event.extendedProps.analista}`;
+                        
+                        if (info.event.extendedProps.insertedByAdmin) {
+                            const adminSpan = document.createElement('span');
+                            adminSpan.className = 'admin-badge';
+                            adminSpan.style.marginLeft = '0.5rem';
+                            adminSpan.textContent = `Inserido por ${info.event.extendedProps.adminName}`;
+                            analystName.appendChild(adminSpan);
+                        }
 
                         const analystContent = document.createElement('div');
                         analystContent.className = 'fc-event-analyst-content';
@@ -3048,6 +3627,16 @@
                         modal.appendChild(modalContent);
                         document.body.appendChild(modal);
                     },
+                    dateClick: function(info) {
+                        // Se o usuário for SIDNEY, abrir modal admin no duplo clique
+                        if (currentUser === 'SIDNEY') {
+                            // No FullCalendar, o duplo clique não é nativo, então vamos usar um timer
+                            // Para simplificar, vamos usar o clique simples com confirmação
+                            if (confirm('Deseja inserir um backlog como admin para esta data?')) {
+                                openAdminModal(info.dateStr);
+                            }
+                        }
+                    },
                     viewDidMount: function () {
                         const header = document.querySelector('.fc-header-toolbar');
                         if (header) {
@@ -3063,6 +3652,25 @@
                             button.style.backdropFilter = 'blur(5px)';
                             button.style.border = '1px solid var(--glass-border)';
                         });
+
+                        // Adicionar evento de duplo clique nos dias do calendário
+                        setTimeout(() => {
+                            const dayCells = document.querySelectorAll('.fc-daygrid-day');
+                            dayCells.forEach(cell => {
+                                cell.addEventListener('dblclick', function(e) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    
+                                    if (currentUser === 'SIDNEY') {
+                                        // Extrair a data do atributo data-date ou do elemento
+                                        const dateAttr = this.getAttribute('data-date');
+                                        if (dateAttr) {
+                                            openAdminModal(dateAttr);
+                                        }
+                                    }
+                                });
+                            });
+                        }, 500);
                     }
                 });
 
@@ -3349,7 +3957,7 @@
                 }
                 
                 if (!hasMessages) {
-                    html = '<div style="text-align:center; color:rgba(232,251,255,.45); padding:20px;">📝 Nenhuma anotação ainda.</div>';
+                    html = '<div style="text-align:center; color:rgba(232,251,255,.45); padding:20px;">📝 Nenhuma anotação ainda. Seja o primeiro a escrever!</div>';
                 }
                 
                 chatMessages.innerHTML = html;
@@ -3483,7 +4091,3 @@
     
 </body>
 </html>
-
-
-
-
