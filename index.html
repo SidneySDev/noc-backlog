@@ -4012,8 +4012,7 @@
                 const oldText = contentDiv.innerText || contentDiv.textContent;
                 enableEdit(messageDiv, msgId, oldText);
             }
-            if (target.classList.contains('delete-msg')) {
-                if (!confirm('Tem certeza que deseja apagar esta mensagem?')) return;
+             if (target.classList.contains('delete-msg')) {
                 messageDiv.classList.add('deleting');
                 setTimeout(async () => {
                     try {
