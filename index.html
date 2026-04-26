@@ -3006,18 +3006,16 @@
             }
         });
 
-        async function handleLogout() {
-            if (confirm('Tem certeza que deseja sair do sistema?')) {
-                try {
-                    await logAudit('LOGOUT', `Usuário ${userAnalystName} fez logout`);
-                    await auth.signOut();
-                    currentUser = null;
-                    userAnalystName = null;
-                    location.reload();
-                } catch (error) {
-                    console.error('Erro ao fazer logout:', error);
-                    showToast('Erro ao fazer logout', 'error');
-                }
+         async function handleLogout() {
+            try {
+                await logAudit('LOGOUT', `Usuário ${userAnalystName} fez logout`);
+                await auth.signOut();
+                currentUser = null;
+                userAnalystName = null;
+                location.reload();
+            } catch (error) {
+                console.error('Erro ao fazer logout:', error);
+                showToast('Erro ao fazer logout', 'error');
             }
         }
 
