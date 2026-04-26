@@ -2344,25 +2344,25 @@
 
             <form class="login-form" id="login-form">
                 <div class="form-group">
-                    <label class="form-label">Usuario</label>
+                    <label class="form-label">USER</label>
                     <select class="form-control form-select" id="login-email" required>
-    <option value="">Selecione seu User</option>
-    <option value="delano@noctelecom.com">DELANO</option>
-    <option value="herbeth@noctelecom.com">HERBETH</option>
-    <option value="welligton@noctelecom.com">WELLIGTON</option>
-    <option value="edmundo@noctelecom.com">EDMUNDO</option>
-    <option value="sidney@noctelecom.com">SIDNEY</option>
-    <option value="marcio@noctelecom.com">MARCIO</option>
-    <option value="helielton@noctelecom.com">HELIELTON</option>
-    <option value="robson@noctelecom.com">ROBSON</option>
-    <option value="carla@noctelecom.com">CARLA</option>
-    <option value="wyllame@noctelecom.com">WYLLAME</option>
-    <option value="darlyson@noctelecom.com">DARLYSON</option>
-    <option value="murilo@noctelecom.com">MURILO</option>
-    <option value="onofre@noctelecom.com">onofre</option>
-    <option value="lynna@noctelecom.com">LYNNA</option>
-    <option value="joelze@noctelecom.com">JOELZE</option>
-</select>
+                        <option value="">Selecione seu User</option>
+                        <option value="delano@noctelecom.com">DELANO</option>
+                        <option value="herbeth@noctelecom.com">HERBETH</option>
+                        <option value="welligton@noctelecom.com">WELLIGTON</option>
+                        <option value="edmundo@noctelecom.com">EDMUNDO</option>
+                        <option value="sidney@noctelecom.com">SIDNEY</option>
+                        <option value="marcio@noctelecom.com">MARCIO</option>
+                        <option value="helielton@noctelecom.com">HELIELTON</option>
+                        <option value="robson@noctelecom.com">ROBSON</option>
+                        <option value="carla@noctelecom.com">CARLA</option>
+                        <option value="wyllame@noctelecom.com">WYLLAME</option>
+                        <option value="darlyson@noctelecom.com">DARLYSON</option>
+                        <option value="murilo@noctelecom.com">MURILO</option>
+                        <option value="onofre@noctelecom.com">ONOFRE</option>
+                        <option value="lynna@noctelecom.com">LYNNA</option>
+                        <option value="joelze@noctelecom.com">JOELZE</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
@@ -3006,7 +3006,7 @@
             }
         });
 
-         async function handleLogout() {
+        async function handleLogout() {
             try {
                 await logAudit('LOGOUT', `Usuário ${userAnalystName} fez logout`);
                 await auth.signOut();
@@ -3912,7 +3912,8 @@
                     const messages = [];
                     snapshot.forEach(doc => {
                         const msgData = doc.data();
-                        if (!msgData.system && msgData.analyst !== 'SISTEMA') {
+                        // Remove apenas mensagens do sistema (não as dos analistas)
+                        if (msgData.analyst !== 'SISTEMA') {
                             messages.push({ id: doc.id, ...msgData });
                         }
                     });
@@ -3977,71 +3978,80 @@
             } finally { chatSend.disabled = false; }
         }
 
-        function initializeMural() {
-            checkAndClearOldMessages();
-            if (muralUnsubscribe) muralUnsubscribe();
-            muralUnsubscribe = loadMuralMessages();
+       function initializeMural() {
+    checkAndClearOldMessages();
+    if (muralUnsubscribe) muralUnsubscribe();
+    muralUnsubscribe = loadMuralMessages();
 
-            const chatMessages = document.getElementById('chat-messages');
-            const chatInput = document.getElementById('chat-input');
-            const chatSend = document.getElementById('chat-send');
+    const chatMessages = document.getElementById('chat-messages');
+    const chatInput = document.getElementById('chat-input');
+    const chatSend = document.getElementById('chat-send');
 
-            if (chatMessages) {
-                chatMessages.addEventListener('click', async (e) => {
-                    const target = e.target.closest('button');
-                    if (!target) return;
-                    const messageDiv = target.closest('.message-wrapper');
-                    if (!messageDiv) return;
-                    const msgId = messageDiv.dataset.id;
-                    const contentDiv = messageDiv.querySelector('.message-content');
+    if (chatMessages) {
+        chatMessages.addEventListener('click', async (e) => {
+            const target = e.target.closest('button');
+            if (!target) return;
+            const messageDiv = target.closest('.message-wrapper');
+            if (!messageDiv) return;
+            const msgId = messageDiv.dataset.id;
+            const contentDiv = messageDiv.querySelector('.message-content');
 
-                    if (target.classList.contains('copy-msg')) {
-                        try {
-                            const plainText = contentDiv.innerText || contentDiv.textContent;
-                            await navigator.clipboard.writeText(plainText);
-                            flash(messageDiv.querySelector('.message-bubble'));
-                            showToast('✅ Mensagem copiada!', 'success');
-                        } catch (error) {
-                            console.error('Erro ao copiar:', error);
-                            showToast('Erro ao copiar mensagem', 'error');
-                        }
-                        return;
-                    }
-                    if (target.classList.contains('edit-msg')) {
-                        const oldText = contentDiv.innerText || contentDiv.textContent;
-                        enableEdit(messageDiv, msgId, oldText);
-                    }
-                    if (target.classList.contains('delete-msg')) {
-                        if (!confirm('Tem certeza que deseja apagar esta mensagem?')) return;
-                        messageDiv.classList.add('deleting');
-                        setTimeout(async () => {
-                            try {
-                                await db.collection('mural_messages').doc(msgId).delete();
-                                await logAudit('MURAL_DELETE', `Analista ${userAnalystName} deletou mensagem do mural`);
-                                showToast('Mensagem apagada!', 'success');
-                            }
-                            catch (error) { console.error('Erro ao apagar:', error); showToast('Erro ao apagar mensagem', 'error'); }
-                        }, 220);
-                    }
-                });
+            if (target.classList.contains('copy-msg')) {
+                try {
+                    const plainText = contentDiv.innerText || contentDiv.textContent;
+                    await navigator.clipboard.writeText(plainText);
+                    flash(messageDiv.querySelector('.message-bubble'));
+                    showToast('✅ Mensagem copiada!', 'success');
+                } catch (error) {
+                    console.error('Erro ao copiar:', error);
+                    showToast('Erro ao copiar mensagem', 'error');
+                }
+                return;
             }
-
-            if (chatInput) {
-                chatInput.addEventListener('keydown', function (e) {
-                    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMuralMessage(); }
-                });
-                chatInput.addEventListener('input', function () {
-                    this.style.height = '0px';
-                    this.style.height = Math.min(this.scrollHeight, 140) + 'px';
-                });
+            if (target.classList.contains('edit-msg')) {
+                const oldText = contentDiv.innerText || contentDiv.textContent;
+                enableEdit(messageDiv, msgId, oldText);
             }
-            if (chatSend) { chatSend.addEventListener('click', sendMuralMessage); }
-        }
+            if (target.classList.contains('delete-msg')) {
+                if (!confirm('Tem certeza que deseja apagar esta mensagem?')) return;
+                messageDiv.classList.add('deleting');
+                setTimeout(async () => {
+                    try {
+                        await db.collection('mural_messages').doc(msgId).delete();
+                        await logAudit('MURAL_DELETE', `Analista ${userAnalystName} deletou mensagem do mural`);
+                        showToast('Mensagem apagada!', 'success');
+                    } catch (error) {
+                        console.error('Erro detalhado ao apagar:', error);
+                        showToast(`Erro: ${error.message}`, 'error');
+                        messageDiv.classList.remove('deleting');
+                    }
+                }, 220);
+            }
+        });
+    }
 
+    if (chatInput) {
+        chatInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) { 
+                e.preventDefault(); 
+                sendMuralMessage(); 
+            }
+        });
+        chatInput.addEventListener('input', function () {
+            this.style.height = '0px';
+            this.style.height = Math.min(this.scrollHeight, 140) + 'px';
+        });
+    }
+    
+    if (chatSend) { 
+        chatSend.addEventListener('click', sendMuralMessage); 
+    }
+}
+        
         function enableEdit(messageDiv, msgId, oldText) {
-            const bubble = messageDiv.querySelector('.message-bubble');
-            const originalContent = bubble.innerHTML;
-            bubble.innerHTML = `
+                        const bubble = messageDiv.querySelector('.message-bubble');
+                        const originalContent = bubble.innerHTML;
+                        bubble.innerHTML = `
             <div class="edit-mode">
                 <textarea id="edit-textarea-${msgId}">${escHTML(oldText.replace(/<br>/g, '\n'))}</textarea>
                 <div class="edit-actions">
@@ -4049,59 +4059,59 @@
                     <button class="cancel-edit cancel" data-id="${msgId}"><i class="fa-solid fa-xmark"></i>Cancelar</button>
                 </div>
             </div>`;
-            const textarea = bubble.querySelector('textarea');
-            textarea.focus();
-            const autoResize = () => { textarea.style.height = '0px'; textarea.style.height = Math.min(textarea.scrollHeight, 240) + 'px'; };
-            textarea.addEventListener('input', autoResize);
-            autoResize();
-            bubble.querySelector('.save-edit').addEventListener('click', async () => {
-                const newText = textarea.value.trim();
-                if (!newText) return;
-                try {
-                    await db.collection('mural_messages').doc(msgId).update({
-                        text: newText, edited: true, timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    await logAudit('MURAL_EDIT', `Analista ${userAnalystName} editou mensagem do mural`);
-                    showToast('Mensagem editada', 'success');
-                } catch (error) { console.error('Erro ao editar:', error); showToast('Erro ao editar', 'error'); }
-            });
-            bubble.querySelector('.cancel-edit').addEventListener('click', () => { bubble.innerHTML = originalContent; });
-        }
+                        const textarea = bubble.querySelector('textarea');
+                        textarea.focus();
+                        const autoResize = () => { textarea.style.height = '0px'; textarea.style.height = Math.min(textarea.scrollHeight, 240) + 'px'; };
+                        textarea.addEventListener('input', autoResize);
+                        autoResize();
+                        bubble.querySelector('.save-edit').addEventListener('click', async () => {
+                            const newText = textarea.value.trim();
+                            if (!newText) return;
+                            try {
+                                await db.collection('mural_messages').doc(msgId).update({
+                                    text: newText, edited: true, timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                                });
+                                await logAudit('MURAL_EDIT', `Analista ${userAnalystName} editou mensagem do mural`);
+                                showToast('Mensagem editada', 'success');
+                            } catch (error) { console.error('Erro ao editar:', error); showToast('Erro ao editar', 'error'); }
+                        });
+                        bubble.querySelector('.cancel-edit').addEventListener('click', () => { bubble.innerHTML = originalContent; });
+                    }
 
         function flash(element) {
-            if (!element) return;
-            element.classList.remove('flash');
-            void element.offsetWidth;
-            element.classList.add('flash');
-            setTimeout(() => element.classList.remove('flash'), 380);
-        }
+                        if (!element) return;
+                        element.classList.remove('flash');
+                        void element.offsetWidth;
+                        element.classList.add('flash');
+                        setTimeout(() => element.classList.remove('flash'), 380);
+                    }
 
         function scheduleMidnightCleanup() {
-            const now = new Date();
-            const night = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
-            const msToMidnight = night.getTime() - now.getTime();
-            setTimeout(() => { checkAndClearOldMessages(); scheduleMidnightCleanup(); }, msToMidnight);
-        }
+                        const now = new Date();
+                        const night = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+                        const msToMidnight = night.getTime() - now.getTime();
+                        setTimeout(() => { checkAndClearOldMessages(); scheduleMidnightCleanup(); }, msToMidnight);
+                    }
 
         // ========== AUDITORIA ==========
 
         async function loadAuditLogs() {
-            const container = document.getElementById('audit-logs-container');
-            if (!container) return;
-            container.innerHTML = '<p style="text-align: center; color: var(--gray);">Carregando logs...</p>';
-            try {
-                const snapshot = await db.collection('audit_logs').orderBy('timestamp', 'desc').limit(100).get();
-                if (snapshot.empty) {
-                    container.innerHTML = '<p style="text-align: center; color: var(--gray);">Nenhum log de auditoria encontrado.</p>';
-                    return;
-                }
-                let html = '';
-                snapshot.forEach(doc => {
-                    const log = doc.data();
-                    const timestamp = log.timestamp?.toDate ? log.timestamp.toDate() : new Date();
-                    const timeStr = timestamp.toLocaleString('pt-BR');
-                    const isAdminAction = log.action.includes('ADMIN');
-                    html += `
+                        const container = document.getElementById('audit-logs-container');
+                        if (!container) return;
+                        container.innerHTML = '<p style="text-align: center; color: var(--gray);">Carregando logs...</p>';
+                        try {
+                            const snapshot = await db.collection('audit_logs').orderBy('timestamp', 'desc').limit(100).get();
+                            if (snapshot.empty) {
+                                container.innerHTML = '<p style="text-align: center; color: var(--gray);">Nenhum log de auditoria encontrado.</p>';
+                                return;
+                            }
+                            let html = '';
+                            snapshot.forEach(doc => {
+                                const log = doc.data();
+                                const timestamp = log.timestamp?.toDate ? log.timestamp.toDate() : new Date();
+                                const timeStr = timestamp.toLocaleString('pt-BR');
+                                const isAdminAction = log.action.includes('ADMIN');
+                                html += `
                     <div class="audit-log-item ${isAdminAction ? 'admin-action' : ''}">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
                             <strong style="color: var(--accent);">${log.action}</strong>
@@ -4113,53 +4123,53 @@
                         </div>
                     </div>
                 `;
-                });
-                container.innerHTML = html;
-            } catch (error) {
-                console.error('Erro ao carregar logs de auditoria:', error);
-                container.innerHTML = '<p style="text-align: center; color: var(--danger);">Erro ao carregar logs de auditoria.</p>';
-            }
-        }
+                            });
+                            container.innerHTML = html;
+                        } catch (error) {
+                            console.error('Erro ao carregar logs de auditoria:', error);
+                            container.innerHTML = '<p style="text-align: center; color: var(--danger);">Erro ao carregar logs de auditoria.</p>';
+                        }
+                    }
 
         document.getElementById('refresh-audit-logs').addEventListener('click', loadAuditLogs);
 
-        // Inicializa o modal de comparação
-        document.getElementById('closeComparisonModal').addEventListener('click', closeComparisonModal);
-        document.getElementById('comparisonModal').addEventListener('click', function (e) {
-            if (e.target === this) closeComparisonModal();
-        });
-
-        // ========== CARREGAMENTO INICIAL ==========
-
-        async function loadInitialData() {
-            try {
-                const firebaseData = await loadFirebaseData();
-                firebaseRecords = firebaseData.registros.map(r => ({ ...r, fonte: 'firebase' }));
-                showToast('Dados carregados!');
-                populateMonthSelect();
-
-                db.collection('backlog').onSnapshot(snapshot => {
-                    let allRegistros = [];
-                    snapshot.forEach(doc => {
-                        if (doc.id !== 'metadata') {
-                            const registros = doc.data().registros || [];
-                            allRegistros = [...allRegistros, ...registros];
-                        }
-                    });
-                    firebaseRecords = allRegistros.map(r => ({ ...r, fonte: 'firebase' }));
-                    sessionStorage.removeItem('backlog_cache');
-                    if (document.getElementById('dashboard-section').style.display !== 'none') {
-                        initCalendar();
-                        updateDashboardStats();
-                    }
+                // Inicializa o modal de comparação
+                document.getElementById('closeComparisonModal').addEventListener('click', closeComparisonModal);
+                document.getElementById('comparisonModal').addEventListener('click', function (e) {
+                    if (e.target === this) closeComparisonModal();
                 });
-            } catch (error) {
-                console.error('Erro ao carregar dados iniciais:', error);
-                showToast('Erro ao carregar dados. Verifique o console.', 'error');
-            }
-        }
 
-        window.addEventListener('focus', async () => { await checkAndClearOldMessages(); });
+                // ========== CARREGAMENTO INICIAL ==========
+
+                async function loadInitialData() {
+                    try {
+                        const firebaseData = await loadFirebaseData();
+                        firebaseRecords = firebaseData.registros.map(r => ({ ...r, fonte: 'firebase' }));
+                        showToast('Dados carregados!');
+                        populateMonthSelect();
+
+                        db.collection('backlog').onSnapshot(snapshot => {
+                            let allRegistros = [];
+                            snapshot.forEach(doc => {
+                                if (doc.id !== 'metadata') {
+                                    const registros = doc.data().registros || [];
+                                    allRegistros = [...allRegistros, ...registros];
+                                }
+                            });
+                            firebaseRecords = allRegistros.map(r => ({ ...r, fonte: 'firebase' }));
+                            sessionStorage.removeItem('backlog_cache');
+                            if (document.getElementById('dashboard-section').style.display !== 'none') {
+                                initCalendar();
+                                updateDashboardStats();
+                            }
+                        });
+                    } catch (error) {
+                        console.error('Erro ao carregar dados iniciais:', error);
+                        showToast('Erro ao carregar dados. Verifique o console.', 'error');
+                    }
+                }
+
+                window.addEventListener('focus', async () => { await checkAndClearOldMessages(); });
     </script>
 </body>
 
