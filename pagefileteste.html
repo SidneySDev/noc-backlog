@@ -1,0 +1,4685 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Backlog Management Pro | Sistema de Gestão</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+        /* Splash Screen Styles */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, #080818, #000);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', Courier, monospace;
+            color: #00ffff;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+
+        /* Login Screen Styles */
+        #login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9998;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .login-container {
+            background: rgba(26, 32, 44, 0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 1rem;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .login-logo i {
+            font-size: 2rem;
+            color: #4285f4;
+        }
+
+        .login-logo span {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #e2e8f0;
+        }
+
+        .login-title {
+            font-size: 1.25rem;
+            color: #e2e8f0;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-subtitle {
+            font-size: 0.9rem;
+            color: #a0aec0;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #e2e8f0;
+        }
+
+        .form-control {
+            padding: 0.75rem 1rem;
+            border: 1px solid #4a5568;
+            border-radius: 0.5rem;
+            font-size: 0.9375rem;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            background-color: rgba(26, 32, 44, 0.7);
+            color: #e2e8f0;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #4285f4;
+            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.15);
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23a0aec0' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 16px 12px;
+        }
+
+        .login-btn {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .login-btn:hover {
+            background-color: #1a73e8;
+            transform: translateY(-1px);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .login-error {
+            background: rgba(234, 67, 53, 0.1);
+            border: 1px solid rgba(234, 67, 53, 0.3);
+            color: #ea4335;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .login-error.show {
+            display: flex;
+        }
+
+        .validation-error {
+            background: rgba(234, 67, 53, 0.1);
+            border: 1px solid rgba(234, 67, 53, 0.3);
+            color: #ea4335;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .validation-error.show {
+            display: flex;
+        }
+
+        .fc-event.has-tooltip {
+            position: relative;
+        }
+
+        .fc-event .tooltip {
+            visibility: hidden;
+            width: 120px;
+            background: rgba(26, 32, 44, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: #e2e8f0;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 100;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 0.8rem;
+        }
+
+        .fc-event .tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: rgba(26, 32, 44, 0.7) transparent transparent transparent;
+        }
+
+        .fc-event:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .loader-container {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-center {
+            width: 145px;
+            height: 145px;
+            background: rgba(255, 255, 255, 0.95) !important;
+            border-radius: 70%;
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.8), 0 0 60px rgba(30, 64, 175, 1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: floatRotatePulse 4s ease-in-out infinite;
+            z-index: 2;
+            border: 2px solid #38bdf8;
+            backdrop-filter: blur(10px);
+        }
+
+        .icon-center img {
+            max-width: 95%;
+            max-height: 95%;
+            object-fit: contain;
+            border-radius: 15px;
+        }
+
+        .orbital-ring {
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            border-top: 3px solid #38bdf8;
+            border-left: 3px solid transparent;
+            border-bottom: 3px solid transparent;
+            border-right: 3px solid transparent;
+            animation: spin 1.2s linear infinite;
+        }
+
+        .orbital-ring::after {
+            content: "";
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: #38bdf8;
+            border-radius: 50%;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 14px #38bdf8;
+        }
+
+        @keyframes floatRotatePulse {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            25% {
+                transform: translateY(-8px) rotate(4deg);
+            }
+
+            50% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            75% {
+                transform: translateY(-8px) rotate(-4deg);
+            }
+
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-text {
+            margin-top: 30px;
+            font-size: 1.2rem;
+            font-weight: 400;
+            white-space: nowrap;
+            overflow: hidden;
+            border-right: 3px solid #00ffff;
+            width: 0;
+            animation: typing 1.5s steps(12) forwards, blinkCaret 0.5s step-end infinite;
+            letter-spacing: 2px;
+        }
+
+        @keyframes typing {
+            from {
+                width: 0;
+            }
+
+            to {
+                width: 15ch;
+            }
+        }
+
+        @keyframes blinkCaret {
+
+            0%,
+            100% {
+                border-color: transparent;
+            }
+
+            50% {
+                border-color: #00ffff;
+            }
+        }
+
+        :root {
+            --primary: #1a73e8;
+            --primary-dark: #1557b0;
+            --secondary: #0d47a1;
+            --accent: #4285f4;
+            --light: #e2e8f0;
+            --dark: #1a202c;
+            --gray: #a0aec0;
+            --light-gray: #4a5568;
+            --success: #34a853;
+            --warning: #fbbc05;
+            --danger: #ea4335;
+            --white: rgba(26, 32, 44, 0.8);
+            --sidebar-width: 280px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --glass: rgba(26, 32, 44, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --navbar-height: 60px;
+            --gold: #FFD700;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            color: var(--light);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            z-index: 100;
+            border-right: 1px solid var(--glass-border);
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            transform: translateX(-100%);
+            box-shadow: 2px 0 6px rgba(10, 10, 10, 0.963);
+        }
+
+        .sidebar.active {
+            transform: translateX(0);
+        }
+
+        .sidebar-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            height: var(--navbar-height);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--light);
+        }
+
+        .logo-icon {
+            color: var(--accent);
+            font-size: 1.5rem;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 1rem 0;
+            overflow-y: auto;
+        }
+
+        .nav-title {
+            padding: 0.5rem 1.5rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--gray);
+            font-weight: 600;
+        }
+
+        .nav-item {
+            margin: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .nav-item:hover {
+            background-color: rgba(66, 133, 244, 0.1);
+        }
+
+        .nav-item.active {
+            background-color: rgba(66, 133, 244, 0.2);
+        }
+
+        .nav-item.active .nav-link {
+            color: var(--accent);
+        }
+
+        .nav-item.active .nav-icon {
+            color: var(--accent);
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+            color: var(--light);
+            font-weight: 500;
+            font-size: 0.9375rem;
+        }
+
+        .nav-icon {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+            color: var(--gray);
+            width: 24px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .user-panel {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9375rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--light);
+        }
+
+        .user-role {
+            font-size: 0.8125rem;
+            color: var(--gray);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            transition: var(--transition);
+            margin-left: 0.5rem;
+        }
+
+        .logout-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--light);
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--navbar-height);
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            z-index: 90;
+        }
+
+        .menu-toggle {
+            background: none;
+            border: none;
+            color: var(--light);
+            font-size: 1.25rem;
+            cursor: pointer;
+            margin-right: 1rem;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .menu-toggle:hover {
+            background-color: rgba(66, 133, 244, 0.1);
+            color: var(--accent);
+        }
+
+        .page-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--light);
+            margin-right: auto;
+        }
+
+        .navbar-tools {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-icon {
+            padding: 0.5rem;
+            width: 40px;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            margin-top: var(--navbar-height);
+            padding: 1.5rem;
+            width: 100%;
+            transition: var(--transition);
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+        .content-body {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        /* ========== CARDS REFINADOS COM PROFUNDIDADE ========== */
+        .card {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 1rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            margin-bottom: 1.5rem;
+            transition: transform 0.25s ease, box-shadow 0.35s ease, border-color 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(66, 133, 244, 0.2);
+            border-color: rgba(66, 133, 244, 0.35);
+        }
+
+        .card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--light);
+        }
+
+        .card-tools {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group {
+            flex: 1;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: var(--light);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--light-gray);
+            border-radius: 0.5rem;
+            font-size: 0.9375rem;
+            transition: var(--transition);
+            background-color: rgba(26, 32, 44, 0.5);
+            color: var(--light);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.15);
+            background-color: rgba(26, 32, 44, 0.7);
+        }
+
+        .editor-container {
+            border: 1px solid var(--light-gray);
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background-color: rgba(26, 32, 44, 0.7);
+            width: 100%;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            padding: 0.5rem;
+            background-color: rgba(26, 32, 44, 0.9);
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .toolbar-group {
+            display: flex;
+            gap: 0.25rem;
+            padding-right: 0.5rem;
+            border-right: 1px solid var(--light-gray);
+            margin-right: 0.5rem;
+        }
+
+        .toolbar-group:last-child {
+            border-right: none;
+            margin-right: 0;
+        }
+
+        .toolbar-btn {
+            background: none;
+            border: none;
+            color: var(--gray);
+            width: 32px;
+            height: 32px;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .toolbar-btn:hover {
+            background-color: rgba(66, 133, 244, 0.2);
+            color: var(--accent);
+        }
+
+        .toolbar-btn.active {
+            background-color: rgba(66, 133, 244, 0.3);
+            color: var(--accent);
+        }
+
+        .color-picker {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border: none;
+            cursor: pointer;
+            background: none;
+        }
+
+        .editor-content {
+            min-height: 300px;
+            max-height: 600px;
+            padding: 1rem;
+            outline: none;
+            overflow-y: auto;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            font-size: 0.9375rem;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary);
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--light-gray);
+            color: var(--light);
+        }
+
+        .btn-outline:hover {
+            background-color: rgba(66, 133, 244, 0.1);
+            border-color: var(--accent);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            margin-top: 1rem;
+        }
+
+        .fc {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            color: var(--light);
+        }
+
+        .fc-header-toolbar {
+            padding: 1.5rem;
+            margin-bottom: 0 !important;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+        }
+
+        .fc-toolbar-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--light);
+        }
+
+        .fc-button {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid var(--glass-border) !important;
+            color: var(--light) !important;
+            font-weight: 500 !important;
+            transition: var(--transition) !important;
+            border-radius: 0.75rem !important;
+            padding: 0.5rem 1rem !important;
+            backdrop-filter: blur(5px);
+        }
+
+        .fc-button:hover {
+            background-color: rgba(66, 133, 244, 0.2) !important;
+        }
+
+        .fc-button-primary:not(:disabled).fc-button-active {
+            background-color: var(--accent) !important;
+            border-color: var(--accent) !important;
+            color: white !important;
+        }
+
+        .fc-daygrid-day {
+            border: 1px solid var(--glass-border) !important;
+            background: rgba(255, 255, 255, 0.03);
+            transition: all 0.3s ease;
+        }
+
+        .fc-daygrid-day:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .fc-daygrid-day-number {
+            color: var(--light);
+            font-weight: 500;
+            padding: 0.5rem;
+        }
+
+        .fc-daygrid-day.fc-day-today {
+            background-color: rgba(66, 133, 244, 0.15) !important;
+        }
+
+        .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .fc-daygrid-event {
+            border-radius: 0.75rem !important;
+            padding: 0.5rem !important;
+            font-size: 0.85rem !important;
+            background: rgba(66, 133, 244, 0.25) !important;
+            border: none !important;
+            color: var(--light) !important;
+            margin: 0.25rem 0.5rem !important;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            transition: all 0.3s ease;
+        }
+
+        .fc-daygrid-event:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            background: rgba(66, 133, 244, 0.35) !important;
+        }
+
+        .fc-event-main {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem;
+        }
+
+        .fc-event-title {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 500;
+        }
+
+        .fc-event-dot {
+            display: none !important;
+        }
+
+        .fc-col-header-cell {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border) !important;
+            padding: 0.75rem 0;
+        }
+
+        .fc-col-header-cell-cushion {
+            color: var(--light);
+            font-weight: 500;
+        }
+
+        .event-delano {
+            background: rgba(101, 163, 13, 0.25) !important;
+            border-color: rgba(101, 163, 13, 0.3) !important;
+        }
+
+        .event-herbeth {
+            background: rgba(220, 38, 38, 0.25) !important;
+            border-color: rgba(220, 38, 38, 0.3) !important;
+        }
+
+        .event-welligton {
+            background: rgba(234, 88, 12, 0.25) !important;
+            border-color: rgba(234, 88, 12, 0.3) !important;
+        }
+
+        .event-edmundo {
+            background: rgba(139, 92, 246, 0.25) !important;
+            border-color: rgba(139, 92, 246, 0.3) !important;
+        }
+
+        .event-sidney {
+            background: rgba(20, 184, 166, 0.25) !important;
+            border-color: rgba(20, 184, 166, 0.3) !important;
+        }
+
+        .event-marcio {
+            background: rgba(236, 72, 153, 0.25) !important;
+            border-color: rgba(236, 72, 153, 0.3) !important;
+        }
+
+        .event-helielton {
+            background: rgba(59, 130, 246, 0.25) !important;
+            border-color: rgba(59, 130, 246, 0.3) !important;
+        }
+
+        .event-robson {
+            background: rgba(245, 158, 11, 0.25) !important;
+            border-color: rgba(245, 158, 11, 0.4) !important;
+        }
+
+        .event-carla {
+            background: rgba(245, 151, 11, 0.25) !important;
+            border-color: rgba(245, 158, 11, 0.2) !important;
+        }
+
+        .event-wyllame {
+            background: rgba(5, 150, 105, 0.25) !important;
+            border-color: rgba(5, 150, 105, 0.3) !important;
+        }
+
+        .event-darlyson {
+            background: rgba(217, 70, 239, 0.25) !important;
+            border-color: rgba(217, 70, 239, 0.3) !important;
+        }
+
+        .event-murilo {
+            background: rgba(6, 182, 212, 0.25) !important;
+            border-color: rgba(6, 182, 212, 0.3) !important;
+        }
+
+        .event-onofre {
+            background: rgba(249, 115, 22, 0.25) !important;
+            border-color: rgba(249, 115, 22, 0.3) !important;
+        }
+
+        .event-lynna {
+            background: rgba(190, 24, 93, 0.25) !important;
+            border-color: rgba(190, 24, 93, 0.3) !important;
+        }
+
+        .event-joelze {
+            background: rgba(25, 229, 161, 0.25) !important;
+            border-color: rgba(16, 185, 129, 0.3) !important;
+        }
+        .event-gustavo {
+            background: rgba(25, 229, 161, 0.25) !important;
+            border-color: rgba(16, 185, 129, 0.3) !important;
+        }
+
+        .event-admin {
+            position: relative;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 215, 0, 0.5)) !important;
+            border: 1px solid rgb(248, 241, 203) !important;
+            box-shadow: 0 0 15px rgb(244, 236, 191) !important;
+        }
+
+        .admin-badge {
+            display: inline-flex;
+            align-items: center;
+            background: gold;
+            color: #000;
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            margin-left: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ====== MODAL DO CALENDÁRIO ====== */
+        .fc-event-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+        }
+
+        .fc-event-modal-content {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            color: var(--light);
+        }
+
+        .fc-event-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .fc-event-modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--light);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .admin-title-badge {
+            background: gold;
+            color: #000;
+            font-size: 0.9rem;
+            font-weight: bold;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .fc-event-modal-close {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--light);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .fc-event-modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .fc-event-analyst-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--glass-border);
+            transition: var(--transition);
+        }
+
+        .fc-event-analyst-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .fc-event-analyst-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--light);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* ====== ESTILOS DO CONTEÚDO FORMATADO DO BACKLOG ====== */
+        .fc-event-analyst-content {
+            font-size: 0.95rem;
+            line-height: 1.65;
+            color: rgba(232, 251, 255, 0.9);
+        }
+
+        .fc-event-analyst-content p {
+            margin: 0 0 5px 0;
+            line-height: 1.6;
+        }
+
+        .fc-event-analyst-content strong {
+            color: rgba(232, 251, 255, 1);
+            font-weight: 700;
+        }
+
+        .fc-event-analyst-content em {
+            color: rgba(200, 230, 255, 0.95);
+            font-style: italic;
+        }
+
+        .fc-event-analyst-content s {
+            opacity: 0.65;
+            text-decoration: line-through;
+        }
+
+        .fc-event-analyst-content code {
+            background: rgba(255, 255, 255, 0.12);
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.91em;
+        }
+
+        .fc-event-analyst-content ul {
+            list-style: disc;
+            padding-left: 1.5rem;
+            margin: 5px 0;
+        }
+
+        .fc-event-analyst-content li {
+            margin-bottom: 3px;
+        }
+
+        .fc-event-analyst-content hr {
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.18);
+            margin: 10px 0;
+        }
+
+        .fc-event-analyst-content a {
+            color: var(--accent);
+            font-weight: 700;
+            text-decoration: underline;
+        }
+
+        .fc-event-analyst-content a:hover {
+            color: var(--light);
+        }
+
+        /* ========== STATS CARDS REFINADOS ========== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(145deg, rgba(26, 32, 44, 0.85), rgba(15, 23, 42, 0.9));
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border: 1px solid rgba(66, 133, 244, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(66, 133, 244, 0.08), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .stat-card:hover::before {
+            left: 100%;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(66, 133, 244, 0.5);
+            box-shadow: 0 15px 30px -12px rgba(0, 0, 0, 0.4);
+        }
+
+        .stat-title {
+            font-size: 0.875rem;
+            color: var(--gray);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--light), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-change {
+            font-size: 0.8125rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .stat-change.positive {
+            color: var(--success);
+        }
+
+        .stat-change.negative {
+            color: var(--danger);
+        }
+
+        /* ========== ANALYST CARDS REFINADOS ========== */
+        .analyst-stats-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .analyst-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .analyst-stat-card {
+            background: linear-gradient(145deg, rgba(26, 32, 44, 0.7), rgba(15, 23, 42, 0.8));
+            backdrop-filter: blur(12px);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            position: relative;
+        }
+
+        .analyst-stat-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(0, 188, 212, 0.3);
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.4);
+        }
+
+        .analyst-stat-card.wide {
+            grid-column: span 2;
+        }
+
+        /* ========== RANKING COM MEDALHAS ANIMADAS ========== */
+        .analyst-ranking {
+            margin-top: 1rem;
+        }
+
+        .analyst-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.85rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .analyst-item:hover {
+            background: rgba(66, 133, 244, 0.08);
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+            border-radius: 0.75rem;
+            margin-left: -0.5rem;
+            margin-right: -0.5rem;
+        }
+
+        .analyst-item:last-child {
+            border-bottom: none;
+        }
+
+        .analyst-name {
+            font-weight: 500;
+            color: var(--light);
+        }
+
+        .analyst-count {
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .analyst-details {
+            margin-top: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .analyst-detail-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .analyst-detail-item:last-child {
+            border-bottom: none;
+        }
+
+        /* ========== GRÁFICO COM PROFUNDIDADE ========== */
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin-top: 1.5rem;
+            position: relative;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 1rem;
+            padding: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .chart-container canvas {
+            filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.3));
+            transition: filter 0.3s ease;
+        }
+
+        .chart-container:hover canvas {
+            filter: drop-shadow(0 12px 20px rgba(66, 133, 244, 0.2));
+        }
+
+        /* ========== MEDALHAS 3D ========== */
+        .medal {
+            width: 28px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            font-size: 0.8rem;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .gold {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #000;
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+        }
+
+        .silver {
+            background: linear-gradient(135deg, #C0C0C0, #A0A0A0);
+            color: #000;
+            box-shadow: 0 0 6px rgba(192, 192, 192, 0.4);
+        }
+
+        .bronze {
+            background: linear-gradient(135deg, #CD7F32, #A05A2C);
+            color: #fff;
+            box-shadow: 0 0 6px rgba(205, 127, 50, 0.4);
+        }
+
+        .month-filter {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .month-filter label {
+            font-weight: 500;
+            color: var(--light);
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 80;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+
+        .sidebar-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .mural-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .mural-info {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border-radius: 0.75rem;
+            padding: 1rem 1.5rem;
+            border: 1px solid var(--glass-border);
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        .mural-warning {
+            background: rgba(251, 188, 5, 0.1);
+            border-color: rgba(251, 188, 5, 0.3);
+            color: var(--warning);
+        }
+
+        /* ===== MURAL CYAN/TEAL ===== */
+        :root {
+            --bg: #061018;
+            --panel: #081b24;
+            --panel2: #0b2230;
+            --stroke: rgba(255, 255, 255, .10);
+            --stroke2: rgba(255, 255, 255, .16);
+            --text: #e8fbff;
+            --muted: rgba(232, 251, 255, .62);
+            --muted2: rgba(232, 251, 255, .42);
+            --accent-cyan: #06b6d4;
+            --accent2-cyan: #0891b2;
+            --accentGlow: rgba(6, 182, 212, .20);
+            --radius: 16px;
+            --shadow: 0 16px 40px rgba(0, 0, 0, .35);
+            --maxw: 1100px;
+        }
+
+        .mural-cyan {
+            background: linear-gradient(180deg, rgba(255, 255, 255, .04), rgba(255, 255, 255, .02));
+            border: 1px solid var(--stroke);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            height: min(70vh, 680px);
+            overflow-y: auto;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: var(--panel);
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, .03);
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(232, 251, 255, .18);
+            border-radius: 999px;
+            border: 2px solid rgba(0, 0, 0, 0);
+            background-clip: padding-box;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: rgba(232, 251, 255, .28);
+        }
+
+        .message-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        .message-wrapper.own {
+            align-items: flex-end;
+        }
+
+        .message-wrapper.system .message-bubble {
+            opacity: .92;
+            font-style: italic;
+            background: rgba(255, 255, 255, .03);
+        }
+
+        .message-bubble {
+            width: min(820px, 94%);
+            border-radius: 16px;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid var(--stroke);
+        }
+
+        .message-wrapper.own .message-bubble {
+            background: color-mix(in srgb, var(--accent-cyan) 12%, transparent);
+            border-color: color-mix(in srgb, var(--accent-cyan) 26%, transparent);
+        }
+
+        .message-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .message-author {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            font-weight: 750;
+            font-size: .86rem;
+            color: color-mix(in srgb, var(--accent-cyan) 92%, white 8%);
+        }
+
+        .message-wrapper.own .message-author {
+            color: rgba(232, 251, 255, .95);
+        }
+
+        .message-wrapper.system .message-author {
+            color: rgba(232, 251, 255, .70);
+        }
+
+        .message-time {
+            font-size: .74rem;
+            color: var(--muted2);
+            white-space: nowrap;
+        }
+
+        .edited-badge {
+            font-size: .70rem;
+            opacity: .85;
+            margin-left: 6px;
+            font-style: italic;
+        }
+
+        .message-content {
+            white-space: pre-wrap;
+            line-height: 1.45;
+            color: rgba(232, 251, 255, .92);
+            word-break: break-word;
+        }
+
+        .message-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 10px;
+            opacity: .92;
+        }
+
+        .message-footer button {
+            border: 1px solid rgba(255, 255, 255, .10);
+            background: rgba(255, 255, 255, .04);
+            color: rgba(232, 251, 255, .80);
+            border-radius: 999px;
+            padding: 6px 10px;
+            cursor: pointer;
+            transition: .14s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: .80rem;
+        }
+
+        .message-footer button:hover {
+            transform: translateY(-1px);
+            background: rgba(255, 255, 255, .08);
+            color: rgba(232, 251, 255, .95);
+            border-color: rgba(255, 255, 255, .16);
+        }
+
+        .message-footer .danger {
+            border-color: rgba(239, 68, 68, .35);
+            background: rgba(239, 68, 68, .12);
+            color: rgba(255, 225, 225, .95);
+        }
+
+        .message-footer .danger:hover {
+            background: rgba(239, 68, 68, .18);
+            border-color: rgba(239, 68, 68, .55);
+            color: rgba(255, 235, 235, .98);
+        }
+
+        .inc-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 10px;
+            border-radius: 999px;
+            border: 1px solid color-mix(in srgb, var(--accent-cyan) 50%, transparent);
+            background: color-mix(in srgb, var(--accent-cyan) 16%, transparent);
+            color: rgba(232, 251, 255, .98);
+            font-weight: 800;
+            font-size: .86rem;
+            cursor: pointer;
+            user-select: none;
+            transition: .12s ease;
+            white-space: nowrap;
+        }
+
+        .inc-pill:hover {
+            background: color-mix(in srgb, var(--accent-cyan) 22%, transparent);
+            transform: translateY(-1px);
+        }
+
+        .edit-mode {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .edit-mode textarea {
+            width: 100%;
+            min-height: 110px;
+            max-height: 240px;
+            resize: vertical;
+            outline: none;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: color-mix(in srgb, var(--bg) 72%, transparent);
+            color: rgba(232, 251, 255, .95);
+            padding: 12px;
+            font-size: .95rem;
+            line-height: 1.45;
+            transition: .12s ease;
+            font-family: inherit;
+        }
+
+        .edit-mode textarea:focus {
+            border-color: color-mix(in srgb, var(--accent-cyan) 45%, transparent);
+            box-shadow: 0 0 0 6px var(--accentGlow);
+        }
+
+        .edit-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .edit-actions button {
+            border-radius: 999px;
+            padding: 8px 12px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(255, 255, 255, .05);
+            color: rgba(232, 251, 255, .9);
+            cursor: pointer;
+            transition: .14s ease;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .edit-actions button:hover {
+            transform: translateY(-1px);
+            background: rgba(255, 255, 255, .08);
+        }
+
+        .edit-actions .cancel {
+            color: rgba(255, 225, 225, .98);
+            border-color: rgba(239, 68, 68, .35);
+            background: rgba(239, 68, 68, .12);
+        }
+
+        .chat-input-area {
+            border-top: 1px solid rgba(255, 255, 255, .10);
+            background: var(--panel2);
+            padding: 10px 12px;
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, .10);
+            background: rgba(255, 255, 255, .04);
+            padding: 10px 10px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            transition: .12s ease;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: color-mix(in srgb, var(--accent-cyan) 45%, transparent);
+            box-shadow: 0 0 0 6px var(--accentGlow);
+            background: rgba(255, 255, 255, .05);
+        }
+
+        .input-icon {
+            color: color-mix(in srgb, var(--accent-cyan) 92%, white 8%);
+            margin-top: 4px;
+            flex: 0 0 auto;
+        }
+
+        .chat-input-area textarea {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: rgba(232, 251, 255, .95);
+            font-size: .98rem;
+            line-height: 1.35;
+            resize: none;
+            height: 24px;
+            max-height: 140px;
+            overflow-y: auto;
+            padding: 0;
+            font-family: inherit;
+        }
+
+        .chat-input-area textarea::placeholder {
+            color: rgba(232, 251, 255, .45);
+        }
+
+        .send-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            border: 1px solid color-mix(in srgb, var(--accent-cyan) 38%, transparent);
+            background: linear-gradient(135deg, color-mix(in srgb, var(--accent-cyan) 92%, white 8%), color-mix(in srgb, var(--accent2-cyan) 92%, white 8%));
+            color: rgba(232, 251, 255, .98);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: .14s ease;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.05);
+        }
+
+        .send-btn:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .flash {
+            animation: flash .35s ease;
+        }
+
+        @keyframes flash {
+            0% {
+                box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+            }
+
+            50% {
+                box-shadow: 0 0 0 7px var(--accentGlow);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+            }
+        }
+
+        .deleting {
+            animation: vanish .22s ease forwards;
+        }
+
+        @keyframes vanish {
+            to {
+                opacity: 0;
+                transform: translateY(-6px);
+                filter: blur(1px);
+            }
+        }
+
+        .toast {
+            position: fixed;
+            right: 16px;
+            bottom: 16px;
+            z-index: 20;
+            background: color-mix(in srgb, var(--panel2) 86%, transparent);
+            border: 1px solid rgba(255, 255, 255, .12);
+            color: rgba(232, 251, 255, .95);
+            padding: 10px 12px;
+            border-radius: 14px;
+            box-shadow: var(--shadow);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: .16s ease;
+            max-width: 360px;
+            pointer-events: none;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            line-height: 1.35;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, .06);
+            border: 1px solid rgba(255, 255, 255, .10);
+            flex: 0 0 auto;
+            margin-top: 1px;
+        }
+
+        .toast.success .toast-icon {
+            border-color: rgba(34, 197, 94, .25);
+            background: rgba(34, 197, 94, .10);
+        }
+
+        .toast.error .toast-icon {
+            border-color: rgba(239, 68, 68, .25);
+            background: rgba(239, 68, 68, .10);
+        }
+
+        .toast.info .toast-icon {
+            border-color: rgba(6, 182, 212, .28);
+            background: rgba(6, 182, 212, .12);
+        }
+
+        @media (max-width: 992px) {
+            .analyst-stat-card.wide {
+                grid-column: span 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .action-buttons {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .analyst-stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .editor-content {
+                min-height: 250px;
+            }
+
+            .message-bubble {
+                width: 96%;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .sidebar {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: var(--sidebar-width);
+            }
+
+            .menu-toggle {
+                display: none;
+            }
+        }
+
+        .text-bold {
+            font-weight: bold;
+        }
+
+        .text-italic {
+            font-style: italic;
+        }
+
+        .text-underline {
+            text-decoration: underline;
+        }
+
+        .text-highlight {
+            background-color: yellow;
+            color: black;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--light-gray);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gray);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .inc-link {
+            color: var(--light) !important;
+            font-weight: bold;
+            text-decoration: none !important;
+            padding: 2px 8px !important;
+            border-radius: 4px !important;
+            background-color: rgba(34, 112, 238, 0.2) !important;
+            border: 1.5px solid var(--accent) !important;
+            transition: var(--transition) !important;
+            display: inline-block;
+            position: relative;
+        }
+
+        .inc-link:hover {
+            background-color: rgba(66, 133, 244, 0.3) !important;
+            transform: translateY(-1px);
+        }
+
+        .inc-link::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 1px;
+            background-color: #ff6b6b;
+            transform: scaleX(0);
+            transition: transform 0.2s ease;
+        }
+
+        .inc-link:hover::after {
+            transform: scaleX(1);
+        }
+
+        /* Auditoria */
+        .audit-log-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 3px solid var(--accent);
+            padding: 0.75rem;
+            margin-bottom: 0.3rem;
+            border-radius: 0.5rem;
+            font-size: 0.7rem;
+        }
+
+        .audit-log-item.admin-action {
+            border-left-color: gold;
+            background: rgba(255, 215, 0, 0.05);
+        }
+
+        /* Modal Admin */
+        .admin-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10001;
+        }
+
+        .admin-modal-content {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border-radius: 24px;
+            padding: 2rem;
+            max-width: 700px;
+            width: 90%;
+            border: 2px solid gold;
+            box-shadow: 0 0 30px gold;
+            animation: adminModalPop 0.3s ease-out;
+        }
+
+        @keyframes adminModalPop {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .admin-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid gold;
+        }
+
+        .admin-modal-header h3 {
+            color: white;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .admin-modal-header h3 i {
+            color: gold;
+        }
+
+        .admin-badge-large {
+            background: gold;
+            color: #000;
+            font-weight: bold;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .admin-modal-close {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .admin-modal-close:hover {
+            background: #ef4444;
+            transform: rotate(90deg);
+        }
+
+        .admin-modal-body {
+            margin-bottom: 1.5rem;
+        }
+
+        .admin-info-row {
+            background: rgba(255, 215, 0, 0.1);
+            border-left: 4px solid gold;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .admin-info-icon {
+            width: 40px;
+            height: 40px;
+            background: gold;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-size: 1.2rem;
+        }
+
+        .admin-info-text p {
+            color: #e2e8f0;
+            margin: 0.2rem 0;
+        }
+
+        .admin-info-text strong {
+            color: gold;
+        }
+
+        .admin-modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .fc-view-harness {
+            transition: opacity 0.3s ease;
+        }
+
+        .fc-view-harness.fc-changing {
+            opacity: 0.5;
+            transform: scale(0.98);
+        }
+
+        @keyframes slideInDay {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .fc-daygrid-day {
+            animation: slideInDay 0.3s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .fc-daygrid-day:nth-child(7n+1) {
+            animation-delay: 0.05s;
+        }
+
+        .fc-daygrid-day:nth-child(7n+2) {
+            animation-delay: 0.10s;
+        }
+
+        .fc-daygrid-day:nth-child(7n+3) {
+            animation-delay: 0.15s;
+        }
+
+        .fc-daygrid-day:nth-child(7n+4) {
+            animation-delay: 0.20s;
+        }
+
+        .fc-daygrid-day:nth-child(7n+5) {
+            animation-delay: 0.25s;
+        }
+
+        .fc-daygrid-day:nth-child(7n+6) {
+            animation-delay: 0.30s;
+        }
+
+        .fc-daygrid-day:nth-child(7n+7) {
+            animation-delay: 0.35s;
+        }
+
+        #notes-section .card-body {
+            min-height: 500px;
+        }
+
+        #backlog-text {
+            min-height: 800px;
+        }
+
+        /* Botão de comparar - Estilo Glassmorphism */
+        .fc-daygrid-day .fc-compare-btn {
+            background: rgba(26, 32, 44, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            color: #a0aec0;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .fc-daygrid-day .fc-compare-btn:hover {
+            background: rgba(66, 133, 244, 0.8);
+            border-color: #4285f4;
+            transform: translateY(-2px);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .fc-daygrid-day .fc-compare-btn:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 0.25rem;
+            white-space: nowrap;
+            margin-bottom: 8px;
+            pointer-events: none;
+        }
+
+        /* Modal de comparação */
+        .comparison-modal-expanded {
+            max-width: 1400px !important;
+            width: 95% !important;
+            max-height: 85vh !important;
+        }
+
+        .comparison-modal-body {
+            max-height: calc(85vh - 120px);
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .comparison-grid {
+            display: flex;
+            flex-direction: row;
+            gap: 1.5rem;
+            overflow-x: auto;
+            padding-bottom: 1rem;
+            align-items: stretch;
+        }
+
+        .comparison-grid .fc-event-analyst-item {
+            min-width: 380px;
+            flex: 1;
+            margin-bottom: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .comparison-grid .fc-event-analyst-content {
+            flex: 1;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid .fc-event-analyst-item {
+                min-width: 280px;
+            }
+        }
+
+        /* ===== Botão Picture-in-Picture (estilo YouTube) ===== */
+        .btn-float-pip {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            margin-left: auto;
+            border: none;
+            border-radius: 0.25rem;
+            background: none;
+            color: var(--gray);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-float-pip:hover {
+            background-color: rgba(66, 133, 244, 0.2);
+            color: var(--accent);
+        }
+
+        .btn-float-pip.active {
+            background-color: rgba(66, 133, 244, 0.3);
+            color: var(--accent);
+        }
+
+        /* ===== Ícones de restaurar/descartar rascunho, acima do botão PiP ===== */
+        .draft-restore-actions {
+            display: none;
+            justify-content: flex-end;
+            gap: 0.4rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .draft-restore-actions.show {
+            display: flex;
+        }
+
+        .draft-icon-btn {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            border: 1px solid var(--glass-border);
+            background: rgba(66, 133, 244, 0.12);
+            color: var(--accent);
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: var(--transition);
+        }
+
+        .draft-icon-btn:hover {
+            background: rgba(66, 133, 244, 0.28);
+            transform: translateY(-1px);
+        }
+
+        .draft-icon-btn-danger {
+            background: rgba(234, 67, 53, 0.12);
+            color: var(--danger);
+        }
+
+        .draft-icon-btn-danger:hover {
+            background: rgba(234, 67, 53, 0.28);
+        }
+
+        /* ===== Painel flutuante de anotações (alternativa ao PiP nativo, compatível com Firefox) ===== */
+        .floating-note-panel {
+            display: none;
+            position: fixed;
+            top: 90px;
+            right: 24px;
+            width: 320px;
+            max-width: calc(100vw - 32px);
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.75rem;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+            z-index: 500;
+            overflow: hidden;
+        }
+
+        .floating-note-panel.open {
+            display: block;
+        }
+
+        .floating-note-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid var(--glass-border);
+            cursor: move;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--light);
+        }
+
+        .floating-note-header span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .floating-note-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        #floating-note-minimize,
+        #floating-note-close {
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            padding: 0.25rem;
+            display: flex;
+            border-radius: 0.25rem;
+            transition: var(--transition);
+        }
+
+        #floating-note-minimize:hover {
+            background-color: rgba(66, 133, 244, 0.2);
+            color: var(--accent);
+        }
+
+        #floating-note-close:hover {
+            background-color: rgba(234, 67, 53, 0.2);
+            color: var(--danger);
+        }
+
+        .floating-note-editor {
+            min-height: 160px;
+            max-height: 320px;
+            overflow-y: auto;
+            padding: 0.75rem;
+            font-size: 0.875rem;
+            line-height: 1.55;
+            color: var(--light);
+            outline: none;
+        }
+
+        /* ===== Bolha flutuante (estado recolhido do painel de anotações) ===== */
+        .floating-note-bubble {
+            display: none;
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+            color: var(--accent);
+            font-size: 1.1rem;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 500;
+            transition: var(--transition);
+        }
+
+        .floating-note-bubble:hover {
+            transform: scale(1.08);
+            border-color: rgba(66, 133, 244, 0.4);
+        }
+
+        .floating-note-bubble.show {
+            display: flex;
+        }
+
+        .floating-note-dot {
+            display: none;
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 2px solid var(--dark);
+        }
+
+        .floating-note-dot.show {
+            display: block;
+        }
+
+        @keyframes floatingPanelPopIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <div class="loader-container">
+            <div class="icon-center">
+                <img src="./logobacklog.png" alt="Logo Backlog" />
+            </div>
+            <div class="orbital-ring"></div>
+        </div>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="login-screen" style="display: none;">
+        <div class="login-container">
+            <div class="login-header">
+                <div class="login-logo">
+                    <i class="fa fa-file" aria-hidden="true"></i>
+                    <span>Backlog NOC</span>
+                </div>
+                <h2 class="login-title">Acesso ao Sistema</h2>
+            </div>
+
+            <form class="login-form" id="login-form">
+                <div class="form-group">
+                    <label class="form-label">USER</label>
+                    <select class="form-control form-select" id="login-email" required>
+                        <option value="">Selecione seu User</option>
+                        <option value="delano@noctelecom.com">DELANO</option>
+                        <option value="herbeth@noctelecom.com">HERBETH</option>
+                        <option value="welligton@noctelecom.com">WELLIGTON</option>
+                        <option value="edmundo@noctelecom.com">EDMUNDO</option>
+                        <option value="sidney@noctelecom.com">SIDNEY</option>
+                        <option value="marcio@noctelecom.com">MARCIO</option>
+                        <option value="helielton@noctelecom.com">HELIELTON</option>
+                        <option value="robson@noctelecom.com">ROBSON</option>
+                        <option value="carla@noctelecom.com">CARLA</option>
+                        <option value="wyllame@noctelecom.com">WYLLAME</option>
+                        <option value="darlyson@noctelecom.com">DARLYSON</option>
+                        <option value="murilo@noctelecom.com">MURILO</option>
+                        <option value="onofre@noctelecom.com">ONOFRE</option>
+                        <option value="lynna@noctelecom.com">LYNNA</option>
+                        <option value="joelze@noctelecom.com">JOELZE</option>
+                        <option value="gustavo@noctelecom.com">GUSTAVO</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Senha</label>
+                    <input type="password" class="form-control" id="login-password" placeholder="Digite sua senha"
+                        required />
+                </div>
+
+                <div class="login-error" id="login-error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="error-message">Credenciais inválidas</span>
+                </div>
+
+                <button type="submit" class="login-btn" id="login-btn">
+                    <i class="fas fa-sign-in-alt"></i> Entrar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- App -->
+    <div id="app-container" class="app-container" style="display: none;">
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fa fa-file" aria-hidden="true"></i>
+                    <span>Backlog NOC</span>
+                </div>
+            </div>
+            <div class="nav-menu">
+                <div class="nav-title">Menu Principal</div>
+                <div class="nav-item active" data-section="notes">
+                    <a href="#" class="nav-link"><i class="fas fa-edit nav-icon"></i><span>Anotações</span></a>
+                </div>
+                <div class="nav-item" data-section="dashboard">
+                    <a href="#" class="nav-link"><i class="fas fa-calendar-alt nav-icon"></i><span>Dashboard</span></a>
+                </div>
+                <div class="nav-item" data-section="mural">
+                    <a href="#" class="nav-link"><i class="fas fa-users nav-icon"></i><span>Mural</span></a>
+                </div>
+                <div class="nav-item admin-only" data-section="auditoria" style="display: none;">
+                    <a href="#" class="nav-link"><i class="fas fa-history nav-icon"></i><span>Auditoria</span></a>
+                </div>
+            </div>
+            <div class="user-panel">
+                <div class="user-avatar" id="user-avatar">U</div>
+                <div class="user-info">
+                    <div class="user-name" id="user-name">Usuário</div>
+                    <div class="user-role">Analista NOC</div>
+                </div>
+                <button class="logout-btn" id="logout-btn" title="Sair">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+        <nav class="navbar">
+            <button class="menu-toggle" id="menu-toggle"><i class="fas fa-bars"></i></button>
+            <h1 class="page-title">Anotações</h1>
+            <div class="navbar-tools">
+                <button class="btn btn-outline btn-icon" id="fullscreen-toggle">
+                    <i class="fas fa-expand"></i>
+                </button>
+            </div>
+        </nav>
+
+        <div class="main-content" id="main-content">
+            <div class="content-body">
+                <!-- Notes -->
+                <div class="section-content" id="notes-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Registro de Backlog Diário</h3>
+                            <div class="card-tools"></div>
+                        </div>
+                        <div class="card-body">
+                            <form id="backlog-form">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label">Analista</label>
+                                        <input type="text" class="form-control" id="analista-display" readonly />
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Data</label>
+                                        <input type="date" class="form-control" id="data-backlog" required />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Backlog Validado</label>
+                                    <div id="draft-restore-actions" class="draft-restore-actions">
+                                        <button type="button" id="draft-restore-btn" class="draft-icon-btn"
+                                            title="Restaurar rascunho salvo" aria-label="Restaurar rascunho salvo">
+                                            <i class="fas fa-clock-rotate-left"></i>
+                                        </button>
+                                        <button type="button" id="draft-discard-btn"
+                                            class="draft-icon-btn draft-icon-btn-danger" title="Descartar rascunho salvo"
+                                            aria-label="Descartar rascunho salvo">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                    <div class="editor-container" id="backlog-editor-container">
+                                        <div class="toolbar">
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn" data-command="bold"
+                                                    title="Negrito (Ctrl+B)"><i class="fas fa-bold"></i></button>
+                                                <button type="button" class="toolbar-btn" data-command="italic"
+                                                    title="Itálico (Ctrl+I)"><i class="fas fa-italic"></i></button>
+                                                <button type="button" class="toolbar-btn" data-command="underline"
+                                                    title="Sublinhado (Ctrl+U)"><i
+                                                        class="fas fa-underline"></i></button>
+                                            </div>
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn"
+                                                    data-command="insertUnorderedList" title="Lista não ordenada"><i
+                                                        class="fas fa-list-ul"></i></button>
+                                                <button type="button" class="toolbar-btn"
+                                                    data-command="insertOrderedList" title="Lista ordenada"><i
+                                                        class="fas fa-list-ol"></i></button>
+                                            </div>
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn" data-command="hiliteColor"
+                                                    data-value="yellow" title="Marcador de texto"><i
+                                                        class="fas fa-highlighter"></i></button>
+                                                <input type="color" class="color-picker" id="text-color" value="#e2e8f0"
+                                                    title="Cor do texto" />
+                                                <input type="color" class="color-picker" id="bg-color" value="#1a202c"
+                                                    title="Cor de fundo" />
+                                            </div>
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn" data-command="undo"
+                                                    title="Desfazer"><i class="fas fa-undo"></i></button>
+                                                <button type="button" class="toolbar-btn" data-command="redo"
+                                                    title="Refazer"><i class="fas fa-redo"></i></button>
+                                            </div>
+                                            <button type="button" id="btn-float-note-panel" class="btn-float-pip"
+                                                title="Ver anotações em janela flutuante" aria-label="Ver anotações em janela flutuante">
+                                                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                                                    <rect x="3" y="5" width="18" height="14" rx="2" fill="none"
+                                                        stroke="currentColor" stroke-width="2" />
+                                                    <rect x="12.5" y="12.5" width="7" height="5" rx="1"
+                                                        fill="currentColor" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="editor-content" id="backlog-text" contenteditable="true"
+                                            placeholder="Descreva detalhadamente o backlog validado..."></div>
+                                    </div>
+                                </div>
+                                <div class="action-buttons">
+                                    <button type="button" class="btn btn-outline" id="clear-form"><i
+                                            class="fas fa-trash-alt"></i> Limpar</button>
+                                    <button type="submit" class="btn btn-primary" id="save-backlog"><i
+                                            class="fas fa-save"></i> Salvar Backlog</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard -->
+                <div class="section-content" id="dashboard-section" style="display: none;">
+                    <div class="analyst-stats-container">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Calendário dos Analistas</h3>
+                            </div>
+                            <div class="card-body">
+                                <div id="calendar"></div>
+                            </div>
+                        </div>
+                        <div class="month-filter">
+                            <label for="month-select">Filtrar por mês:</label>
+                            <select id="month-select" class="form-control form-select">
+                                <option value="">Todos os meses</option>
+                            </select>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-title">Validações Hoje</div>
+                                <div class="stat-value" id="validations-today">0</div>
+                                <div class="stat-change" id="today-change"><i class="fas fa-caret-up"></i> 0% em relação
+                                    a ontem</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-title">Validações no Mês</div>
+                                <div class="stat-value" id="validations-month">0</div>
+                                <div class="stat-change" id="month-change"><i class="fas fa-caret-up"></i> 0% em relação
+                                    ao mês passado</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-title">Analista Mais Ativo</div>
+                                <div class="stat-value" id="top-analyst">N/A</div>
+                                <div class="stat-value" id="top-analyst-count">0 validações</div>
+                            </div>
+                        </div>
+                        <div class="analyst-stats-grid">
+                            <div class="analyst-stat-card">
+                                <h3 class="card-title">Top Analistas</h3>
+                                <div class="analyst-ranking" id="top-analysts"></div>
+                            </div>
+                            <div class="analyst-stat-card">
+                                <h3 class="card-title">Analistas com Menos Registros</h3>
+                                <div class="analyst-ranking" id="bottom-analysts"></div>
+                            </div>
+                            <div class="analyst-stat-card wide">
+                                <h3 class="card-title">Relatórios por Analista</h3>
+                                <div class="chart-container"><canvas id="analystChart"></canvas></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mural -->
+                <div class="section-content" id="mural-section" style="display: none;">
+                    <div class="mural-container">
+                        <div class="mural-info mural-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Atenção:</strong> O mural é como um chat em grupo. Você pode copiar qualquer
+                            mensagem, editar e excluir apenas as suas.
+                        </div>
+                        <div class="mural-cyan">
+                            <div class="chat-messages" id="chat-messages"></div>
+                            <div class="chat-input-area">
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-pen-to-square input-icon"></i>
+                                    <textarea id="chat-input"
+                                        placeholder="Digite sua mensagem... (Enter envia / Shift+Enter quebra linha)"
+                                        rows="1"></textarea>
+                                </div>
+                                <button class="send-btn" id="chat-send" title="Enviar"><i
+                                        class="fa-solid fa-paper-plane"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Auditoria -->
+                <div class="section-content" id="auditoria-section" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-history"></i> Logs de Auditoria</h3>
+                            <div class="card-tools">
+                                <button class="btn btn-outline btn-sm" id="refresh-audit-logs">
+                                    <i class="fas fa-sync-alt"></i> Atualizar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="audit-logs-container">
+                                <p style="text-align: center; color: var(--gray);">Carregando logs...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="toast" id="toast">
+                    <div class="toast-icon" id="toast-icon"><i class="fa-solid fa-circle-info"></i></div>
+                    <div id="toast-message">OK</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Painel flutuante de anotações (alternativa ao Picture-in-Picture, compatível com Firefox) -->
+    <div id="floating-note-bubble" class="floating-note-bubble" title="Abrir anotações" aria-label="Abrir anotações">
+        <i class="fas fa-note-sticky"></i>
+        <span id="floating-note-dot" class="floating-note-dot"></span>
+    </div>
+
+    <div id="floating-note-panel" class="floating-note-panel">
+        <div class="floating-note-header" id="floating-note-drag">
+            <span><i class="fas fa-grip-lines"></i> Anotações</span>
+            <div class="floating-note-header-actions">
+                <button type="button" id="floating-note-minimize" aria-label="Minimizar painel flutuante"><i
+                        class="fas fa-minus"></i></button>
+                <button type="button" id="floating-note-close" aria-label="Fechar painel flutuante"><i
+                        class="fas fa-times"></i></button>
+            </div>
+        </div>
+        <div id="floating-note-editor" class="floating-note-editor" contenteditable="true"></div>
+    </div>
+
+    <!-- Modal Admin -->
+    <div id="admin-modal" class="admin-modal" style="display: none;">
+        <div class="admin-modal-content">
+            <div class="admin-modal-header">
+                <h3><i class="fas fa-crown"></i> Admin: Inserir Backlog <span class="admin-badge-large"><i
+                            class="fas fa-star"></i> SIDNEY</span></h3>
+                <button class="admin-modal-close" id="admin-modal-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="admin-modal-body">
+                <div class="admin-info-row">
+                    <div class="admin-info-icon"><i class="fas fa-clock"></i></div>
+                    <div class="admin-info-text">
+                        <p><strong>Data selecionada:</strong> <span id="admin-selected-date"></span></p>
+                        <p><strong>Horário do clique:</strong> <span id="admin-click-time"></span></p>
+                        <p><i class="fas fa-info-circle" style="color: gold;"></i> Você está inserindo um backlog em
+                            nome de outro analista</p>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label class="form-label">Selecione o Analista</label>
+                    <select class="form-control form-select" id="admin-analista-select" required>
+                        <option value="">Selecione o analista</option>
+                        <option value="DELANO">DELANO</option>
+                        <option value="HERBETH">HERBETH</option>
+                        <option value="WELLIGTON">WELLIGTON</option>
+                        <option value="EDMUNDO">EDMUNDO</option>
+                        <option value="MARCIO">MARCIO</option>
+                        <option value="HELIELTON">HELIELTON</option>
+                        <option value="ROBSON">ROBSON</option>
+                        <option value="CARLA">CARLA</option>
+                        <option value="WYLLAME">WYLLAME</option>
+                        <option value="DARLYSON">DARLYSON</option>
+                        <option value="MURILO">MURILO</option>
+                        <option value="ONOFRE">ONOFRE</option>
+                        <option value="LYNNA">LYNNA</option>
+                        <option value="JOELZE">JOELZE</option>
+                        <option value="GUSTAVO">GUSTAVO</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Backlog Validado</label>
+                    <div class="editor-container">
+                        <div class="toolbar">
+                            <div class="toolbar-group">
+                                <button type="button" class="toolbar-btn" data-command="bold"><i
+                                        class="fas fa-bold"></i></button>
+                                <button type="button" class="toolbar-btn" data-command="italic"><i
+                                        class="fas fa-italic"></i></button>
+                                <button type="button" class="toolbar-btn" data-command="underline"><i
+                                        class="fas fa-underline"></i></button>
+                            </div>
+                            <div class="toolbar-group">
+                                <button type="button" class="toolbar-btn" data-command="insertUnorderedList"><i
+                                        class="fas fa-list-ul"></i></button>
+                                <button type="button" class="toolbar-btn" data-command="insertOrderedList"><i
+                                        class="fas fa-list-ol"></i></button>
+                            </div>
+                            <div class="toolbar-group">
+                                <button type="button" class="toolbar-btn" data-command="hiliteColor"
+                                    data-value="yellow"><i class="fas fa-highlighter"></i></button>
+                            </div>
+                        </div>
+                        <div class="editor-content" id="admin-backlog-text" contenteditable="true"
+                            placeholder="Descreva detalhadamente o backlog validado..."></div>
+                    </div>
+                </div>
+            </div>
+            <div class="admin-modal-footer">
+                <button class="btn btn-outline" id="admin-modal-cancel"><i class="fas fa-times"></i> Cancelar</button>
+                <button class="btn btn-primary" id="admin-modal-save"
+                    style="background: gold; color: #000; border: none;"><i class="fas fa-save"></i> Salvar como
+                    Admin</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== NOVO MODAL DE COMPARAÇÃO ===== -->
+    <div id="comparisonModal" class="fc-event-modal" style="display: none;">
+        <div class="fc-event-modal-content comparison-modal-expanded">
+            <div class="fc-event-modal-header">
+                <div class="fc-event-modal-title">
+                    <i class="fas fa-code-compare"></i>
+                    Comparativo do Dia
+                    <span style="font-size: 1rem; color: var(--gray); margin-left: 0.75rem;"
+                        id="comparisonModalDate"></span>
+                </div>
+                <button class="fc-event-modal-close" id="closeComparisonModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="comparison-modal-body" id="comparisonModalBody">
+                <div class="comparison-grid" id="comparisonGrid">
+                    <!-- Cards serão inseridos dinamicamente -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/pt-br.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <script>
+        // ========== INICIALIZAÇÃO SEGURA ==========
+        const firebaseConfig = {
+            apiKey: "AIzaSyBWBGcnOlv2Gu_0hN17qIGW6RKL3uITbzY",
+            authDomain: "bancodedados-snzb.firebaseapp.com",
+            projectId: "bancodedados-snzb",
+            storageBucket: "bancodedados-snzb.appspot.com",
+            messagingSenderId: "573270416863",
+            appId: "1:573270416863:web:81455e206b4d252d29b86a"
+        };
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // ========== CONFIGURAÇÕES GLOBAIS ==========
+        const BACKLOG_EDIT_WINDOW_MS = 60 * 60 * 1000;
+        const MAX_BACKLOG_SAVES = 5;
+        const RATE_LIMIT_MS = 1000;
+        const CACHE_TTL_MS = 5 * 60 * 1000;
+        const DRAFT_CACHE_KEY_PREFIX = 'backlog_draft_';
+        const DRAFT_CACHE_TTL_MS = 60 * 60 * 1000;
+
+        let currentUser = null;
+        let userAnalystName = null;
+        let lastOperationTime = {};
+        let calendarInstance = null;
+        let analystChart = null;
+        let firebaseRecords = [];
+        let muralUnsubscribe = null;
+        let draftSaveTimeout = null;
+        let currentPipWindow = null;
+
+        // ========== FUNÇÕES UTILITÁRIAS ==========
+
+        function checkRateLimit(operationType) {
+            const now = Date.now();
+            if (lastOperationTime[operationType]) {
+                const timeSinceLastOp = now - lastOperationTime[operationType];
+                if (timeSinceLastOp < RATE_LIMIT_MS) return false;
+            }
+            lastOperationTime[operationType] = now;
+            return true;
+        }
+
+        function showToast(message, type = 'success', duration = 3000) {
+            const toastEl = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
+            toastMsg.textContent = message;
+            toastEl.className = `toast ${type}`;
+            const icon = type === 'success' ? 'fa-circle-check' : type === 'error' ? 'fa-triangle-exclamation' : 'fa-circle-info';
+            toastIcon.innerHTML = `<i class="fa-solid ${icon}"></i>`;
+            toastEl.classList.add('show');
+            setTimeout(() => { toastEl.classList.remove('show'); }, duration);
+        }
+
+        async function logAudit(action, details) {
+            try {
+                if (!checkRateLimit('audit_log')) return;
+                await db.collection('audit_logs').add({
+                    action: action,
+                    details: details,
+                    analyst: userAnalystName,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    date: getFortalezaDateString()
+                });
+            } catch (error) {
+                console.error('Erro ao registrar auditoria:', error);
+            }
+        }
+        async function cleanOldAuditLogs() {
+            try {
+                const threeDaysAgo = new Date();
+                threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
+                const snapshot = await db.collection('audit_logs')
+                    .where('timestamp', '<', firebase.firestore.Timestamp.fromDate(threeDaysAgo))
+                    .get();
+
+                if (!snapshot.empty) {
+                    const batch = db.batch();
+                    snapshot.forEach(doc => {
+                        batch.delete(doc.ref);
+                    });
+                    await batch.commit();
+                    console.log(`Auditoria limpa: ${snapshot.size} registros removidos`);
+                }
+            } catch (error) {
+                console.error('Erro ao limpar auditoria:', error);
+            }
+        }
+
+        function getFortalezaDateString() {
+            return new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Fortaleza' })
+                .split('/').reverse().join('-');
+        }
+
+        function getFortalezaTimestamp() {
+            const now = new Date();
+            const timeString = now.toLocaleString('pt-BR', { timeZone: 'America/Fortaleza', hour12: false });
+            const [datePart, timePart] = timeString.split(', ');
+            const [day, month, year] = datePart.split('/');
+            const [hours, minutes, seconds] = timePart.split(':');
+            const ms = now.getMilliseconds().toString().padStart(3, '0');
+            return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${ms}-03:00`;
+        }
+
+        function getBacklogDocId(data) {
+            const [ano, mes] = data.split('-');
+            const meses = {
+                '01': 'janeiro', '02': 'fevereiro', '03': 'março', '04': 'abril',
+                '05': 'maio', '06': 'junho', '07': 'julho', '08': 'agosto',
+                '09': 'setembro', '10': 'outubro', '11': 'novembro', '12': 'dezembro'
+            };
+            return `${meses[mes]}${ano.slice(2)}`;
+        }
+
+        function getAnalystColor(analista) {
+            const colors = {
+                'DELANO': '#65a30d', 'HERBETH': '#dc2626', 'WELLIGTON': '#ea580c',
+                'EDMUNDO': '#8b5cf6', 'SIDNEY': '#14b8a6', 'MARCIO': '#ec4899',
+                'HELIELTON': '#3b82f6', 'ROBSON': '#f59e0b', 'CARLA': '#fc0fc0',
+                'WYLLAME': '#059669', 'DARLYSON': '#d946ef', 'MURILO': '#06b6d4',
+                'ONOFRE': '#f97316', 'LYNNA': '#be185d', 'JOELZE': '#2563eb', 'GUSTAVO': '#2163eb'
+            };
+            return colors[analista] || '#3b82f6';
+        }
+
+        // ========== FORMATAÇÃO DE LINKS INC ==========
+
+        function formatIncLinks(text) {
+            const incRegex = /(^|\s)(INC\d{5,})(?=\s|$)/gi;
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = text;
+            const walker = document.createTreeWalker(tempDiv, NodeFilter.SHOW_TEXT, {
+                acceptNode: function (node) {
+                    if (node.parentNode.classList && node.parentNode.classList.contains('inc-link'))
+                        return NodeFilter.FILTER_REJECT;
+                    return NodeFilter.FILTER_ACCEPT;
+                }
+            });
+            const textNodes = [];
+            let currentNode;
+            while (currentNode = walker.nextNode()) textNodes.push(currentNode);
+            textNodes.forEach(node => {
+                const parent = node.parentNode;
+                const originalText = node.nodeValue;
+                const fragment = document.createDocumentFragment();
+                let lastIndex = 0, match;
+                while ((match = incRegex.exec(originalText)) !== null) {
+                    if (match.index > lastIndex)
+                        fragment.appendChild(document.createTextNode(originalText.substring(lastIndex, match.index)));
+                    const numeroINC = match[2];
+                    const serviceNowUrl = `https://equatorialenergia.service-now.com/incident.do?sysparm_query=number=${numeroINC}`;
+                    const incLink = document.createElement('span');
+                    incLink.className = 'inc-link';
+                    incLink.setAttribute('data-url', serviceNowUrl);
+                    incLink.textContent = numeroINC;
+                    fragment.appendChild(incLink);
+                    lastIndex = match.index + match[0].length;
+                }
+                if (lastIndex < originalText.length)
+                    fragment.appendChild(document.createTextNode(originalText.substring(lastIndex)));
+                if (fragment.childNodes.length > 0) parent.replaceChild(fragment, node);
+            });
+            return tempDiv.innerHTML;
+        }
+
+        function cleanBacklogText(text) {
+            if (!text) return '';
+            return text
+                .replace(/<br\s*\/?>/gi, '\n').replace(/<div>/gi, '').replace(/<\/div>/gi, '\n')
+                .replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/\*\*/g, '')
+                .replace(/\*{2,}/g, '').replace(/^\*|\*$/gm, '').replace(/\n\s*\n/g, '\n\n')
+                .replace(/^\s+|\s+$/g, '').trim();
+        }
+
+        function formatWhatsAppText(raw) {
+            if (!raw) return '';
+            let text = raw
+                .replace(/<span[^>]*class="admin-badge"[^>]*>[\s\S]*?<\/span>/gi, '')
+                .trim();
+            text = text
+                .replace(/<br\s*\/?>/gi, '\n')
+                .replace(/<\/p>/gi, '\n')
+                .replace(/<p[^>]*>/gi, '')
+                .replace(/<\/div>/gi, '\n')
+                .replace(/<div[^>]*>/gi, '')
+                .replace(/<strong[^>]*>([\s\S]*?)<\/strong>/gi, '*$1*')
+                .replace(/<b[^>]*>([\s\S]*?)<\/b>/gi, '*$1*')
+                .replace(/<em[^>]*>([\s\S]*?)<\/em>/gi, '_$1_')
+                .replace(/<i[^>]*>([\s\S]*?)<\/i>/gi, '_$1_')
+                .replace(/<s[^>]*>([\s\S]*?)<\/s>/gi, '~$1~')
+                .replace(/<[^>]+>/g, '')
+                .replace(/&nbsp;/g, ' ')
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/&amp;/g, '&');
+            const esc = s => s
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            const lines = text.split('\n');
+            const processed = lines.map(line => {
+                let l = esc(line);
+                l = l.replace(/\*(\S(?:[^*]*\S)?)\*/g, '<strong>$1</strong>');
+                l = l.replace(/_(\S(?:[^_]*\S)?)_/g, '<em>$1</em>');
+                l = l.replace(/~(\S(?:[^~]*\S)?)~/g, '<s>$1</s>');
+                l = l.replace(/`([^`]+)`/g,
+                    '<code style="background:rgba(255,255,255,.12);padding:1px 6px;border-radius:4px;font-family:monospace;font-size:.91em;">$1</code>');
+                l = l.replace(/(INC\d{5,})/gi, m =>
+                    `<a href="https://equatorialenergia.service-now.com/incident.do?sysparm_query=number=${m}"
+                    target="_blank"
+                    title="Abrir ${m} no ServiceNow">${m}</a>`);
+                if (/^[-=]{3,}$/.test(line.trim())) {
+                    return '<hr style="border:none;border-top:1px solid rgba(255,255,255,.18);margin:10px 0;">';
+                }
+                if (/^[-•]\s+/.test(line)) {
+                    const content = l.replace(/^[-•&amp;•]\s+/, '').replace(/^-\s+/, '');
+                    return `<li>${content}</li>`;
+                }
+                if (l.trim() === '') return '<div class="wa-spacer"></div>';
+                return `<p>${l}</p>`;
+            });
+            let html = processed.join('');
+            html = html.replace(/((<li>[\s\S]*?<\/li>)+)/g, '<ul>$1</ul>');
+            return html;
+        }
+
+        // ========== AUTENTICAÇÃO ==========
+
+        document.addEventListener('DOMContentLoaded', function () {
+            setTimeout(function () {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = '0';
+                setTimeout(function () {
+                    splash.style.display = 'none';
+                    auth.onAuthStateChanged(function (user) {
+                        if (user) {
+                            currentUser = user;
+                            userAnalystName = user.email.split('@')[0].toUpperCase();
+                            document.getElementById('login-screen').style.display = 'none';
+                            initApplication();
+                        } else {
+                            document.getElementById('login-screen').style.display = 'flex';
+                        }
+                    });
+                }, 200);
+            }, 3000);
+        });
+
+        document.getElementById('login-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const loginError = document.getElementById('login-error');
+            const loginBtn = document.getElementById('login-btn');
+
+            if (!email || !password) {
+                loginError.classList.add('show');
+                document.getElementById('error-message').textContent = 'Por favor, selecione o email e digite a senha';
+                setTimeout(() => loginError.classList.remove('show'), 3000);
+                return;
+            }
+
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Autenticando...';
+
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                currentUser = userCredential.user;
+                userAnalystName = email.split('@')[0].toUpperCase();
+                await logAudit('LOGIN', `Usuário ${userAnalystName} fez login`);
+                document.getElementById('login-screen').style.display = 'none';
+                initApplication();
+            } catch (error) {
+                console.error('Erro de autenticação:', error);
+                loginError.classList.add('show');
+                switch (error.code) {
+                    case 'auth/invalid-email':
+                        document.getElementById('error-message').textContent = 'Email inválido'; break;
+                    case 'auth/user-disabled':
+                        document.getElementById('error-message').textContent = 'Usuário desativado'; break;
+                    case 'auth/user-not-found':
+                        document.getElementById('error-message').textContent = 'Usuário não encontrado'; break;
+                    case 'auth/wrong-password':
+                        document.getElementById('error-message').textContent = 'Senha incorreta'; break;
+                    case 'auth/too-many-requests':
+                        document.getElementById('error-message').textContent = 'Muitas tentativas. Tente novamente mais tarde'; break;
+                    default:
+                        document.getElementById('error-message').textContent = 'Erro ao autenticar. Verifique suas credenciais';
+                }
+                setTimeout(() => loginError.classList.remove('show'), 5000);
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
+            }
+        });
+
+        async function handleLogout() {
+            try {
+                await logAudit('LOGOUT', `Usuário ${userAnalystName} fez logout`);
+                await auth.signOut();
+                currentUser = null;
+                userAnalystName = null;
+                location.reload();
+            } catch (error) {
+                console.error('Erro ao fazer logout:', error);
+                showToast('Erro ao fazer logout', 'error');
+            }
+        }
+
+        // ========== INICIALIZAÇÃO DA APLICAÇÃO ==========
+
+        function initApplication() {
+            document.getElementById('app-container').style.display = 'flex';
+            document.getElementById('user-name').textContent = userAnalystName;
+            document.getElementById('user-avatar').textContent = userAnalystName.charAt(0);
+            document.getElementById('analista-display').value = userAnalystName;
+
+            if (userAnalystName === 'SIDNEY') {
+                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+            }
+
+            setupNavigation();
+            setupLogout();
+            setupFullscreen();
+            setupEditor();
+            setupBacklogForm();
+            setupFloatingNotePanel();
+            checkForSavedDraft();
+            loadInitialData();
+            initializeMural();
+            scheduleMidnightCleanup();
+            cleanOldAuditLogs();
+            setInterval(cleanOldAuditLogs, 24 * 60 * 60 * 1000);
+        }
+
+        function setupLogout() {
+            document.getElementById('logout-btn').addEventListener('click', handleLogout);
+        }
+
+        function setupFullscreen() {
+            const fullscreenToggle = document.getElementById('fullscreen-toggle');
+            fullscreenToggle.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(err => {
+                        showToast(`Erro: ${err.message}`, 'error');
+                    });
+                    fullscreenToggle.innerHTML = '<i class="fas fa-compress"></i>';
+                } else if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    fullscreenToggle.innerHTML = '<i class="fas fa-expand"></i>';
+                }
+            });
+        }
+
+        function setupNavigation() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+            const menuToggle = document.getElementById('menu-toggle');
+            const navItems = document.querySelectorAll('.nav-item');
+            const sectionContents = document.querySelectorAll('.section-content');
+            const pageTitle = document.querySelector('.page-title');
+
+            menuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+                sidebarOverlay.classList.toggle('active');
+            });
+
+            sidebarOverlay.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+            });
+
+            navItems.forEach(item => {
+                item.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+                    const section = this.getAttribute('data-section');
+                    sectionContents.forEach(content => content.style.display = 'none');
+                    document.getElementById(`${section}-section`).style.display = 'block';
+                    pageTitle.textContent = this.querySelector('span').textContent;
+                    if (section === 'dashboard') {
+                        initCalendar();
+                        updateDashboardStats();
+                    } else if (section === 'auditoria') {
+                        loadAuditLogs();
+                    }
+                });
+            });
+        }
+
+        function setupEditor() {
+            const backlogText = document.getElementById('backlog-text');
+
+            backlogText.addEventListener('keydown', function (e) {
+                const ownerDoc = backlogText.ownerDocument;
+                if (e.ctrlKey && e.key === 'b') { e.preventDefault(); ownerDoc.execCommand('bold', false, null); }
+                else if (e.ctrlKey && e.key === 'i') { e.preventDefault(); ownerDoc.execCommand('italic', false, null); }
+                else if (e.ctrlKey && e.key === 'u') { e.preventDefault(); ownerDoc.execCommand('underline', false, null); }
+                else if (e.ctrlKey && e.key === 'z') { e.preventDefault(); ownerDoc.execCommand('undo', false, null); }
+                else if (e.ctrlKey && e.key === 'y') { e.preventDefault(); ownerDoc.execCommand('redo', false, null); }
+                else if (e.ctrlKey && e.key === 's') { e.preventDefault(); document.getElementById('save-backlog').click(); }
+            });
+
+            backlogText.addEventListener('input', () => {
+                setTimeout(() => {
+                    const ownerDoc = backlogText.ownerDocument;
+                    const ownerWin = ownerDoc.defaultView;
+                    const selection = ownerWin.getSelection();
+                    const range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+                    let cursorOffset = 0;
+                    if (range) {
+                        const preRange = range.cloneRange();
+                        preRange.selectNodeContents(backlogText);
+                        preRange.setEnd(range.startContainer, range.startOffset);
+                        cursorOffset = preRange.toString().length;
+                    }
+                    const currentHtml = backlogText.innerHTML;
+                    const formattedHtml = formatIncLinks(currentHtml);
+                    if (formattedHtml !== currentHtml) {
+                        backlogText.innerHTML = formattedHtml;
+                        if (range) {
+                            const newRange = ownerDoc.createRange();
+                            let charCount = 0, foundNode = null, foundOffset = 0;
+                            const walker = ownerDoc.createTreeWalker(backlogText, NodeFilter.SHOW_TEXT, null, false);
+                            let node;
+                            while (node = walker.nextNode()) {
+                                const length = node.nodeValue.length;
+                                if (charCount + length >= cursorOffset) { foundNode = node; foundOffset = cursorOffset - charCount; break; }
+                                charCount += length;
+                            }
+                            if (foundNode) {
+                                newRange.setStart(foundNode, foundOffset);
+                                newRange.collapse(true);
+                                selection.removeAllRanges();
+                                selection.addRange(newRange);
+                            }
+                        }
+                    }
+                }, 0);
+            });
+
+            backlogText.addEventListener('keydown', function (e) {
+                const ownerDoc = backlogText.ownerDocument;
+                const selection = ownerDoc.defaultView.getSelection();
+                if (!selection.rangeCount) return;
+                const range = selection.getRangeAt(0);
+                const node = range.startContainer;
+                const incLink = node.parentNode.closest ? node.parentNode.closest('.inc-link') : null;
+                if (!incLink) return;
+                if (['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', 'End', 'Home', 'Escape'].includes(e.key)) {
+                    e.preventDefault();
+                    let newRange = ownerDoc.createRange();
+                    let spaceNode;
+                    if (e.key === 'ArrowRight' || e.key === 'End') {
+                        spaceNode = ownerDoc.createTextNode('   ');
+                        incLink.parentNode.insertBefore(spaceNode, incLink.nextSibling);
+                        newRange.setStartAfter(spaceNode);
+                    } else if (e.key === 'ArrowLeft' || e.key === 'Home') {
+                        newRange.setStartBefore(incLink);
+                    } else if (e.key === 'Escape') {
+                        spaceNode = ownerDoc.createTextNode('   ');
+                        incLink.parentNode.insertBefore(spaceNode, incLink.nextSibling);
+                        newRange.setStartAfter(spaceNode);
+                    }
+                    newRange.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                }
+            });
+
+            backlogText.addEventListener('dblclick', function (e) {
+                const incLink = e.target.closest('.inc-link');
+                if (incLink) { e.preventDefault(); window.open(incLink.getAttribute('data-url'), '_blank'); }
+            });
+
+            backlogText.addEventListener('input', () => {
+                scheduleDraftSave();
+                if (isFloatingPanelOpen()) {
+                    syncEditorsContent(backlogText, document.getElementById('floating-note-editor'));
+                } else if (isFloatingBubbleOpen()) {
+                    updateFloatingDot();
+                }
+            });
+
+            document.querySelectorAll('.toolbar-btn').forEach(button => {
+                button.addEventListener('click', function () {
+                    const command = this.dataset.command;
+                    const value = this.dataset.value;
+                    const ownerDoc = this.ownerDocument;
+                    if (command === 'hiliteColor') {
+                        ownerDoc.execCommand('hiliteColor', false, value || 'yellow');
+                    } else {
+                        ownerDoc.execCommand(command, false, null);
+                    }
+                });
+            });
+
+            document.getElementById('text-color').addEventListener('change', function () {
+                this.ownerDocument.execCommand('foreColor', false, this.value);
+            });
+            document.getElementById('bg-color').addEventListener('change', function () {
+                this.ownerDocument.execCommand('hiliteColor', false, this.value);
+            });
+        }
+
+        // ========== PAINEL FLUTUANTE DE ANOTAÇÕES ==========
+
+        function isFloatingPanelOpen() {
+            const panel = document.getElementById('floating-note-panel');
+            return panel.classList.contains('open');
+        }
+
+        function isFloatingBubbleOpen() {
+            const bubble = document.getElementById('floating-note-bubble');
+            return bubble.classList.contains('show');
+        }
+
+        function syncEditorsContent(source, target) {
+            if (target.innerHTML !== source.innerHTML) {
+                target.innerHTML = source.innerHTML;
+            }
+        }
+
+        function isDocumentPipSupported() {
+            return 'documentPictureInPicture' in window;
+        }
+
+        async function openDocumentPip() {
+            const container = document.getElementById('backlog-editor-container');
+            const toggleBtn = document.getElementById('btn-float-note-panel');
+            const originalParent = container.parentNode;
+            const originalNextSibling = container.nextSibling;
+            try {
+                const pipWindow = await window.documentPictureInPicture.requestWindow({
+                    width: 380,
+                    height: 420
+                });
+
+                Array.from(document.styleSheets).forEach(styleSheet => {
+                    try {
+                        const cssRules = Array.from(styleSheet.cssRules).map(rule => rule.cssText).join('\n');
+                        const style = pipWindow.document.createElement('style');
+                        style.textContent = cssRules;
+                        pipWindow.document.head.appendChild(style);
+                    } catch (error) {
+                        if (styleSheet.href) {
+                            const link = pipWindow.document.createElement('link');
+                            link.rel = 'stylesheet';
+                            link.href = styleSheet.href;
+                            pipWindow.document.head.appendChild(link);
+                        }
+                    }
+                });
+
+                pipWindow.document.body.style.margin = '0';
+                pipWindow.document.body.style.padding = '0';
+                pipWindow.document.body.style.background = '#1a202c';
+                pipWindow.document.body.style.height = '100%';
+
+                toggleBtn.style.display = 'none';
+                pipWindow.document.body.appendChild(container);
+                currentPipWindow = pipWindow;
+
+                pipWindow.addEventListener('pagehide', () => {
+                    if (originalNextSibling) {
+                        originalParent.insertBefore(container, originalNextSibling);
+                    } else {
+                        originalParent.appendChild(container);
+                    }
+                    toggleBtn.style.display = '';
+                    currentPipWindow = null;
+                }, { once: true });
+
+                return true;
+            } catch (error) {
+                console.error('Erro ao abrir picture-in-picture nativo:', error);
+                return false;
+            }
+        }
+
+        async function toggleFloatingFeature() {
+            if (currentPipWindow) {
+                currentPipWindow.close();
+                return;
+            }
+            if (isDocumentPipSupported()) {
+                const opened = await openDocumentPip();
+                if (opened) return;
+                showToast('Não foi possível abrir a janela flutuante nativa. Usando o modo alternativo.', 'error');
+            }
+            if (isFloatingPanelOpen() || isFloatingBubbleOpen()) {
+                closeFloatingNotePanel();
+            } else {
+                openFloatingNotePanel();
+            }
+        }
+
+        function updateFloatingDot() {
+            const backlogText = document.getElementById('backlog-text');
+            const dot = document.getElementById('floating-note-dot');
+            const hasContent = backlogText.innerText.trim().length > 0;
+            dot.classList.toggle('show', hasContent);
+        }
+
+        function openFloatingNotePanel() {
+            const backlogText = document.getElementById('backlog-text');
+            const floatingEditor = document.getElementById('floating-note-editor');
+            const panel = document.getElementById('floating-note-panel');
+            const bubble = document.getElementById('floating-note-bubble');
+            floatingEditor.innerHTML = backlogText.innerHTML;
+            bubble.classList.remove('show');
+            panel.style.animation = 'none';
+            panel.offsetHeight;
+            panel.style.animation = 'floatingPanelPopIn .18s ease';
+            panel.classList.add('open');
+        }
+
+        function minimizeFloatingNotePanel() {
+            const panel = document.getElementById('floating-note-panel');
+            const bubble = document.getElementById('floating-note-bubble');
+            panel.classList.remove('open');
+            bubble.classList.add('show');
+            updateFloatingDot();
+        }
+
+        function closeFloatingNotePanel() {
+            const panel = document.getElementById('floating-note-panel');
+            const bubble = document.getElementById('floating-note-bubble');
+            panel.classList.remove('open');
+            bubble.classList.remove('show');
+        }
+
+        function setupFloatingNotePanel() {
+            const toggleBtn = document.getElementById('btn-float-note-panel');
+            const minimizeBtn = document.getElementById('floating-note-minimize');
+            const closeBtn = document.getElementById('floating-note-close');
+            const panel = document.getElementById('floating-note-panel');
+            const bubble = document.getElementById('floating-note-bubble');
+            const dragHandle = document.getElementById('floating-note-drag');
+            const floatingEditor = document.getElementById('floating-note-editor');
+            const backlogText = document.getElementById('backlog-text');
+
+            toggleBtn.addEventListener('click', () => {
+                toggleFloatingFeature();
+            });
+
+            bubble.addEventListener('click', openFloatingNotePanel);
+            minimizeBtn.addEventListener('click', minimizeFloatingNotePanel);
+            closeBtn.addEventListener('click', closeFloatingNotePanel);
+
+            floatingEditor.addEventListener('input', () => {
+                syncEditorsContent(floatingEditor, backlogText);
+                scheduleDraftSave();
+            });
+
+            let isDragging = false, offsetX = 0, offsetY = 0;
+            dragHandle.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                const rect = panel.getBoundingClientRect();
+                offsetX = e.clientX - rect.left;
+                offsetY = e.clientY - rect.top;
+                panel.style.right = 'auto';
+                panel.style.bottom = 'auto';
+            });
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                panel.style.left = Math.max(0, e.clientX - offsetX) + 'px';
+                panel.style.top = Math.max(0, e.clientY - offsetY) + 'px';
+            });
+            document.addEventListener('mouseup', () => { isDragging = false; });
+        }
+
+        // ========== CACHE LOCAL DO RASCUNHO (1 HORA) ==========
+
+        function getDraftCacheKey() {
+            return DRAFT_CACHE_KEY_PREFIX + userAnalystName;
+        }
+
+        function saveDraftToCache() {
+            try {
+                const texto = document.getElementById('backlog-text').innerHTML;
+                const data = document.getElementById('data-backlog').value;
+                if (!texto || texto.trim() === '') {
+                    localStorage.removeItem(getDraftCacheKey());
+                    return;
+                }
+                localStorage.setItem(getDraftCacheKey(), JSON.stringify({
+                    texto, data, savedAt: Date.now()
+                }));
+            } catch (error) {
+                console.error('Erro ao salvar rascunho local:', error);
+            }
+        }
+
+        function scheduleDraftSave() {
+            clearTimeout(draftSaveTimeout);
+            draftSaveTimeout = setTimeout(saveDraftToCache, 800);
+        }
+
+        function clearDraftCache() {
+            try {
+                localStorage.removeItem(getDraftCacheKey());
+            } catch (error) {
+                console.error('Erro ao limpar rascunho local:', error);
+            }
+            document.getElementById('draft-restore-actions').classList.remove('show');
+        }
+
+        function checkForSavedDraft() {
+            try {
+                const raw = localStorage.getItem(getDraftCacheKey());
+                if (!raw) return;
+                const draft = JSON.parse(raw);
+                if (!draft || !draft.texto) return;
+                const elapsed = Date.now() - draft.savedAt;
+                if (elapsed > DRAFT_CACHE_TTL_MS) {
+                    localStorage.removeItem(getDraftCacheKey());
+                    return;
+                }
+                const minutesAgo = Math.max(1, Math.round(elapsed / 60000));
+                document.getElementById('draft-restore-btn').title = `Restaurar rascunho salvo há ${minutesAgo} min`;
+                document.getElementById('draft-restore-actions').classList.add('show');
+                window._pendingDraft = draft;
+                showToast(`Rascunho salvo há ${minutesAgo} min encontrado. Use os ícones acima do editor para restaurar ou descartar.`, 'info', 5000);
+            } catch (error) {
+                console.error('Erro ao verificar rascunho local:', error);
+            }
+        }
+
+        function setupDraftRestoreBanner() {
+            document.getElementById('draft-restore-btn').addEventListener('click', () => {
+                const draft = window._pendingDraft;
+                if (!draft) return;
+                document.getElementById('backlog-text').innerHTML = draft.texto;
+                if (draft.data) document.getElementById('data-backlog').value = draft.data;
+                document.getElementById('draft-restore-actions').classList.remove('show');
+                showToast('Rascunho restaurado!', 'success');
+            });
+            document.getElementById('draft-discard-btn').addEventListener('click', () => {
+                clearDraftCache();
+            });
+        }
+        setupDraftRestoreBanner();
+
+        function setupBacklogForm() {
+            const backlogForm = document.getElementById('backlog-form');
+            const dataBacklog = document.getElementById('data-backlog');
+            const clearFormBtn = document.getElementById('clear-form');
+            const saveButton = document.getElementById('save-backlog');
+
+            dataBacklog.value = getFortalezaDateString();
+
+            clearFormBtn.addEventListener('click', function () {
+                if (document.getElementById('backlog-text').innerHTML.trim() !== '' &&
+                    !confirm('Limpar o formulário? Todo conteúdo não salvo será perdido.')) return;
+                dataBacklog.value = getFortalezaDateString();
+                document.getElementById('backlog-text').innerHTML = '';
+                clearDraftCache();
+                showToast('Formulário limpo com sucesso!');
+            });
+
+            backlogForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                if (!checkRateLimit('save_backlog')) {
+                    showToast('Por favor, aguarde um momento antes de salvar novamente', 'error');
+                    return;
+                }
+
+                const data = dataBacklog.value;
+                let texto = document.getElementById('backlog-text').innerHTML.trim();
+
+                if (!data || !texto) {
+                    showToast('Por favor, preencha todos os campos obrigatórios!', 'error');
+                    return;
+                }
+
+                texto = cleanBacklogText(texto);
+
+                try {
+                    saveButton.disabled = true;
+                    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+
+                    const op = await saveBacklogRecord(userAnalystName, data, texto, false);
+                    await logAudit('BACKLOG_SAVE', `Analista ${userAnalystName} ${op === 'updated' ? 'atualizou' : 'criou'} backlog na data ${data}`);
+
+                    const msg = op === 'updated' ? 'Backlog atualizado com sucesso!' : 'Backlog salvo com sucesso!';
+                    saveButton.innerHTML = '<i class="fas fa-check"></i> Salvo!';
+                    saveButton.style.backgroundColor = '#34a853';
+                    showToast(msg);
+
+                    setTimeout(() => {
+                        saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Backlog';
+                        saveButton.style.backgroundColor = '';
+                        saveButton.disabled = false;
+                    }, 2000);
+
+                    document.getElementById('backlog-text').innerHTML = '';
+                    clearDraftCache();
+
+                    if (document.getElementById('dashboard-section').style.display !== 'none') {
+                        initCalendar();
+                        updateDashboardStats();
+                    }
+                } catch (error) {
+                    console.error('Erro ao salvar:', error);
+                    if (error.message === 'BACKLOG_EDIT_TIME_EXCEEDED') {
+                        showToast('O backlog só pode ser alterado dentro de 1 hora após o primeiro registro.', 'error');
+                    } else if (error.message === 'BACKLOG_SAVE_LIMIT_REACHED') {
+                        showToast('Limite de 4 sobrescritas atingido para este backlog.', 'error');
+                    } else if (error.message === 'BACKLOG_MAX_ANALYSTS_REACHED') {
+                        showToast('Limite máximo de 3 analistas diferentes por dia atingido.', 'error');
+                    } else {
+                        showToast('Erro ao salvar os dados. Verifique o console.', 'error');
+                    }
+                    saveButton.innerHTML = '<i class="fas fa-save"></i> Salvar Backlog';
+                    saveButton.disabled = false;
+                }
+            });
+        }
+
+        // ========== FIREBASE OPERATIONS ==========
+
+        async function saveBacklogRecord(analista, data, texto, isAdmin = false) {
+            const docId = getBacklogDocId(data);
+            const docRef = db.collection('backlog').doc(docId);
+            const metadataRef = db.collection('backlog').doc('metadata');
+            const now = new Date();
+            const nowTimestampString = getFortalezaTimestamp();
+            const nowFirestoreTs = firebase.firestore.Timestamp.now();
+            let recordTimestamp = nowTimestampString;
+
+            if (isAdmin && window.clickTimestamp) {
+                recordTimestamp = window.clickTimestamp;
+            }
+
+            const operationType = await db.runTransaction(async (transaction) => {
+                const doc = await transaction.get(docRef);
+                let registros = [];
+                if (doc.exists && doc.data().registros) {
+                    registros = [...doc.data().registros];
+                }
+
+                const idx = registros.findIndex(r => r.analista === analista && r.data === data);
+
+                if (idx >= 0) {
+                    const existing = registros[idx];
+                    let createdAt;
+                    if (existing.createdAt && typeof existing.createdAt.toDate === 'function') {
+                        createdAt = existing.createdAt.toDate();
+                    } else if (existing.createdAt) {
+                        createdAt = new Date(existing.createdAt);
+                    } else if (existing.timestamp) {
+                        createdAt = new Date(existing.timestamp);
+                    } else {
+                        createdAt = now;
+                    }
+
+                    const saveCount = existing.saveCount ? Number(existing.saveCount) : 1;
+                    const elapsedMs = now.getTime() - createdAt.getTime();
+
+                    if (elapsedMs > BACKLOG_EDIT_WINDOW_MS) throw new Error('BACKLOG_EDIT_TIME_EXCEEDED');
+                    if (saveCount >= MAX_BACKLOG_SAVES) throw new Error('BACKLOG_SAVE_LIMIT_REACHED');
+
+                    registros[idx] = {
+                        ...existing, texto, timestamp: recordTimestamp,
+                        updatedAt: nowFirestoreTs, createdAt: existing.createdAt || nowFirestoreTs,
+                        saveCount: saveCount + 1, insertedByAdmin: isAdmin ? true : false,
+                        adminName: isAdmin ? userAnalystName : null
+                    };
+                    transaction.set(docRef, { registros }, { merge: true });
+                    return 'updated';
+                } else {
+                    const analistasDiaSet = new Set(registros.filter(r => r.data === data).map(r => r.analista));
+                    if (!analistasDiaSet.has(analista) && analistasDiaSet.size >= 3) throw new Error('BACKLOG_MAX_ANALYSTS_REACHED');
+
+                    const nextId = registros.reduce((max, r) => {
+                        const idVal = typeof r.id === 'number' ? r.id : parseInt(r.id || 0, 10) || 0;
+                        return Math.max(max, idVal);
+                    }, 0) + 1;
+
+                    const newRecord = {
+                        id: nextId, analista, data, texto, timestamp: recordTimestamp,
+                        createdAt: nowFirestoreTs, updatedAt: nowFirestoreTs, saveCount: 1,
+                        insertedByAdmin: isAdmin ? true : false, adminName: isAdmin ? userAnalystName : null
+                    };
+                    registros.push(newRecord);
+                    transaction.set(docRef, { registros }, { merge: true });
+                    return 'created';
+                }
+            });
+
+            await metadataRef.set({
+                sistema: "Backlog do NOC", versao: "1.0",
+                ultima_atualizacao: firebase.firestore.FieldValue.serverTimestamp(),
+                criado_em: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+
+            return operationType;
+        }
+
+        async function loadFirebaseData() {
+            try {
+                const cached = sessionStorage.getItem('backlog_cache');
+                if (cached) {
+                    const { data, timestamp } = JSON.parse(cached);
+                    if (Date.now() - timestamp < CACHE_TTL_MS) return data;
+                }
+                const snapshot = await db.collection('backlog').get();
+                let allRegistros = [];
+                snapshot.forEach(doc => {
+                    if (doc.id !== 'metadata') {
+                        const registros = doc.data().registros || [];
+                        allRegistros = [...allRegistros, ...registros];
+                    }
+                });
+                const result = {
+                    meta: { sistema: "Backlog do NOC", versao: "1.0", ultima_atualizacao: new Date().toISOString(), criado_em: new Date().toISOString() },
+                    registros: allRegistros
+                };
+                sessionStorage.setItem('backlog_cache', JSON.stringify({ data: result, timestamp: Date.now() }));
+                return result;
+            } catch (error) {
+                console.error('Erro ao carregar dados do Firebase:', error);
+                return { meta: {}, registros: [] };
+            }
+        }
+
+        // ========== FUNÇÕES DE COMPARAÇÃO (NOVAS) ==========
+
+        function openComparisonModal(date, analysts) {
+            if (!analysts || analysts.length === 0) return;
+
+            const modal = document.getElementById('comparisonModal');
+            const modalDateDisplay = document.getElementById('comparisonModalDate');
+            const comparisonGrid = document.getElementById('comparisonGrid');
+
+            // Formata a data para exibição
+            const formattedDate = new Date(date + 'T12:00:00').toLocaleDateString('pt-BR', {
+                day: '2-digit', month: 'long', year: 'numeric'
+            });
+            modalDateDisplay.textContent = formattedDate;
+
+            // Gera os cards
+            comparisonGrid.innerHTML = '';
+            analysts.forEach(analyst => {
+                const card = createComparisonCard(analyst);
+                comparisonGrid.appendChild(card);
+            });
+
+            // Abre o modal
+            modal.style.display = 'flex';
+        }
+
+        function createComparisonCard(analyst) {
+            const card = document.createElement('div');
+            card.className = 'fc-event-analyst-item';
+            if (analyst.insertedByAdmin) {
+                card.style.border = '2px solid var(--gold)';
+                card.style.background = 'rgba(255,215,0,0.05)';
+            }
+
+            const analystName = document.createElement('div');
+            analystName.className = 'fc-event-analyst-name';
+            analystName.innerHTML = `<i class="fas fa-user-tie" style="color: ${getAnalystColor(analyst.analista)}"></i> ${analyst.analista}`;
+
+            if (analyst.insertedByAdmin) {
+                const adminSpan = document.createElement('span');
+                adminSpan.className = 'admin-badge';
+                adminSpan.innerHTML = `<i class="fas fa-crown"></i> ADM (${analyst.adminName || 'Admin'})`;
+                analystName.appendChild(adminSpan);
+            }
+
+            const analystDate = document.createElement('div');
+            analystDate.style.fontSize = '0.8rem';
+            analystDate.style.color = 'var(--gray)';
+            analystDate.style.marginBottom = '0.75rem';
+            analystDate.innerHTML = `<i class="far fa-calendar-alt"></i> ${new Date(analyst.data + 'T12:00:00').toLocaleDateString('pt-BR')}`;
+
+            const analystContent = document.createElement('div');
+            analystContent.className = 'fc-event-analyst-content';
+            analystContent.innerHTML = formatWhatsAppText(analyst.texto || '');
+
+            card.appendChild(analystName);
+            card.appendChild(analystDate);
+            card.appendChild(analystContent);
+
+            return card;
+        }
+
+        function closeComparisonModal() {
+            const modal = document.getElementById('comparisonModal');
+            modal.style.display = 'none';
+        }
+
+        // ========== CALENDÁRIO E DASHBOARD ==========
+
+        function initCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            if (!calendarEl) return;
+
+            // Agrupa registros por data para saber quantos analistas tem cada dia
+            const analystsByDate = {};
+            firebaseRecords.forEach(entry => {
+                if (!analystsByDate[entry.data]) {
+                    analystsByDate[entry.data] = [];
+                }
+                analystsByDate[entry.data].push(entry);
+            });
+
+            const events = firebaseRecords.map(entry => {
+                let eventClass = `event-${entry.analista.toLowerCase()} fc-event-analyst has-tooltip`;
+                if (entry.insertedByAdmin) eventClass += ' event-admin';
+                return {
+                    title: entry.analista,
+                    start: entry.data,
+                    extendedProps: {
+                        texto: entry.texto, analista: entry.analista, fonte: entry.fonte || 'firebase',
+                        insertedByAdmin: entry.insertedByAdmin || false, adminName: entry.adminName || null,
+                        analystsForDate: analystsByDate[entry.data] || []
+                    },
+                    className: eventClass
+                };
+            });
+
+            if (calendarInstance) {
+                calendarInstance.removeAllEvents();
+                calendarInstance.addEventSource(events);
+                return;
+            }
+
+            calendarInstance = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'pt-br',
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,dayGridWeek,dayGridDay' },
+                events,
+                eventContent: function (arg) {
+                    const eventEl = document.createElement('div');
+                    eventEl.style.cssText = 'display:flex;align-items:center;padding:0.25rem 0.5rem;gap:0.5rem;flex-wrap:wrap;position:relative;';
+
+                    const iconEl = document.createElement('i');
+                    iconEl.className = arg.event.extendedProps.insertedByAdmin ? 'fas fa-crown' : 'fas fa-user-check';
+                    iconEl.style.fontSize = '0.8em';
+                    if (arg.event.extendedProps.insertedByAdmin) iconEl.style.color = 'gold';
+
+                    const titleEl = document.createElement('span');
+                    titleEl.className = 'fc-event-title';
+                    titleEl.textContent = arg.event.title;
+
+                    const tooltipEl = document.createElement('div');
+                    tooltipEl.className = 'tooltip';
+                    tooltipEl.textContent = arg.event.extendedProps.insertedByAdmin ?
+                        `Admin` :
+                        `Analista: ${arg.event.extendedProps.analista}`;
+
+                    eventEl.appendChild(iconEl);
+                    eventEl.appendChild(titleEl);
+                    // mascara de insert de admin nas datas do calendario 
+
+                    //if (arg.event.extendedProps.insertedByAdmin) {
+                    //     const adminBadge = document.createElement('span');
+                    //      adminBadge.className = 'admin-badge';
+                    //adminBadge.textContent = '';
+                    //       eventEl.appendChild(adminBadge);
+                    //    }
+                    eventEl.appendChild(tooltipEl);
+
+                    return { domNodes: [eventEl] };
+                },
+                eventClick: function (info) {
+                    showEventDetails(info.event);
+                },
+                dateClick: function (info) {
+                    if (userAnalystName === 'SIDNEY') {
+                        if (confirm('Deseja inserir um backlog como admin para esta data?')) {
+                            openAdminModal(info.dateStr);
+                        }
+                    }
+                },
+                viewDidMount: function (view) {
+                    // Adiciona botões de comparação após o calendário ser renderizado
+                    setTimeout(addCompareButtonsToCalendar, 100);
+                },
+                datesSet: function (info) {
+                    // Adiciona botões de comparação quando a data muda
+                    setTimeout(addCompareButtonsToCalendar, 100);
+                }
+            });
+
+            calendarInstance.render();
+            setTimeout(addCompareButtonsToCalendar, 200);
+        }
+
+        // Função para adicionar botões de comparação em cada dia do calendário
+        function addCompareButtonsToCalendar() {
+            // Remove botões existentes
+            document.querySelectorAll('.fc-compare-btn').forEach(btn => btn.remove());
+
+            // Agrupa registros por data
+            const analystsByDate = {};
+            firebaseRecords.forEach(entry => {
+                if (!analystsByDate[entry.data]) {
+                    analystsByDate[entry.data] = [];
+                }
+                analystsByDate[entry.data].push(entry);
+            });
+
+            // Para cada dia que tem registros
+            Object.keys(analystsByDate).forEach(date => {
+                const analysts = analystsByDate[date];
+                if (analysts && analysts.length > 0) {
+                    const dayCell = document.querySelector(`.fc-daygrid-day[data-date="${date}"]`);
+                    if (dayCell) {
+                        // Procura o elemento do número do dia
+                        const dayNumber = dayCell.querySelector('.fc-daygrid-day-number');
+                        if (dayNumber && !dayCell.querySelector('.fc-compare-btn')) {
+                            // Cria um container flex para alinhar número e botão
+                            const flexContainer = document.createElement('div');
+                            flexContainer.style.cssText = 'display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px;';
+
+                            // Move o número para o container
+                            dayNumber.parentNode.insertBefore(flexContainer, dayNumber);
+                            flexContainer.appendChild(dayNumber);
+
+                            // Ajusta o estilo do número
+                            dayNumber.style.cssText = 'flex-shrink: 0; margin: 0; padding: 0;';
+
+                            // Cria o botão
+                            const compareBtn = document.createElement('button');
+                            compareBtn.className = 'fc-compare-btn';
+                            compareBtn.innerHTML = '<i class="fas fa-code-compare"></i>';
+                            compareBtn.setAttribute('data-tooltip', `Comparar ${analysts.length} backlog${analysts.length !== 1 ? 's' : ''}`);
+                            compareBtn.onclick = (e) => {
+                                e.stopPropagation();
+                                openComparisonModal(date, analysts);
+                            };
+                            flexContainer.appendChild(compareBtn);
+                        }
+                    }
+                }
+            });
+        }
+        function showEventDetails(event) {
+            const modal = document.createElement('div');
+            modal.className = 'fc-event-modal';
+            const modalContent = document.createElement('div');
+            modalContent.className = 'fc-event-modal-content';
+            const modalHeader = document.createElement('div');
+            modalHeader.className = 'fc-event-modal-header';
+            const modalTitle = document.createElement('h3');
+            modalTitle.className = 'fc-event-modal-title';
+            modalTitle.textContent = 'Detalhes da Validação';
+            const closeButton = document.createElement('button');
+            closeButton.className = 'fc-event-modal-close';
+            closeButton.innerHTML = '<i class="fas fa-times"></i>';
+            closeButton.addEventListener('click', () => document.body.removeChild(modal));
+            modalHeader.appendChild(modalTitle);
+            modalHeader.appendChild(closeButton);
+            const modalBody = document.createElement('div');
+            const dateEl = document.createElement('div');
+            dateEl.style.cssText = 'margin-bottom:1.5rem;font-size:0.95rem;color:var(--gray);';
+            dateEl.innerHTML = `<i class="far fa-calendar-alt" style="margin-right:0.5rem;"></i>${new Date(event.start).toLocaleDateString('pt-BR')}`;
+            const analystItem = document.createElement('div');
+            analystItem.className = 'fc-event-analyst-item';
+            if (event.extendedProps.insertedByAdmin) {
+                analystItem.style.border = '2px solid gold';
+                analystItem.style.background = 'rgba(255,215,0,0.1)';
+            }
+            const analystName = document.createElement('div');
+            analystName.className = 'fc-event-analyst-name';
+            analystName.innerHTML = `<i class="fas fa-user-tie" style="color:${getAnalystColor(event.extendedProps.analista)}"></i> ${event.extendedProps.analista}`;
+            if (event.extendedProps.insertedByAdmin) {
+                const adminSpan = document.createElement('span');
+                adminSpan.className = 'admin-badge';
+                adminSpan.style.marginLeft = '0.5rem';
+                adminSpan.textContent = `Adm ${event.extendedProps.adminName}`;
+                analystName.appendChild(adminSpan);
+            }
+            const analystContent = document.createElement('div');
+            analystContent.className = 'fc-event-analyst-content';
+            analystContent.innerHTML = formatWhatsAppText(event.extendedProps.texto || '');
+            analystItem.appendChild(analystName);
+            analystItem.appendChild(analystContent);
+            modalBody.appendChild(dateEl);
+            modalBody.appendChild(analystItem);
+            modalContent.appendChild(modalHeader);
+            modalContent.appendChild(modalBody);
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+        }
+
+        function updateDashboardStats() {
+            const allRecords = firebaseRecords;
+            const today = getFortalezaDateString();
+            const currentMonth = new Date().getMonth() + 1;
+            const currentYear = new Date().getFullYear();
+            const selectedMonth = document.getElementById('month-select').value;
+
+            let filteredRecords = allRecords;
+            if (selectedMonth) {
+                const [year, month] = selectedMonth.split('-');
+                filteredRecords = allRecords.filter(record => {
+                    const d = new Date(record.data);
+                    return d.getFullYear() == year && (d.getMonth() + 1) == month;
+                });
+            }
+
+            const todayValidations = filteredRecords.filter(r => r.data === today).length;
+            document.getElementById('validations-today').textContent = todayValidations;
+
+            const yesterday = new Date(new Date(today).getTime() - 86400000).toISOString().split('T')[0];
+            const yesterdayValidations = filteredRecords.filter(r => r.data === yesterday).length;
+            let todayChange = 0;
+            if (yesterdayValidations > 0) todayChange = Math.round(((todayValidations - yesterdayValidations) / yesterdayValidations) * 100);
+            else if (todayValidations > 0) todayChange = 100;
+
+            const todayChangeEl = document.getElementById('today-change');
+            if (todayChange > 0) {
+                todayChangeEl.innerHTML = `<i class="fas fa-caret-up"></i> ${todayChange}% em relação a ontem`;
+                todayChangeEl.className = 'stat-change positive';
+            } else if (todayChange < 0) {
+                todayChangeEl.innerHTML = `<i class="fas fa-caret-down"></i> ${Math.abs(todayChange)}% em relação a ontem`;
+                todayChangeEl.className = 'stat-change negative';
+            } else {
+                todayChangeEl.innerHTML = `<i class="fas fa-equals"></i> 0% em relação a ontem`;
+                todayChangeEl.className = 'stat-change';
+            }
+
+            const currentMonthValidations = filteredRecords.filter(record => {
+                const d = new Date(record.data);
+                return d.getMonth() + 1 === currentMonth && d.getFullYear() === currentYear;
+            }).length;
+            document.getElementById('validations-month').textContent = currentMonthValidations;
+
+            const analystCounts = {};
+            filteredRecords.forEach(record => {
+                if (!analystCounts[record.analista]) analystCounts[record.analista] = 0;
+                analystCounts[record.analista]++;
+            });
+            const sortedAnalysts = Object.entries(analystCounts).sort((a, b) => b[1] - a[1]);
+
+            if (sortedAnalysts.length > 0) {
+                document.getElementById('top-analyst').textContent = sortedAnalysts[0][0];
+                document.getElementById('top-analyst-count').textContent = `${sortedAnalysts[0][1]} validações`;
+            } else {
+                document.getElementById('top-analyst').textContent = 'N/A';
+                document.getElementById('top-analyst-count').textContent = '0 validações';
+            }
+
+            updateAnalystRankings(sortedAnalysts);
+            updateAnalystChart(sortedAnalysts);
+            populateMonthSelect();
+        }
+
+        function updateAnalystRankings(sortedAnalysts) {
+            const topAnalystsEl = document.getElementById('top-analysts');
+            const bottomAnalystsEl = document.getElementById('bottom-analysts');
+
+            topAnalystsEl.innerHTML = '';
+            sortedAnalysts.slice(0, 3).forEach((analyst, index) => {
+                const medalClass = index === 0 ? 'gold' : index === 1 ? 'silver' : 'bronze';
+                const el = document.createElement('div');
+                el.className = 'analyst-item';
+                el.innerHTML = `<div><span class="medal ${medalClass}"><i class="fas fa-medal"></i></span><span class="analyst-name">${analyst[0]}</span></div><span class="analyst-count">${analyst[1]} validações</span>`;
+                topAnalystsEl.appendChild(el);
+            });
+
+            bottomAnalystsEl.innerHTML = '';
+            if (sortedAnalysts.length > 3) {
+                sortedAnalysts.slice(-3).reverse().forEach(analyst => {
+                    const el = document.createElement('div');
+                    el.className = 'analyst-item';
+                    el.innerHTML = `<span class="analyst-name">${analyst[0]}</span><span class="analyst-count">${analyst[1]} validação${analyst[1] !== 1 ? 's' : ''}</span>`;
+                    bottomAnalystsEl.appendChild(el);
+                });
+            } else if (sortedAnalysts.length > 0) {
+                bottomAnalystsEl.innerHTML = '<p>Todos os analistas estão no ranking!</p>';
+            } else {
+                bottomAnalystsEl.innerHTML = '<p>Nenhum dado disponível</p>';
+            }
+        }
+
+        function updateAnalystChart(sortedAnalysts) {
+            const ctx = document.getElementById('analystChart');
+            if (!ctx) return;
+
+            const labels = sortedAnalysts.map(item => item[0]);
+            const data = sortedAnalysts.map(item => item[1]);
+            const backgroundColors = sortedAnalysts.map(item => getAnalystColor(item[0]));
+
+            if (analystChart) {
+                analystChart.data.labels = labels;
+                analystChart.data.datasets[0].data = data;
+                analystChart.data.datasets[0].backgroundColor = backgroundColors;
+                analystChart.update();
+            } else {
+                analystChart = new Chart(ctx.getContext('2d'), {
+                    type: 'bar',
+                    data: { labels, datasets: [{ label: 'Validações por Analista', data, backgroundColor: backgroundColors, borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1 }] },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { backgroundColor: 'rgba(26,32,44,0.9)', titleColor: '#e2e8f0', bodyColor: '#a0aec0', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 12, usePointStyle: true }
+                        },
+                        scales: {
+                            y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a0aec0' } },
+                            x: { grid: { display: false }, ticks: { color: '#a0aec0' } }
+                        }
+                    }
+                });
+            }
+        }
+
+        function populateMonthSelect() {
+            const monthSelect = document.getElementById('month-select');
+            monthSelect.innerHTML = '<option value="">Todos os meses</option>';
+            if (firebaseRecords.length === 0) return;
+            const months = new Set();
+            firebaseRecords.forEach(record => {
+                const d = new Date(record.data);
+                months.add(`${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`);
+            });
+            Array.from(months).sort((a, b) => new Date(b) - new Date(a)).forEach(month => {
+                const [year, monthNum] = month.split('-');
+                const monthName = new Date(`${year}-${monthNum}-01`).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+                const option = document.createElement('option');
+                option.value = month;
+                option.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+                monthSelect.appendChild(option);
+            });
+            monthSelect.addEventListener('change', updateDashboardStats);
+        }
+
+        // ========== MODAL ADMIN ==========
+
+        function openAdminModal(date) {
+            if (userAnalystName !== 'SIDNEY') return;
+            window.selectedCalendarDate = date;
+            window.clickTimestamp = getFortalezaTimestamp();
+            const dateObj = new Date(date + 'T12:00:00');
+            document.getElementById('admin-selected-date').textContent = dateObj.toLocaleDateString('pt-BR', { timeZone: 'America/Fortaleza', day: '2-digit', month: '2-digit', year: 'numeric' });
+            document.getElementById('admin-click-time').textContent = new Date().toLocaleTimeString('pt-BR', { timeZone: 'America/Fortaleza', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            document.getElementById('admin-analista-select').value = '';
+            document.getElementById('admin-backlog-text').innerHTML = '';
+            document.getElementById('admin-modal').style.display = 'flex';
+        }
+
+        function closeAdminModal() {
+            document.getElementById('admin-modal').style.display = 'none';
+            window.selectedCalendarDate = null;
+            window.clickTimestamp = null;
+        }
+
+        document.getElementById('admin-modal-close').addEventListener('click', closeAdminModal);
+        document.getElementById('admin-modal-cancel').addEventListener('click', closeAdminModal);
+
+        document.getElementById('admin-modal-save').addEventListener('click', async function () {
+            if (userAnalystName !== 'SIDNEY') {
+                showToast('Apenas SIDNEY pode usar esta funcionalidade!', 'error');
+                closeAdminModal();
+                return;
+            }
+
+            if (!checkRateLimit('admin_save')) {
+                showToast('Por favor, aguarde um momento antes de salvar novamente', 'error');
+                return;
+            }
+
+            const analista = document.getElementById('admin-analista-select').value;
+            const data = window.selectedCalendarDate;
+            let texto = document.getElementById('admin-backlog-text').innerHTML.trim();
+
+            if (!analista || !data || !texto) {
+                showToast('Por favor, selecione um analista e preencha o backlog!', 'error');
+                return;
+            }
+
+            texto = cleanBacklogText(texto) + ' <span class="admin-badge">ADM</span>';
+
+            try {
+                this.disabled = true;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+
+                const op = await saveBacklogRecord(analista, data, texto, true);
+                await logAudit('ADMIN_BACKLOG_SAVE', `Admin ${userAnalystName} ${op === 'updated' ? 'atualizou' : 'criou'} backlog para ${analista} na data ${data}`);
+
+                const firebaseData = await loadFirebaseData();
+                firebaseRecords = firebaseData.registros.map(r => ({ ...r, fonte: 'firebase' }));
+
+                showToast(op === 'updated' ? 'Backlog atualizado por admin!' : 'Backlog inserido por admin!', 'success');
+
+                if (document.getElementById('dashboard-section').style.display !== 'none') {
+                    initCalendar();
+                    updateDashboardStats();
+                }
+                closeAdminModal();
+            } catch (error) {
+                console.error('Erro ao salvar como admin:', error);
+                if (error.message === 'BACKLOG_EDIT_TIME_EXCEEDED') showToast('O backlog só pode ser alterado dentro de 1 hora.', 'error');
+                else if (error.message === 'BACKLOG_SAVE_LIMIT_REACHED') showToast('Limite de 4 sobrescritas atingido.', 'error');
+                else if (error.message === 'BACKLOG_MAX_ANALYSTS_REACHED') showToast('Limite máximo de 3 analistas por dia atingido.', 'error');
+                else showToast('Erro ao salvar os dados.', 'error');
+            } finally {
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-save"></i> Salvar como Admin';
+            }
+        });
+
+        // ========== MURAL ==========
+
+        function formatTime(date) {
+            if (!date) return '';
+            return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Fortaleza' });
+        }
+
+        function escHTML(str) {
+            return String(str).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+        }
+
+        async function checkAndClearOldMessages() {
+            const today = getFortalezaDateString();
+            try {
+                const metadataDoc = await db.collection('mural_metadata').doc('daily').get();
+                let lastClearDate = metadataDoc.exists ? metadataDoc.data().lastClearDate : null;
+                if (!lastClearDate || lastClearDate !== today) {
+                    const snapshot = await db.collection('mural_messages').get();
+                    if (!snapshot.empty) {
+                        const batch = db.batch();
+                        let deletedCount = 0;
+                        snapshot.forEach(doc => {
+                            if (doc.data().date !== today) { batch.delete(doc.ref); deletedCount++; }
+                        });
+                        if (deletedCount > 0) {
+                            await batch.commit();
+                            showToast(`Mural limpo: ${deletedCount} mensagens antigas removidas`, 'info', 3000);
+                        }
+                    }
+                    await db.collection('mural_metadata').doc('daily').set({
+                        lastClearDate: today, lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                }
+            } catch (error) { console.error('Erro ao limpar mensagens antigas:', error); }
+        }
+
+        function loadMuralMessages() {
+            const today = getFortalezaDateString();
+            const q = db.collection('mural_messages').where('date', '==', today);
+
+            const unsubscribe = q.onSnapshot(snapshot => {
+                let html = '';
+                let hasMessages = false;
+                if (!snapshot.empty) {
+                    const messages = [];
+                    snapshot.forEach(doc => {
+                        const msgData = doc.data();
+                        // Remove apenas mensagens do sistema (não as dos analistas)
+                        if (msgData.analyst !== 'SISTEMA') {
+                            messages.push({ id: doc.id, ...msgData });
+                        }
+                    });
+                    if (messages.length > 0) {
+                        hasMessages = true;
+                        messages.sort((a, b) => {
+                            const tA = a.timestamp?.toDate?.() || new Date(0);
+                            const tB = b.timestamp?.toDate?.() || new Date(0);
+                            return tA - tB;
+                        });
+                        messages.forEach(msg => {
+                            const isOwn = msg.analyst === userAnalystName;
+                            const timeStr = msg.timestamp?.toDate ? formatTime(msg.timestamp.toDate()) : '';
+                            const editedHtml = msg.edited ? '<span class="edited-badge">(editado)</span>' : '';
+                            const safeText = escHTML(msg.text).replace(/\n/g, '<br>');
+                            html += `<div class="message-wrapper ${isOwn ? 'own' : ''}" data-id="${msg.id}">
+                            <div class="message-bubble">
+                                <div class="message-header">
+                                    <span class="message-author">${escHTML(msg.analyst)}</span>
+                                    <span class="message-time">${timeStr} ${editedHtml}</span>
+                                </div>
+                                <div class="message-content">${safeText}</div>
+                                <div class="message-footer">
+                                    <button class="copy-msg" data-id="${msg.id}"><i class="fa-regular fa-copy"></i>Copiar</button>
+                                    ${isOwn ? `<button class="edit-msg" data-id="${msg.id}"><i class="fa-solid fa-pen"></i>Editar</button><button class="delete-msg danger" data-id="${msg.id}"><i class="fa-solid fa-trash"></i>Excluir</button>` : ''}
+                                </div>
+                            </div>
+                        </div>`;
+                        });
+                    }
+                }
+                if (!hasMessages) html = '<div style="text-align:center;color:rgba(232,251,255,.45);padding:20px;">📝 Nenhuma anotação ainda. Seja o primeiro a escrever!</div>';
+                document.getElementById('chat-messages').innerHTML = html;
+                document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+            }, error => { console.error('Erro no listener do mural:', error); showToast('Erro ao carregar mensagens do mural', 'error'); });
+            return unsubscribe;
+        }
+
+        async function sendMuralMessage() {
+            const chatInput = document.getElementById('chat-input');
+            const text = chatInput.value.trim();
+            if (!text) return;
+            if (!checkRateLimit('send_message')) {
+                showToast('Por favor, aguarde um momento antes de enviar outra mensagem', 'error');
+                return;
+            }
+            const today = getFortalezaDateString();
+            const chatSend = document.getElementById('chat-send');
+            chatSend.disabled = true;
+            try {
+                await db.collection('mural_messages').add({
+                    analyst: userAnalystName, text: text,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(), date: today, edited: false
+                });
+                await logAudit('MURAL_MESSAGE', `Analista ${userAnalystName} enviou mensagem no mural`);
+                chatInput.value = '';
+                chatInput.style.height = '24px';
+                showToast('Mensagem enviada!', 'success');
+            } catch (error) {
+                console.error('Erro ao enviar:', error);
+                showToast('Erro ao enviar mensagem', 'error');
+            } finally { chatSend.disabled = false; }
+        }
+
+       function initializeMural() {
+    checkAndClearOldMessages();
+    if (muralUnsubscribe) muralUnsubscribe();
+    muralUnsubscribe = loadMuralMessages();
+
+    const chatMessages = document.getElementById('chat-messages');
+    const chatInput = document.getElementById('chat-input');
+    const chatSend = document.getElementById('chat-send');
+
+    if (chatMessages) {
+        chatMessages.addEventListener('click', async (e) => {
+            const target = e.target.closest('button');
+            if (!target) return;
+            const messageDiv = target.closest('.message-wrapper');
+            if (!messageDiv) return;
+            const msgId = messageDiv.dataset.id;
+            const contentDiv = messageDiv.querySelector('.message-content');
+
+            if (target.classList.contains('copy-msg')) {
+                try {
+                    const plainText = contentDiv.innerText || contentDiv.textContent;
+                    await navigator.clipboard.writeText(plainText);
+                    flash(messageDiv.querySelector('.message-bubble'));
+                    showToast('✅ Mensagem copiada!', 'success');
+                } catch (error) {
+                    console.error('Erro ao copiar:', error);
+                    showToast('Erro ao copiar mensagem', 'error');
+                }
+                return;
+            }
+            if (target.classList.contains('edit-msg')) {
+                const oldText = contentDiv.innerText || contentDiv.textContent;
+                enableEdit(messageDiv, msgId, oldText);
+            }
+             if (target.classList.contains('delete-msg')) {
+                messageDiv.classList.add('deleting');
+                setTimeout(async () => {
+                    try {
+                        await db.collection('mural_messages').doc(msgId).delete();
+                        await logAudit('MURAL_DELETE', `Analista ${userAnalystName} deletou mensagem do mural`);
+                        showToast('Mensagem apagada!', 'success');
+                    } catch (error) {
+                        console.error('Erro detalhado ao apagar:', error);
+                        showToast(`Erro: ${error.message}`, 'error');
+                        messageDiv.classList.remove('deleting');
+                    }
+                }, 220);
+            }
+        });
+    }
+
+    if (chatInput) {
+        chatInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) { 
+                e.preventDefault(); 
+                sendMuralMessage(); 
+            }
+        });
+        chatInput.addEventListener('input', function () {
+            this.style.height = '0px';
+            this.style.height = Math.min(this.scrollHeight, 140) + 'px';
+        });
+    }
+    
+    if (chatSend) { 
+        chatSend.addEventListener('click', sendMuralMessage); 
+    }
+}
+        
+        function enableEdit(messageDiv, msgId, oldText) {
+                        const bubble = messageDiv.querySelector('.message-bubble');
+                        const originalContent = bubble.innerHTML;
+                        bubble.innerHTML = `
+            <div class="edit-mode">
+                <textarea id="edit-textarea-${msgId}">${escHTML(oldText.replace(/<br>/g, '\n'))}</textarea>
+                <div class="edit-actions">
+                    <button class="save-edit" data-id="${msgId}"><i class="fa-solid fa-check"></i>Salvar</button>
+                    <button class="cancel-edit cancel" data-id="${msgId}"><i class="fa-solid fa-xmark"></i>Cancelar</button>
+                </div>
+            </div>`;
+                        const textarea = bubble.querySelector('textarea');
+                        textarea.focus();
+                        const autoResize = () => { textarea.style.height = '0px'; textarea.style.height = Math.min(textarea.scrollHeight, 240) + 'px'; };
+                        textarea.addEventListener('input', autoResize);
+                        autoResize();
+                        bubble.querySelector('.save-edit').addEventListener('click', async () => {
+                            const newText = textarea.value.trim();
+                            if (!newText) return;
+                            try {
+                                await db.collection('mural_messages').doc(msgId).update({
+                                    text: newText, edited: true, timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                                });
+                                await logAudit('MURAL_EDIT', `Analista ${userAnalystName} editou mensagem do mural`);
+                                showToast('Mensagem editada', 'success');
+                            } catch (error) { console.error('Erro ao editar:', error); showToast('Erro ao editar', 'error'); }
+                        });
+                        bubble.querySelector('.cancel-edit').addEventListener('click', () => { bubble.innerHTML = originalContent; });
+                    }
+
+        function flash(element) {
+                        if (!element) return;
+                        element.classList.remove('flash');
+                        void element.offsetWidth;
+                        element.classList.add('flash');
+                        setTimeout(() => element.classList.remove('flash'), 380);
+                    }
+
+        function scheduleMidnightCleanup() {
+                        const now = new Date();
+                        const night = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+                        const msToMidnight = night.getTime() - now.getTime();
+                        setTimeout(() => { checkAndClearOldMessages(); scheduleMidnightCleanup(); }, msToMidnight);
+                    }
+
+        // ========== AUDITORIA ==========
+
+        async function loadAuditLogs() {
+                        const container = document.getElementById('audit-logs-container');
+                        if (!container) return;
+                        container.innerHTML = '<p style="text-align: center; color: var(--gray);">Carregando logs...</p>';
+                        try {
+                            const snapshot = await db.collection('audit_logs').orderBy('timestamp', 'desc').limit(100).get();
+                            if (snapshot.empty) {
+                                container.innerHTML = '<p style="text-align: center; color: var(--gray);">Nenhum log de auditoria encontrado.</p>';
+                                return;
+                            }
+                            let html = '';
+                            snapshot.forEach(doc => {
+                                const log = doc.data();
+                                const timestamp = log.timestamp?.toDate ? log.timestamp.toDate() : new Date();
+                                const timeStr = timestamp.toLocaleString('pt-BR');
+                                const isAdminAction = log.action.includes('ADMIN');
+                                html += `
+                    <div class="audit-log-item ${isAdminAction ? 'admin-action' : ''}">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <strong style="color: var(--accent);">${log.action}</strong>
+                            <span style="color: var(--gray); font-size: 0.85rem;">${timeStr}</span>
+                        </div>
+                        <div style="margin-bottom: 0.25rem;">${log.details}</div>
+                        <div style="font-size: 0.85rem; color: var(--gray);">
+                            <i class="fas fa-user"></i> ${log.analyst || 'Sistema'} | 
+                        </div>
+                    </div>
+                `;
+                            });
+                            container.innerHTML = html;
+                        } catch (error) {
+                            console.error('Erro ao carregar logs de auditoria:', error);
+                            container.innerHTML = '<p style="text-align: center; color: var(--danger);">Erro ao carregar logs de auditoria.</p>';
+                        }
+                    }
+
+        document.getElementById('refresh-audit-logs').addEventListener('click', loadAuditLogs);
+
+                // Inicializa o modal de comparação
+                document.getElementById('closeComparisonModal').addEventListener('click', closeComparisonModal);
+                document.getElementById('comparisonModal').addEventListener('click', function (e) {
+                    if (e.target === this) closeComparisonModal();
+                });
+
+                // ========== CARREGAMENTO INICIAL ==========
+
+                async function loadInitialData() {
+                    try {
+                        const firebaseData = await loadFirebaseData();
+                        firebaseRecords = firebaseData.registros.map(r => ({ ...r, fonte: 'firebase' }));
+                        showToast('Dados carregados!');
+                        populateMonthSelect();
+
+                        db.collection('backlog').onSnapshot(snapshot => {
+                            let allRegistros = [];
+                            snapshot.forEach(doc => {
+                                if (doc.id !== 'metadata') {
+                                    const registros = doc.data().registros || [];
+                                    allRegistros = [...allRegistros, ...registros];
+                                }
+                            });
+                            firebaseRecords = allRegistros.map(r => ({ ...r, fonte: 'firebase' }));
+                            sessionStorage.removeItem('backlog_cache');
+                            if (document.getElementById('dashboard-section').style.display !== 'none') {
+                                initCalendar();
+                                updateDashboardStats();
+                            }
+                        });
+                    } catch (error) {
+                        console.error('Erro ao carregar dados iniciais:', error);
+                        showToast('Erro ao carregar dados. Verifique o console.', 'error');
+                    }
+                }
+
+                window.addEventListener('focus', async () => { await checkAndClearOldMessages(); });
+    </script>
+</body>
+
+</html>
