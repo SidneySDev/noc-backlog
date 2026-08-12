@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -954,7 +953,7 @@
       color: var(--text-primary) !important;
     }
 
-   
+
     .event-helielton {
       background: rgba(59, 130, 246, var(--event-opacity)) !important;
       border-color: rgba(59, 130, 246, var(--event-border-opacity)) !important;
@@ -985,7 +984,7 @@
       color: var(--text-primary) !important;
     }
 
- 
+
 
     .event-onofre {
       background: rgba(249, 115, 22, var(--event-opacity)) !important;
@@ -2755,7 +2754,8 @@
     <div class="admin-modal-content">
       <div class="admin-modal-header">
         <h3><i class="fas fa-crown"></i> Admin: Inserir Backlog
-          <span class="admin-badge-large"><i class="fas fa-star"></i> SIDNEY</span></h3>
+          <span class="admin-badge-large"><i class="fas fa-star"></i> SIDNEY</span>
+        </h3>
         <button class="admin-modal-close" id="admin-modal-close"><i class="fas fa-times"></i></button>
       </div>
       <div class="admin-modal-body">
@@ -4043,29 +4043,53 @@
             const b = parseInt(h.substring(4, 6), 16);
             return `rgba(${r}, ${g}, ${b}, ${alpha})`;
         }
+function updateAnalystChart(sortedAnalysts) {
+    const chartEl = document.getElementById('analystChart');
+    if (!chartEl) return;
 
-        function updateAnalystChart(sortedAnalysts) {
-            const chartEl = document.getElementById('analystChart');
-            if (!chartEl) return;
-            chartEl.innerHTML = '';
-            if (sortedAnalysts.length === 0) { 
-                chartEl.innerHTML = '<p style="color: var(--text-muted); text-align: center; width: 100%;">Nenhum dado disponível</p>'; 
-                return; 
-            }
-            const maxValue = Math.max(...sortedAnalysts.map(item => item[1]));
-            sortedAnalysts.forEach(([name, count], index) => {
-                const color = getAnalystColor(name);
-                const heightPct = Math.max(4, (count / maxValue) * 100);
-                const col = document.createElement('div');
-                col.className = 'ops-bar-col';
-                col.innerHTML = `
-                    <span class="ops-bar-value">${count}</span>
-                    <div class="ops-bar" style="height:${heightPct}%; --bar-c1:${color}; --bar-c2:${shadeColor(color, -0.35)}; --bar-glow:${hexToRgba(color, 0.3)}; animation-delay:${index * 45}ms"></div>
-                    <span class="ops-bar-label" style="font-weight:700;color:var(--text-primary);font-size:0.7rem;">${name}</span>
-                `;
-                chartEl.appendChild(col);
-            });
-        }
+    chartEl.innerHTML = '';
+
+    // Remove analistas que não devem aparecer no gráfico
+    sortedAnalysts = sortedAnalysts.filter(([name]) =>
+        !['MARCIO', 'MURILO'].includes(name.toUpperCase())
+    );
+
+    if (sortedAnalysts.length === 0) {
+        chartEl.innerHTML = '<p style="color: var(--text-muted); text-align: center; width: 100%;">Nenhum dado disponível</p>';
+        return;
+    }
+
+    const maxValue = Math.max(...sortedAnalysts.map(item => item[1]));
+
+    sortedAnalysts.forEach(([name, count], index) => {
+        const color = getAnalystColor(name);
+        const heightPct = Math.max(4, (count / maxValue) * 100);
+
+        const col = document.createElement('div');
+        col.className = 'ops-bar-col';
+
+        col.innerHTML = `
+            <span class="ops-bar-value">${count}</span>
+            <div
+                class="ops-bar"
+                style="
+                    height:${heightPct}%;
+                    --bar-c1:${color};
+                    --bar-c2:${shadeColor(color, -0.35)};
+                    --bar-glow:${hexToRgba(color, 0.3)};
+                    animation-delay:${index * 45}ms
+                ">
+            </div>
+            <span
+                class="ops-bar-label"
+                style="font-weight:700;color:var(--text-primary);font-size:0.7rem;">
+                ${name}
+            </span>
+        `;
+
+        chartEl.appendChild(col);
+    });
+}
 
         function populateMonthSelect() {
             const monthSelect = document.getElementById('month-select');
