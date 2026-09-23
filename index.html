@@ -2908,6 +2908,7 @@
         // ============================================================
         const BACKLOG_EDIT_WINDOW_MS = 60 * 60 * 1000;
         const MAX_BACKLOG_SAVES = 5;
+        const MAX_ANALYSTS_PER_DAY = 4;
         const RATE_LIMIT_MS = 1000;
         const CACHE_TTL_MS = 5 * 60 * 1000;
         const DRAFT_TTL_MS = 20 * 60 * 1000;
@@ -3581,8 +3582,8 @@
                         showToast('O backlog só pode ser alterado dentro de 1 hora após o primeiro registro.', 'error');
                     } else if (error.message === 'BACKLOG_SAVE_LIMIT_REACHED') {
                         showToast('Limite de 4 sobrescritas atingido para este backlog.', 'error');
-                    } else if (error.message === 'BACKLOG_MAX_ANALYSTS_REACHED') {
-                        showToast('Limite máximo de 3 analistas diferentes por dia atingido.', 'error');
+                    } else if (error.message === 'BACKLOG_MAX_ANALYSTS_REACHED'){
+                      showToast(`Limite máximo de ${MAX_ANALYSTS_PER_DAY} analistas por dia atingido.`, 'error');
                     } else {
                         showToast('Erro ao salvar os dados. Verifique o console.', 'error');
                     }
@@ -3626,7 +3627,7 @@
                         return 'updated';
                     } else {
                         const analistasDiaSet = new Set(registros.filter(r => r.data === data).map(r => r.analista));
-                        if (!analistasDiaSet.has(analista) && analistasDiaSet.size >= 3) throw new Error('BACKLOG_MAX_ANALYSTS_REACHED');
+                        if (!analistasDiaSet.has(analista) && analistasDiaSet.size >= MAX_ANALYSTS_PER_DAY) throw new Error('BACKLOG_MAX_ANALYSTS_REACHED');
                         const nextId = registros.reduce((max, r) => { const idVal = typeof r.id === 'number' ? r.id : parseInt(r.id || 0, 10) || 0; return Math.max(max, idVal); }, 0) + 1;
                         const newRecord = { id: nextId, analista, data, texto, timestamp: recordTimestamp, createdAt: nowFirestoreTs, updatedAt: nowFirestoreTs, saveCount: 1, insertedByAdmin: isAdmin ? true : false, adminName: isAdmin ? userAnalystName : null };
                         registros.push(newRecord);
@@ -4173,7 +4174,7 @@ function updateAnalystChart(sortedAnalysts) {
                 console.error('Erro ao salvar como admin:', error);
                 if (error.message === 'BACKLOG_EDIT_TIME_EXCEEDED') showToast('O backlog só pode ser alterado dentro de 1 hora.', 'error');
                 else if (error.message === 'BACKLOG_SAVE_LIMIT_REACHED') showToast('Limite de 4 sobrescritas atingido.', 'error');
-                else if (error.message === 'BACKLOG_MAX_ANALYSTS_REACHED') showToast('Limite máximo de 3 analistas por dia atingido.', 'error');
+                else if (error.message === 'BACKLOG_MAX_ANALYSTS_REACHED') showToast(`Limite máximo de ${MAX_ANALYSTS_PER_DAY} analistas por dia atingido.`, 'error');
                 else showToast('Erro ao salvar os dados.', 'error');
             } finally {
                 loading.hide();
