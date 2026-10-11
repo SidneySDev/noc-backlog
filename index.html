@@ -922,6 +922,67 @@
       font-size: 0.8rem;
     }
 
+    /* ===== LOGIN (nova tela) ===== */
+    #login-screen { overflow: hidden; }
+    #login-fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    .lg-orb { position: absolute; border-radius: 50%; filter: blur(70px); pointer-events: none; }
+    .lg-orb.o1 { width: 520px; height: 520px; left: -120px; top: -140px; background: radial-gradient(circle, rgba(59,111,212,0.28), transparent 70%); animation: lgDrift1 16s ease-in-out infinite; }
+    .lg-orb.o2 { width: 560px; height: 560px; right: -160px; bottom: -200px; background: radial-gradient(circle, rgba(124,92,224,0.22), transparent 70%); animation: lgDrift2 19s ease-in-out infinite; }
+    body[data-theme="light"] .lg-orb.o1 { background: radial-gradient(circle, rgba(47,91,196,0.16), transparent 70%); }
+    body[data-theme="light"] .lg-orb.o2 { background: radial-gradient(circle, rgba(106,75,208,0.13), transparent 70%); }
+    @keyframes lgDrift1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(70px,50px); } }
+    @keyframes lgDrift2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-60px,-40px); } }
+    .lg-wrap { position: relative; z-index: 2; width: 100%; max-width: 1020px; padding: 24px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 56px; }
+    .lg-hero { flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 26px; animation: lgRise 0.7s ease-out both; }
+    .lg-brand { display: flex; align-items: center; gap: 12px; }
+    .lg-logo { width: 46px; height: 46px; border-radius: 13px; background: linear-gradient(135deg, var(--accent), #7c5ce0); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 28px var(--accent-glow); color: #fff; font-size: 1.3rem; }
+    .lg-brand span.t { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.01em; color: var(--text-primary); }
+    .lg-status { display: inline-flex; align-items: center; gap: 9px; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border-light); background: var(--bg-glass); font-size: 0.78rem; color: var(--text-secondary); align-self: flex-start; }
+    .lg-live { width: 8px; height: 8px; border-radius: 50%; background: var(--success); animation: lgLive 2s ease-out infinite; }
+    @keyframes lgLive { 0% { box-shadow: 0 0 0 0 rgba(46,204,113,0.6); } 100% { box-shadow: 0 0 0 9px rgba(46,204,113,0); } }
+    .lg-mono { font-variant-numeric: tabular-nums; font-family: ui-monospace, 'SF Mono', Consolas, monospace; }
+    .lg-cardwrap { flex: 0 1 420px; width: 420px; max-width: 100%; animation: lgRise 0.8s 0.1s ease-out both; }
+    .lg-glow { padding: 1px; border-radius: 22px; background: linear-gradient(120deg, var(--accent), #7c5ce0, #14b8a6, var(--accent)); background-size: 300% 100%; animation: lgSweep 8s linear infinite; box-shadow: 0 24px 70px rgba(0,0,0,0.35), 0 0 60px var(--accent-glow); }
+    .lg-glow.ok { background: linear-gradient(120deg, #2ecc71, #14b8a6, #2ecc71); background-size: 200% 100%; box-shadow: 0 24px 70px rgba(0,0,0,0.35), 0 0 70px rgba(46,204,113,0.4); }
+    .lg-glow.err { background: linear-gradient(120deg, #e5484d, #ff8a5c, #e5484d); background-size: 200% 100%; animation: lgSweep 8s linear infinite, lgShake 0.5s; }
+    @keyframes lgSweep { from { background-position: 0 0; } to { background-position: 300% 0; } }
+    @keyframes lgShake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-9px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-6px); } 80% { transform: translateX(4px); } }
+    @keyframes lgRise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+    .lg-card { border-radius: 21px; background: var(--bg-glass); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); padding: 34px 32px 28px; display: flex; flex-direction: column; gap: 20px; box-sizing: border-box; }
+    .lg-kicker { font-size: 0.85rem; color: var(--accent-hover); font-weight: 600; }
+    .lg-title { margin: 0; font-size: 1.6rem; font-weight: 700; letter-spacing: -0.01em; color: var(--text-primary); }
+    .lg-date { margin: 0; font-size: 0.88rem; color: var(--text-secondary); text-transform: capitalize; }
+    .lg-lbl { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+    .lg-group { display: flex; flex-direction: column; gap: 8px; }
+    .lg-field { display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box; padding: 0 14px; height: 52px; border-radius: 13px; border: 1px solid var(--border-light); background: var(--bg-input); color: var(--text-primary); font: inherit; font-size: 0.95rem; cursor: pointer; text-align: left; transition: border-color .2s, box-shadow .2s; }
+    .lg-field:hover { border-color: var(--accent); }
+    .lg-field:focus-within, .lg-field:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow); }
+    .lg-field input { flex: 1; min-width: 0; background: transparent; border: 0; outline: none; box-shadow: none; color: var(--text-primary); font: inherit; font-size: 0.95rem; height: 100%; padding: 0; }
+    .lg-av { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; color: var(--text-primary); background: color-mix(in srgb, var(--c, var(--text-muted)) 26%, transparent); border: 2px solid var(--c, var(--text-muted)); }
+    .lg-av.none { border-style: dashed; background: transparent; color: var(--text-muted); }
+    .lg-list { display: none; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 8px; border-radius: 13px; border: 1px solid var(--accent); background: var(--bg-input); animation: lgRise 0.25s ease-out both; }
+    .lg-list.open { display: grid; }
+    .lg-opt { display: flex; align-items: center; gap: 9px; padding: 6px 8px; border-radius: 9px; border: 1px solid transparent; background: transparent; color: var(--text-primary); font: inherit; font-size: 0.82rem; font-weight: 500; cursor: pointer; text-align: left; }
+    .lg-opt:hover { background: color-mix(in srgb, var(--c) 14%, transparent); }
+    .lg-opt.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 22%, transparent); }
+    .lg-opt .lg-av { width: 24px; height: 24px; font-size: 0.62rem; }
+    .lg-eye { width: 34px; height: 34px; border-radius: 9px; border: 0; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .lg-eye:hover { color: var(--text-primary); background: rgba(128,128,128,0.14); }
+    .lg-caps { display: none; align-items: center; gap: 7px; font-size: 0.78rem; color: var(--warning); margin-top: -10px; }
+    .lg-caps.show { display: flex; }
+    .lg-btn { position: relative; overflow: hidden; width: 100%; height: 52px; border: 0; border-radius: 13px; font: inherit; font-size: 0.95rem; font-weight: 600; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(120deg, var(--accent), #7c5ce0); box-shadow: 0 10px 28px var(--accent-glow); transition: transform .15s, box-shadow .2s; }
+    .lg-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 14px 34px var(--accent-glow); }
+    .lg-btn::after { content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%; background: linear-gradient(100deg, transparent, rgba(255,255,255,0.28), transparent); transform: skewX(-20deg); animation: lgShine 3.6s ease-in-out infinite; }
+    @keyframes lgShine { 0%,60% { left: -60%; } 100% { left: 130%; } }
+    .lg-btn.ok { background: linear-gradient(120deg, #1f9d57, #14b8a6); box-shadow: 0 10px 28px rgba(46,204,113,0.35); }
+    .lg-btn:disabled { cursor: default; }
+    .lg-btn:focus-visible, .lg-eye:focus-visible, .lg-opt:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .lg-card .login-error { margin-bottom: 0; border-radius: 11px; }
+    .lg-foot { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 0.75rem; color: var(--text-muted); }
+    .lg-kbd { font-family: ui-monospace, Consolas, monospace; font-size: 0.7rem; padding: 1px 6px; border-radius: 5px; border: 1px solid var(--border-light); color: var(--text-secondary); }
+    @media (max-width: 760px) { .lg-hero { display: none; } .lg-wrap { padding: 16px; } .lg-card { padding: 28px 22px 22px; } }
+    @media (prefers-reduced-motion: reduce) { .lg-orb, .lg-glow, .lg-btn::after, .lg-live { animation: none; } }
+
     /* ===== VIEW POR ANALISTA ===== */
     .analyst-name-link { cursor:pointer; text-decoration:underline dotted; text-underline-offset:3px; }
     .analyst-name-link:hover { color:var(--accent); }
@@ -2569,16 +2630,36 @@
   </div>
 
   <div id="login-screen" style="display: none;">
-    <div class="login-container">
-      <div class="login-header">
-        <div class="login-logo"><i class="fa fa-file" aria-hidden="true"></i><span>Backlog NOC</span></div>
-        <h2 class="login-title">Acesso ao Sistema</h2>
-        <p class="login-subtitle">Gerencie seus backlogs com segurança</p>
+    <canvas id="login-fx" aria-hidden="true"></canvas>
+    <div class="lg-orb o1"></div>
+    <div class="lg-orb o2"></div>
+    <div class="lg-wrap">
+      <div class="lg-hero">
+        <div class="lg-brand">
+          <span class="lg-logo"><i class="fas fa-file-lines" aria-hidden="true"></i></span>
+          <span class="t">Backlog NOC</span>
+        </div>
+        <div class="lg-status"><span class="lg-live"></span><span>Sistema operacional</span><span style="opacity:0.4">·</span><span class="lg-mono" id="lg-clock">--:--:--</span><span style="opacity:0.4">·</span><span>Fortaleza</span></div>
       </div>
-      <form class="login-form" id="login-form">
-        <div class="form-group">
-          <label class="form-label">USUÁRIO</label>
-          <select class="form-control form-select" id="login-email" required>
+
+      <div class="lg-cardwrap">
+        <div class="lg-glow" id="lg-glow">
+          <form class="lg-card login-form" id="login-form" novalidate>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <span class="lg-kicker" id="lg-greeting">Olá</span>
+              <h2 class="lg-title">Acesso ao Sistema</h2>
+              <p class="lg-date" id="lg-date"></p>
+            </div>
+
+            <div class="lg-group">
+              <span class="lg-lbl">Usuário</span>
+              <button type="button" class="lg-field" id="lg-user-btn" aria-haspopup="listbox" aria-expanded="false">
+                <span class="lg-av none" id="lg-user-av">?</span>
+                <span style="flex:1;font-weight:500;" id="lg-user-name">Selecione seu usuário</span>
+                <i class="fas fa-chevron-down" style="color:var(--text-muted);font-size:0.8rem;" aria-hidden="true"></i>
+              </button>
+              <div class="lg-list" id="lg-user-list" role="listbox"></div>
+              <select id="login-email" style="display:none;" tabindex="-1" aria-hidden="true">
                         <option value="">Selecione seu usuário</option>
                         <option value="herbeth@noctelecom.com">HERBETH</option>
                         <option value="welligton@noctelecom.com">WELLIGTON</option>
@@ -2594,20 +2675,36 @@
                         <option value="joelze@noctelecom.com">JOELZE</option>
                         <option value="gustavo@noctelecom.com">GUSTAVO</option>
                         <option value="joao@noctelecom.com">JOAO</option>
-                    </select>
+              </select>
+            </div>
+
+            <div class="lg-group">
+              <label class="lg-lbl" for="login-password">Senha</label>
+              <div class="lg-field" style="cursor:text;">
+                <i class="fas fa-lock" style="color:var(--text-muted);font-size:0.95rem;" aria-hidden="true"></i>
+                <input type="password" id="login-password" placeholder="Digite sua senha" autocomplete="current-password" />
+                <button type="button" class="lg-eye" id="lg-eye" aria-label="Mostrar senha"><i class="fas fa-eye" aria-hidden="true"></i></button>
+              </div>
+            </div>
+
+            <div class="lg-caps" id="lg-caps"><i class="fas fa-arrow-up" aria-hidden="true"></i>Caps Lock está ativado</div>
+
+            <div class="login-error" id="login-error">
+              <i class="fas fa-exclamation-circle"></i>
+              <span id="error-message">Credenciais inválidas</span>
+            </div>
+
+            <button type="submit" class="lg-btn" id="login-btn">
+              <i class="fas fa-sign-in-alt"></i> Entrar
+            </button>
+
+            <div class="lg-foot">
+              <span>Acesso restrito à equipe NOC</span>
+              <span><span class="lg-kbd">Enter</span> para entrar</span>
+            </div>
+          </form>
         </div>
-        <div class="form-group">
-          <label class="form-label">SENHA</label>
-          <input type="password" class="form-control" id="login-password" placeholder="Digite sua senha" required />
-        </div>
-        <div class="login-error" id="login-error">
-          <i class="fas fa-exclamation-circle"></i>
-          <span id="error-message">Credenciais inválidas</span>
-        </div>
-        <button type="submit" class="btn btn-primary" id="login-btn" style="width:100%; padding:0.8rem;">
-                    <i class="fas fa-sign-in-alt"></i> Entrar
-                </button>
-      </form>
+      </div>
     </div>
   </div>
 
@@ -3342,11 +3439,117 @@
                             initApplication();
                         } else {
                             document.getElementById('login-screen').style.display = 'flex';
+                            if (window.startLoginFx) window.startLoginFx();
                         }
                     });
                 }, 200);
             }, 3000);
         });
+
+        // ============================================================
+        // TELA DE LOGIN (efeitos visuais; a autenticação continua a mesma)
+        // ============================================================
+        (function setupLoginUI() {
+            const screen = document.getElementById('login-screen');
+            const select = document.getElementById('login-email');
+            const list = document.getElementById('lg-user-list');
+            const userBtn = document.getElementById('lg-user-btn');
+            const userAv = document.getElementById('lg-user-av');
+            const userName = document.getElementById('lg-user-name');
+            const pwd = document.getElementById('login-password');
+            const eye = document.getElementById('lg-eye');
+            const caps = document.getElementById('lg-caps');
+            const tz = { timeZone: 'America/Fortaleza' };
+
+            function setUser(opt) {
+                select.value = opt ? opt.value : '';
+                const name = opt ? opt.textContent.trim() : '';
+                userName.textContent = name || 'Selecione seu usuário';
+                userAv.textContent = name ? name.charAt(0) : '?';
+                userAv.className = 'lg-av' + (name ? '' : ' none');
+                userAv.style.setProperty('--c', name ? getAnalystColor(name) : '');
+                list.querySelectorAll('.lg-opt').forEach(b => b.classList.toggle('on', b.dataset.value === select.value));
+            }
+            Array.from(select.options).filter(o => o.value).forEach(o => {
+                const name = o.textContent.trim();
+                const b = document.createElement('button');
+                b.type = 'button'; b.className = 'lg-opt'; b.dataset.value = o.value;
+                b.style.setProperty('--c', getAnalystColor(name));
+                const av = document.createElement('span'); av.className = 'lg-av'; av.textContent = name.charAt(0);
+                const tx = document.createElement('span'); tx.textContent = name;
+                b.appendChild(av); b.appendChild(tx);
+                b.onclick = () => { setUser(o); toggleList(false); pwd.focus(); };
+                list.appendChild(b);
+            });
+            function toggleList(force) {
+                const open = typeof force === 'boolean' ? force : !list.classList.contains('open');
+                list.classList.toggle('open', open);
+                userBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            }
+            userBtn.onclick = () => toggleList();
+            eye.onclick = () => {
+                const show = pwd.type === 'password';
+                pwd.type = show ? 'text' : 'password';
+                eye.innerHTML = '<i class="fas ' + (show ? 'fa-eye-slash' : 'fa-eye') + '" aria-hidden="true"></i>';
+                eye.setAttribute('aria-label', show ? 'Ocultar senha' : 'Mostrar senha');
+            };
+            pwd.addEventListener('keyup', e => { caps.classList.toggle('show', !!(e.getModifierState && e.getModifierState('CapsLock'))); });
+            pwd.addEventListener('blur', () => caps.classList.remove('show'));
+
+            // Saudação e relógio (só atualiza com a tela visível)
+            function tick() {
+                if (screen.style.display === 'none') return;
+                const now = new Date();
+                const h = parseInt(now.toLocaleTimeString('pt-BR', { ...tz, hour: '2-digit', hour12: false }), 10);
+                document.getElementById('lg-greeting').textContent = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
+                document.getElementById('lg-clock').textContent = now.toLocaleTimeString('pt-BR', { ...tz, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                document.getElementById('lg-date').textContent = now.toLocaleDateString('pt-BR', { ...tz, weekday: 'long', day: '2-digit', month: 'long' });
+            }
+            tick();
+            setInterval(tick, 1000);
+
+            // Fundo animado: rede de nós com pacotes de luz
+            const cv = document.getElementById('login-fx');
+            const ctx = cv.getContext('2d');
+            let nodes = [], packets = [], raf = null, W = 0, H = 0;
+            const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            function resize() {
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                W = screen.clientWidth; H = screen.clientHeight;
+                cv.width = W * dpr; cv.height = H * dpr;
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                const n = Math.max(18, Math.min(46, Math.round(W * H / 36000)));
+                nodes = Array.from({ length: n }, () => ({ x: Math.random() * W, y: Math.random() * H, vx: (Math.random() - 0.5) * 0.25, vy: (Math.random() - 0.5) * 0.25, r: 1.8 + Math.random() * 1.8, ph: Math.random() * 6.28 }));
+                packets = [];
+            }
+            function frame(t) {
+                if (screen.style.display === 'none') { raf = null; return; }
+                raf = requestAnimationFrame(frame);
+                if (document.hidden) return;
+                const cs = getComputedStyle(document.body);
+                const col = (cs.getPropertyValue('--accent') || '#3b6fd4').trim();
+                ctx.clearRect(0, 0, W, H);
+                const maxD = 170;
+                nodes.forEach(n => { n.x += n.vx; n.y += n.vy; if (n.x < -20) n.x = W + 20; if (n.x > W + 20) n.x = -20; if (n.y < -20) n.y = H + 20; if (n.y > H + 20) n.y = -20; });
+                ctx.lineWidth = 1;
+                const links = [];
+                for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) {
+                    const a = nodes[i], b = nodes[j], d = Math.hypot(a.x - b.x, a.y - b.y);
+                    if (d < maxD) { links.push([a, b, d]); ctx.globalAlpha = (1 - d / maxD) * 0.28; ctx.strokeStyle = col; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); }
+                }
+                if (!reduce && links.length && packets.length < 10 && Math.random() < 0.05) { const l = links[Math.floor(Math.random() * links.length)]; packets.push({ a: l[0], b: l[1], p: 0, s: 0.008 + Math.random() * 0.01 }); }
+                packets = packets.filter(k => (k.p += k.s) < 1);
+                packets.forEach(k => { const x = k.a.x + (k.b.x - k.a.x) * k.p, y = k.a.y + (k.b.y - k.a.y) * k.p; ctx.globalAlpha = 0.9; ctx.fillStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 10; ctx.beginPath(); ctx.arc(x, y, 2.2, 0, 6.283); ctx.fill(); ctx.shadowBlur = 0; });
+                nodes.forEach(n => {
+                    const pulse = reduce ? 0 : (Math.sin(t / 900 + n.ph) + 1) / 2;
+                    ctx.globalAlpha = 0.08 + pulse * 0.12; ctx.fillStyle = col; ctx.beginPath(); ctx.arc(n.x, n.y, n.r + 4 + pulse * 6, 0, 6.283); ctx.fill();
+                    ctx.globalAlpha = 0.85; ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, 6.283); ctx.fill();
+                });
+                ctx.globalAlpha = 1;
+            }
+            window.startLoginFx = function () { resize(); tick(); if (!raf) raf = requestAnimationFrame(frame); };
+            window.addEventListener('resize', () => { if (screen.style.display !== 'none') resize(); });
+        })();
 
         document.getElementById('login-form').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -3357,6 +3560,7 @@
 
             if (!email || !password) {
                 loginError.classList.add('show');
+                loginShake();
                 document.getElementById('error-message').textContent = 'Por favor, selecione o email e digite a senha';
                 setTimeout(() => loginError.classList.remove('show'), 3000);
                 return;
@@ -3370,11 +3574,17 @@
                 currentUser = userCredential.user;
                 userAnalystName = email.split('@')[0].toUpperCase();
                 await logAudit('LOGIN', `Usuário ${userAnalystName} fez login`);
+                // Confirmação visual rápida antes de entrar
+                document.getElementById('lg-glow').classList.add('ok');
+                loginBtn.classList.add('ok');
+                loginBtn.innerHTML = '<i class="fas fa-check"></i> Bem-vindo, ' + userAnalystName;
+                await new Promise(r => setTimeout(r, 700));
                 document.getElementById('login-screen').style.display = 'none';
                 initApplication();
             } catch (error) {
                 console.error('Erro de autenticação:', error);
                 loginError.classList.add('show');
+                loginShake();
                 switch (error.code) {
                     case 'auth/invalid-email': document.getElementById('error-message').textContent = 'Email inválido'; break;
                     case 'auth/user-disabled': document.getElementById('error-message').textContent = 'Usuário desativado'; break;
@@ -3385,9 +3595,16 @@
                 }
                 setTimeout(() => loginError.classList.remove('show'), 5000);
                 loginBtn.disabled = false;
+                loginBtn.classList.remove('ok');
                 loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
             }
         });
+
+        function loginShake() {
+            const g = document.getElementById('lg-glow');
+            g.classList.remove('err'); void g.offsetWidth; g.classList.add('err');
+            setTimeout(() => g.classList.remove('err'), 700);
+        }
 
         async function handleLogout() {
             try {
@@ -3903,7 +4120,7 @@
         const ESCALA_CAPACITY = { 'T1': 5, 'T2': 5, 'T3': 4 };
         const ESCALA_LETTER = { 'T1': '1', 'T2': '2', 'T3': '3' };
         const ESCALA_PROJECTION_DAYS = 7;
-          const ROSTER_ANALYSTS = ['HERBETH','WELLIGTON','EDMUNDO','HELIELTON','ROBSON','CARLA','WYLLAME','DARLYSON','ONOFRE','LYNNA','JOELZE','GUSTAVO','JOAO', "SIDNEY"];
+        const ROSTER_ANALYSTS = ['HERBETH','WELLIGTON','EDMUNDO','SIDNEY','HELIELTON','ROBSON','CARLA','WYLLAME','DARLYSON','ONOFRE','LYNNA','JOELZE','GUSTAVO','JOAO'];
         let escalaData = { 'T1': [], 'T2': [], 'T3': [] };
         let escalaActiveShift = 'T1';
         let escalaCalendarFilter = 'all';
