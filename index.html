@@ -924,7 +924,19 @@
 
     /* ===== LOGIN (nova tela) ===== */
     #login-screen { overflow: hidden; }
-    #login-fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    .lg-net { position: absolute; inset: 0; pointer-events: none; --line: #4f7be0; }
+    body[data-theme="light"] .lg-net { --line: #2f5bc4; }
+    .lg-net svg { width: 100%; height: 100%; display: block; }
+    .lg-net .lk { stroke: var(--line); stroke-width: 1; opacity: 0.2; }
+    .lg-net .pk { stroke: var(--line); stroke-width: 2.2; stroke-linecap: round; stroke-dasharray: 3 90; opacity: 0.9; animation: lgFlow 4.2s linear infinite; }
+    .lg-net .pk:nth-child(3n) { animation-duration: 5.4s; animation-delay: -1.2s; }
+    .lg-net .pk:nth-child(3n+1) { animation-duration: 3.6s; animation-delay: -2.4s; }
+    @keyframes lgFlow { from { stroke-dashoffset: 93; } to { stroke-dashoffset: 0; } }
+    .lg-net .nd { fill: var(--nfill, var(--bg-primary, #0a0e14)); stroke: var(--line); stroke-width: 1.6; }
+    .lg-net .nh { fill: var(--line); opacity: 0.18; transform-box: fill-box; transform-origin: center; animation: lgPing 3.2s ease-out infinite; }
+    .lg-net .nh:nth-child(2n) { animation-delay: -1.1s; } .lg-net .nh:nth-child(3n) { animation-delay: -2.1s; } .lg-net .nh:nth-child(5n) { animation-delay: -0.5s; }
+    @keyframes lgPing { 0% { transform: scale(0.6); opacity: 0.35; } 100% { transform: scale(2.4); opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .lg-net .pk, .lg-net .nh { animation: none; } }
     .lg-orb { position: absolute; border-radius: 50%; filter: blur(70px); pointer-events: none; }
     .lg-orb.o1 { width: 520px; height: 520px; left: -120px; top: -140px; background: radial-gradient(circle, rgba(59,111,212,0.28), transparent 70%); animation: lgDrift1 16s ease-in-out infinite; }
     .lg-orb.o2 { width: 560px; height: 560px; right: -160px; bottom: -200px; background: radial-gradient(circle, rgba(124,92,224,0.22), transparent 70%); animation: lgDrift2 19s ease-in-out infinite; }
@@ -2622,15 +2634,18 @@
 
 <body>
   <div id="splash-screen">
-    <div class="loader-container">
+    <canvas id="splash-fx" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
+    <div class="lg-orb o1"></div>
+    <div class="lg-orb o2"></div>
+    <div class="loader-container" style="z-index:2;">
       <div class="icon-center"><img src="./logobacklog.png" alt="Logo Backlog" /></div>
       <div class="orbital-ring"></div>
     </div>
-    <div class="loading-text">Carregando sistema...</div>
+    <div class="loading-text" style="position:relative;z-index:2;">Carregando sistema...</div>
   </div>
 
   <div id="login-screen" style="display: none;">
-    <canvas id="login-fx" aria-hidden="true"></canvas>
+    <div class="lg-net" id="login-net"></div>
     <div class="lg-orb o1"></div>
     <div class="lg-orb o2"></div>
     <div class="lg-wrap">
@@ -3426,6 +3441,7 @@
         // AUTENTICAÇÃO E INICIALIZAÇÃO
         // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
+            startSplashGraph(document.getElementById('splash-screen'), document.getElementById('splash-fx'));
             setTimeout(function() {
                 const splash = document.getElementById('splash-screen');
                 splash.style.opacity = '0';
@@ -3445,6 +3461,123 @@
                 }, 200);
             }, 3000);
         });
+
+        // Fundo de rede NOC (splash e login): topologia fixa animada só com CSS
+        function buildNetworkBg(el) {
+            if (!el || el.firstChild) return;
+            const nodes = [[90, 120], [260, 60], [420, 150], [610, 70], [820, 130], [1010, 60], [1190, 150], [150, 330], [330, 260], [520, 360], [760, 300], [960, 380], [1170, 330], [100, 560], [300, 640], [480, 560], [700, 690], [900, 600], [1100, 700], [1220, 540], [200, 770], [560, 780], [860, 770], [1230, 760]];
+            const edges = [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [0, 7], [7, 8], [8, 2], [8, 9], [9, 10], [10, 4], [10, 11], [11, 12], [12, 6], [7, 13], [13, 14], [14, 15], [15, 9], [15, 16], [16, 17], [17, 11], [17, 18], [18, 19], [19, 12], [14, 20], [16, 21], [17, 22], [18, 23]];
+            let svg = '<svg viewBox="0 0 1280 820" preserveAspectRatio="xMidYMid slice" aria-hidden="true">';
+            svg += '<g>' + edges.map(e => '<line class="lk" x1="' + nodes[e[0]][0] + '" y1="' + nodes[e[0]][1] + '" x2="' + nodes[e[1]][0] + '" y2="' + nodes[e[1]][1] + '"></line>').join('') + '</g>';
+            svg += '<g>' + edges.map(e => '<line class="pk" x1="' + nodes[e[0]][0] + '" y1="' + nodes[e[0]][1] + '" x2="' + nodes[e[1]][0] + '" y2="' + nodes[e[1]][1] + '"></line>').join('') + '</g>';
+            svg += '<g>' + nodes.map((n, i) => '<circle class="nh" cx="' + n[0] + '" cy="' + n[1] + '" r="' + (i % 3 === 0 ? 10 : 7) + '"></circle>').join('') + '</g>';
+            svg += '<g>' + nodes.map((n, i) => '<circle class="nd" cx="' + n[0] + '" cy="' + n[1] + '" r="' + (i % 3 === 0 ? 4.5 : 3.2) + '"></circle>').join('') + '</g>';
+            el.innerHTML = svg + '</svg>';
+        }
+
+        // Splash: grafo que explode a partir do logo central e pulsa em ondas ("carregando de dentro")
+        function startSplashGraph(screen, cv) {
+            if (!screen || !cv) return;
+            const ctx = cv.getContext('2d');
+            const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            let W = 0, H = 0, cx = 0, cy = 0, maxR = 1, nodes = [], links = [], parts = [], packets = [], t0 = 0, raf = null;
+            const ease = x => 1 - Math.pow(1 - x, 3);
+            function build() {
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                W = screen.clientWidth; H = screen.clientHeight;
+                cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                const logo = screen.querySelector('.icon-center');
+                const rc = logo ? logo.getBoundingClientRect() : null;
+                cx = rc ? rc.left + rc.width / 2 : W / 2; cy = rc ? rc.top + rc.height / 2 : H / 2;
+                maxR = Math.hypot(Math.max(cx, W - cx), Math.max(cy, H - cy));
+                const N = Math.max(60, Math.min(130, Math.round(W * H / 9000)));
+                nodes = [];
+                for (let i = 0; i < N; i++) {
+                    // distribuição em espiral com ruído: cobre a tela inteira a partir do centro
+                    const f = Math.sqrt((i + 0.5) / N);
+                    const ang = i * 2.399963 + (Math.random() - 0.5) * 0.5;
+                    const r = (0.14 + f * 0.95) * maxR * (0.9 + Math.random() * 0.2);
+                    const tx = cx + Math.cos(ang) * r, ty = cy + Math.sin(ang) * r * 0.92;
+                    const d = Math.hypot(tx - cx, ty - cy);
+                    nodes.push({ tx, ty, d, delay: (d / maxR) * 0.9 + Math.random() * 0.12, dur: 0.9 + Math.random() * 0.4, r: 1.6 + Math.random() * 2.4, ph: Math.random() * 6.28, big: Math.random() < 0.12, x: cx, y: cy, p: 0 });
+                }
+                links = [];
+                const seen = {};
+                nodes.forEach((a, i) => {
+                    nodes.map((b, j) => ({ j, d: Math.hypot(a.tx - b.tx, a.ty - b.ty) })).filter(o => o.j !== i).sort((u, v) => u.d - v.d).slice(0, 3).forEach(o => {
+                        const k = i < o.j ? i + '-' + o.j : o.j + '-' + i;
+                        if (seen[k]) return; seen[k] = 1;
+                        const b = nodes[o.j];
+                        links.push(a.d <= b.d ? [a, b] : [b, a]); // sempre de dentro para fora
+                    });
+                });
+                // hub: liga os nós mais internos ao centro
+                nodes.slice().sort((u, v) => u.d - v.d).slice(0, 7).forEach(n => links.push([{ x: cx, y: cy, p: 1, d: 0, tx: cx, ty: cy, hub: true }, n]));
+                parts = Array.from({ length: 70 }, () => { const a = Math.random() * 6.283, v = 260 + Math.random() * 620; return { a, v, life: 0.7 + Math.random() * 0.9, r: 1 + Math.random() * 2 }; });
+                packets = [];
+            }
+            function frame(now) {
+                if (screen.style.display === 'none') { raf = null; return; }
+                raf = requestAnimationFrame(frame);
+                if (document.hidden) return;
+                if (!t0) t0 = now;
+                const t = (now - t0) / 1000;
+                const col = '#4f7be0', hot = '#9bbcf7', teal = '#2dd4bf';
+                ctx.clearRect(0, 0, W, H);
+                // posições (explosão + deriva leve)
+                nodes.forEach(n => {
+                    n.p = reduce ? 1 : Math.max(0, Math.min(1, (t - n.delay) / n.dur));
+                    const e = ease(n.p);
+                    const dr = n.p >= 1 && !reduce ? 1 : 0;
+                    n.x = cx + (n.tx - cx) * e + dr * Math.sin(t * 0.6 + n.ph) * 5;
+                    n.y = cy + (n.ty - cy) * e + dr * Math.cos(t * 0.5 + n.ph) * 5;
+                });
+                // ondas a partir do centro
+                const waveT = t - 1.1, wavePeriod = 2.2, waveSpeed = 560;
+                const wr = waveT > 0 ? ((waveT % wavePeriod) * waveSpeed) : -1;
+                const wAlpha = wr >= 0 ? Math.max(0, 1 - wr / maxR) : 0;
+                // onda de choque da explosão
+                if (t < 1.6) { const k = t / 1.6; ctx.globalAlpha = (1 - k) * 0.6; ctx.strokeStyle = hot; ctx.lineWidth = 3 * (1 - k) + 1; ctx.beginPath(); ctx.arc(cx, cy, ease(k) * maxR * 0.8, 0, 6.283); ctx.stroke(); }
+                // links
+                ctx.lineWidth = 1;
+                links.forEach(l => {
+                    const a = l[0], b = l[1], pa = a.hub ? b.p : Math.min(a.p, b.p);
+                    if (pa <= 0) return;
+                    const mid = (Math.hypot(((a.x + b.x) / 2) - cx, ((a.y + b.y) / 2) - cy));
+                    const glow = wr >= 0 ? Math.max(0, 1 - Math.abs(mid - wr) / 90) : 0;
+                    ctx.globalAlpha = Math.min(1, pa * 1.5) * (0.22 + glow * 0.6);
+                    ctx.strokeStyle = glow > 0.3 ? hot : col;
+                    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+                });
+                // pacotes saindo do centro
+                if (!reduce && t > 0.9 && packets.length < 26 && Math.random() < 0.35) { const l = links[Math.floor(Math.random() * links.length)]; if ((l[0].hub || l[0].p >= 1) && l[1].p >= 1) packets.push({ l, p: 0, s: 0.012 + Math.random() * 0.016, c: Math.random() < 0.25 ? teal : hot }); }
+                packets = packets.filter(k => (k.p += k.s) < 1);
+                packets.forEach(k => { const a = k.l[0], b = k.l[1]; ctx.globalAlpha = 0.95; ctx.fillStyle = k.c; ctx.shadowColor = k.c; ctx.shadowBlur = 12; ctx.beginPath(); ctx.arc(a.x + (b.x - a.x) * k.p, a.y + (b.y - a.y) * k.p, 2.4, 0, 6.283); ctx.fill(); ctx.shadowBlur = 0; });
+                // nós
+                nodes.forEach(n => {
+                    if (n.p <= 0) return;
+                    const glow = wr >= 0 ? Math.max(0, 1 - Math.abs(n.d - wr) / 80) : 0;
+                    const pulse = reduce ? 0 : (Math.sin(t * 1.6 + n.ph) + 1) / 2;
+                    const a = Math.min(1, n.p * 3);
+                    ctx.fillStyle = glow > 0.35 ? hot : col;
+                    ctx.globalAlpha = a * (0.1 + pulse * 0.1 + glow * 0.5);
+                    ctx.beginPath(); ctx.arc(n.x, n.y, n.r * (n.big ? 4.5 : 3) + glow * 9, 0, 6.283); ctx.fill();
+                    ctx.globalAlpha = a * (0.75 + glow * 0.25);
+                    ctx.beginPath(); ctx.arc(n.x, n.y, n.r * (1 + glow * 0.8), 0, 6.283); ctx.fill();
+                });
+                // fagulhas da explosão
+                if (!reduce) parts.forEach(q => {
+                    if (t > q.life) return;
+                    const k = t / q.life, dist = q.v * (1 - Math.pow(1 - k, 2)) * 0.9;
+                    ctx.globalAlpha = (1 - k) * 0.9; ctx.fillStyle = k < 0.4 ? '#fff' : hot;
+                    ctx.beginPath(); ctx.arc(cx + Math.cos(q.a) * dist, cy + Math.sin(q.a) * dist, q.r * (1 - k * 0.5), 0, 6.283); ctx.fill();
+                });
+                ctx.globalAlpha = 1;
+            }
+            window.addEventListener('resize', () => { if (screen.style.display !== 'none') { build(); } });
+            build();
+            raf = requestAnimationFrame(frame);
+        }
 
         // ============================================================
         // TELA DE LOGIN (efeitos visuais; a autenticação continua a mesma)
@@ -3496,6 +3629,8 @@
             pwd.addEventListener('keyup', e => { caps.classList.toggle('show', !!(e.getModifierState && e.getModifierState('CapsLock'))); });
             pwd.addEventListener('blur', () => caps.classList.remove('show'));
 
+            buildNetworkBg(document.getElementById('login-net'));
+
             // Saudação e relógio (só atualiza com a tela visível)
             function tick() {
                 if (screen.style.display === 'none') return;
@@ -3508,47 +3643,7 @@
             tick();
             setInterval(tick, 1000);
 
-            // Fundo animado: rede de nós com pacotes de luz
-            const cv = document.getElementById('login-fx');
-            const ctx = cv.getContext('2d');
-            let nodes = [], packets = [], raf = null, W = 0, H = 0;
-            const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            function resize() {
-                const dpr = Math.min(window.devicePixelRatio || 1, 2);
-                W = screen.clientWidth; H = screen.clientHeight;
-                cv.width = W * dpr; cv.height = H * dpr;
-                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-                const n = Math.max(18, Math.min(46, Math.round(W * H / 36000)));
-                nodes = Array.from({ length: n }, () => ({ x: Math.random() * W, y: Math.random() * H, vx: (Math.random() - 0.5) * 0.25, vy: (Math.random() - 0.5) * 0.25, r: 1.8 + Math.random() * 1.8, ph: Math.random() * 6.28 }));
-                packets = [];
-            }
-            function frame(t) {
-                if (screen.style.display === 'none') { raf = null; return; }
-                raf = requestAnimationFrame(frame);
-                if (document.hidden) return;
-                const cs = getComputedStyle(document.body);
-                const col = (cs.getPropertyValue('--accent') || '#3b6fd4').trim();
-                ctx.clearRect(0, 0, W, H);
-                const maxD = 170;
-                nodes.forEach(n => { n.x += n.vx; n.y += n.vy; if (n.x < -20) n.x = W + 20; if (n.x > W + 20) n.x = -20; if (n.y < -20) n.y = H + 20; if (n.y > H + 20) n.y = -20; });
-                ctx.lineWidth = 1;
-                const links = [];
-                for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) {
-                    const a = nodes[i], b = nodes[j], d = Math.hypot(a.x - b.x, a.y - b.y);
-                    if (d < maxD) { links.push([a, b, d]); ctx.globalAlpha = (1 - d / maxD) * 0.28; ctx.strokeStyle = col; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); }
-                }
-                if (!reduce && links.length && packets.length < 10 && Math.random() < 0.05) { const l = links[Math.floor(Math.random() * links.length)]; packets.push({ a: l[0], b: l[1], p: 0, s: 0.008 + Math.random() * 0.01 }); }
-                packets = packets.filter(k => (k.p += k.s) < 1);
-                packets.forEach(k => { const x = k.a.x + (k.b.x - k.a.x) * k.p, y = k.a.y + (k.b.y - k.a.y) * k.p; ctx.globalAlpha = 0.9; ctx.fillStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 10; ctx.beginPath(); ctx.arc(x, y, 2.2, 0, 6.283); ctx.fill(); ctx.shadowBlur = 0; });
-                nodes.forEach(n => {
-                    const pulse = reduce ? 0 : (Math.sin(t / 900 + n.ph) + 1) / 2;
-                    ctx.globalAlpha = 0.08 + pulse * 0.12; ctx.fillStyle = col; ctx.beginPath(); ctx.arc(n.x, n.y, n.r + 4 + pulse * 6, 0, 6.283); ctx.fill();
-                    ctx.globalAlpha = 0.85; ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, 6.283); ctx.fill();
-                });
-                ctx.globalAlpha = 1;
-            }
-            window.startLoginFx = function () { resize(); tick(); if (!raf) raf = requestAnimationFrame(frame); };
-            window.addEventListener('resize', () => { if (screen.style.display !== 'none') resize(); });
+            window.startLoginFx = function () { tick(); };
         })();
 
         document.getElementById('login-form').addEventListener('submit', async function(e) {
