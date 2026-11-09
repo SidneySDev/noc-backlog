@@ -8,8 +8,6 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
@@ -656,138 +654,64 @@
       background: var(--bg-input);
     }
 
-    /* ========== TOOLBAR iOS (Quill custom UI) ========== */
     .toolbar {
       display: flex;
       flex-wrap: wrap;
-      align-items: center;
-      gap: 8px;
-      padding: 8px;
-      background: rgba(127, 127, 127, 0.08);
+      gap: 0.2rem;
+      padding: 0.5rem;
+      background: rgba(0, 0, 0, 0.06);
       border-bottom: 1px solid var(--border-color);
     }
 
-    .seg {
+    .toolbar-group {
       display: flex;
-      align-items: center;
-      gap: 2px;
-      background: rgba(127, 127, 127, 0.10);
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 3px;
+      gap: 0.2rem;
+      padding-right: 0.5rem;
+      border-right: 1px solid var(--border-color);
+      margin-right: 0.5rem;
     }
 
-    .seg button {
-      -webkit-appearance: none;
-      appearance: none;
-      border: none;
-      outline: none;
+    .toolbar-group:last-child {
+      border-right: none;
+      margin-right: 0;
+    }
+
+    .toolbar-btn {
       background: transparent;
+      border: none;
       color: var(--text-muted);
       width: 32px;
-      height: 30px;
+      height: 32px;
+      border-radius: 6px;
+      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 8px;
+      transition: var(--transition);
+      font-size: 0.85rem;
+    }
+
+    .toolbar-btn:hover {
+      background: rgba(59, 111, 212, 0.1);
+      color: var(--accent);
+    }
+
+    .toolbar-btn.active {
+      background: rgba(59, 111, 212, 0.15);
+      color: var(--accent);
+    }
+
+    .color-picker {
+      width: 32px;
+      height: 32px;
+      padding: 2px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
       cursor: pointer;
-      transition: transform .12s cubic-bezier(.2,.9,.3,1.2), background .15s ease, color .15s ease;
+      background: transparent;
     }
 
-    .seg button svg {
-      width: 17px;
-      height: 17px;
-    }
-
-    .seg button:hover {
-      background: rgba(127, 127, 127, 0.18);
-      color: var(--text-primary);
-    }
-
-    .seg button:active {
-      transform: scale(.88);
-    }
-
-    .seg button.is-active {
-      background: var(--accent);
-      color: #fff;
-    }
-
-    .seg button.glyph {
-      font-size: 14px;
-      font-weight: 700;
-      font-family: -apple-system, system-ui;
-    }
-
-    .seg button.glyph.i {
-      font-style: italic;
-      font-weight: 600;
-    }
-
-    .seg button.glyph.u {
-      text-decoration: underline;
-    }
-
-    .swatch {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      border: 2px solid var(--border-light);
-      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      display: inline-block;
-      margin: 0 3px;
-    }
-
-    .swatch input[type=color] {
-      position: absolute;
-      inset: -4px;
-      width: 200%;
-      height: 200%;
-      opacity: 0;
-      cursor: pointer;
-    }
-
-    .swatch.text-swatch {
-      background: #FF9F0A;
-    }
-
-    .swatch.bg-swatch {
-      background: #FFD60A;
-    }
-
-    .seg.reorder-seg {
-      background: color-mix(in srgb, var(--success) 12%, transparent);
-      border-color: color-mix(in srgb, var(--success) 35%, transparent);
-    }
-
-    .seg.reorder-seg button {
-      width: auto;
-      padding: 0 10px;
-      gap: 6px;
-      color: var(--success);
-      font-weight: 650;
-      font-size: .78rem;
-    }
-
-    .seg.reorder-seg button:hover {
-      background: color-mix(in srgb, var(--success) 18%, transparent);
-    }
-
-    .seg.reorder-seg svg {
-      width: 16px;
-      height: 16px;
-    }
-
-    .editor-content.ql-container {
-      border: none;
-      font-family: inherit;
-      font-size: 0.9rem;
-    }
-
-    .editor-content .ql-editor {
+    .editor-content {
       min-height: 550px;
       max-height: 600px;
       padding: 1rem;
@@ -797,10 +721,10 @@
       line-height: 1.7;
     }
 
-    .editor-content .ql-editor.ql-blank::before {
+    .editor-content:empty::before {
+      content: attr(placeholder);
       color: var(--text-muted);
-      font-style: normal;
-      left: 1rem;
+      pointer-events: none;
     }
 
     .stats-grid {
@@ -998,6 +922,149 @@
       font-size: 0.8rem;
     }
 
+    /* ===== LOGIN (nova tela) ===== */
+    #login-screen { overflow: hidden; }
+    .lg-net { position: absolute; inset: 0; pointer-events: none; --line: #4f7be0; }
+    body[data-theme="light"] .lg-net { --line: #2f5bc4; }
+    .lg-net svg { width: 100%; height: 100%; display: block; }
+    .lg-net .lk { stroke: var(--line); stroke-width: 1; opacity: 0.2; }
+    .lg-net .pk { stroke: var(--line); stroke-width: 2.2; stroke-linecap: round; stroke-dasharray: 3 90; opacity: 0.9; animation: lgFlow 4.2s linear infinite; }
+    .lg-net .pk:nth-child(3n) { animation-duration: 5.4s; animation-delay: -1.2s; }
+    .lg-net .pk:nth-child(3n+1) { animation-duration: 3.6s; animation-delay: -2.4s; }
+    @keyframes lgFlow { from { stroke-dashoffset: 93; } to { stroke-dashoffset: 0; } }
+    .lg-net .nd { fill: var(--nfill, var(--bg-primary, #0a0e14)); stroke: var(--line); stroke-width: 1.6; }
+    .lg-net .nh { fill: var(--line); opacity: 0.18; transform-box: fill-box; transform-origin: center; animation: lgPing 3.2s ease-out infinite; }
+    .lg-net .nh:nth-child(2n) { animation-delay: -1.1s; } .lg-net .nh:nth-child(3n) { animation-delay: -2.1s; } .lg-net .nh:nth-child(5n) { animation-delay: -0.5s; }
+    @keyframes lgPing { 0% { transform: scale(0.6); opacity: 0.35; } 100% { transform: scale(2.4); opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .lg-net .pk, .lg-net .nh { animation: none; } }
+    .lg-orb { position: absolute; border-radius: 50%; filter: blur(70px); pointer-events: none; }
+    .lg-orb.o1 { width: 520px; height: 520px; left: -120px; top: -140px; background: radial-gradient(circle, rgba(59,111,212,0.28), transparent 70%); animation: lgDrift1 16s ease-in-out infinite; }
+    .lg-orb.o2 { width: 560px; height: 560px; right: -160px; bottom: -200px; background: radial-gradient(circle, rgba(124,92,224,0.22), transparent 70%); animation: lgDrift2 19s ease-in-out infinite; }
+    body[data-theme="light"] .lg-orb.o1 { background: radial-gradient(circle, rgba(47,91,196,0.16), transparent 70%); }
+    body[data-theme="light"] .lg-orb.o2 { background: radial-gradient(circle, rgba(106,75,208,0.13), transparent 70%); }
+    @keyframes lgDrift1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(70px,50px); } }
+    @keyframes lgDrift2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-60px,-40px); } }
+    .lg-wrap { position: relative; z-index: 2; width: 100%; max-width: 1020px; padding: 24px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 56px; }
+    .lg-hero { flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 26px; animation: lgRise 0.7s ease-out both; }
+    .lg-brand { display: flex; align-items: center; gap: 12px; }
+    .lg-logo { width: 46px; height: 46px; border-radius: 13px; background: linear-gradient(135deg, var(--accent), #7c5ce0); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 28px var(--accent-glow); color: #fff; font-size: 1.3rem; }
+    .lg-brand span.t { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.01em; color: var(--text-primary); }
+    .lg-status { display: inline-flex; align-items: center; gap: 9px; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border-light); background: var(--bg-glass); font-size: 0.78rem; color: var(--text-secondary); align-self: flex-start; }
+    .lg-live { width: 8px; height: 8px; border-radius: 50%; background: var(--success); animation: lgLive 2s ease-out infinite; }
+    @keyframes lgLive { 0% { box-shadow: 0 0 0 0 rgba(46,204,113,0.6); } 100% { box-shadow: 0 0 0 9px rgba(46,204,113,0); } }
+    .lg-mono { font-variant-numeric: tabular-nums; font-family: ui-monospace, 'SF Mono', Consolas, monospace; }
+    .lg-cardwrap { flex: 0 1 420px; width: 420px; max-width: 100%; animation: lgRise 0.8s 0.1s ease-out both; }
+    .lg-glow { padding: 1px; border-radius: 22px; background: linear-gradient(120deg, var(--accent), #7c5ce0, #14b8a6, var(--accent)); background-size: 300% 100%; animation: lgSweep 8s linear infinite; box-shadow: 0 24px 70px rgba(0,0,0,0.35), 0 0 60px var(--accent-glow); }
+    .lg-glow.ok { background: linear-gradient(120deg, #2ecc71, #14b8a6, #2ecc71); background-size: 200% 100%; box-shadow: 0 24px 70px rgba(0,0,0,0.35), 0 0 70px rgba(46,204,113,0.4); }
+    .lg-glow.err { background: linear-gradient(120deg, #e5484d, #ff8a5c, #e5484d); background-size: 200% 100%; animation: lgSweep 8s linear infinite, lgShake 0.5s; }
+    @keyframes lgSweep { from { background-position: 0 0; } to { background-position: 300% 0; } }
+    @keyframes lgShake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-9px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-6px); } 80% { transform: translateX(4px); } }
+    @keyframes lgRise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+    .lg-card { border-radius: 21px; background: var(--bg-glass); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); padding: 34px 32px 28px; display: flex; flex-direction: column; gap: 20px; box-sizing: border-box; }
+    .lg-kicker { font-size: 0.85rem; color: var(--accent-hover); font-weight: 600; }
+    .lg-title { margin: 0; font-size: 1.6rem; font-weight: 700; letter-spacing: -0.01em; color: var(--text-primary); }
+    .lg-date { margin: 0; font-size: 0.88rem; color: var(--text-secondary); text-transform: capitalize; }
+    .lg-lbl { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+    .lg-group { display: flex; flex-direction: column; gap: 8px; }
+    .lg-field { display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box; padding: 0 14px; height: 52px; border-radius: 13px; border: 1px solid var(--border-light); background: var(--bg-input); color: var(--text-primary); font: inherit; font-size: 0.95rem; cursor: pointer; text-align: left; transition: border-color .2s, box-shadow .2s; }
+    .lg-field:hover { border-color: var(--accent); }
+    .lg-field:focus-within, .lg-field:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow); }
+    .lg-field input { flex: 1; min-width: 0; background: transparent; border: 0; outline: none; box-shadow: none; color: var(--text-primary); font: inherit; font-size: 0.95rem; height: 100%; padding: 0; }
+    .lg-av { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; color: var(--text-primary); background: color-mix(in srgb, var(--c, var(--text-muted)) 26%, transparent); border: 2px solid var(--c, var(--text-muted)); }
+    .lg-av.none { border-style: dashed; background: transparent; color: var(--text-muted); }
+    .lg-list { display: none; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 8px; border-radius: 13px; border: 1px solid var(--accent); background: var(--bg-input); animation: lgRise 0.25s ease-out both; }
+    .lg-list.open { display: grid; }
+    .lg-opt { display: flex; align-items: center; gap: 9px; padding: 6px 8px; border-radius: 9px; border: 1px solid transparent; background: transparent; color: var(--text-primary); font: inherit; font-size: 0.82rem; font-weight: 500; cursor: pointer; text-align: left; }
+    .lg-opt:hover { background: color-mix(in srgb, var(--c) 14%, transparent); }
+    .lg-opt.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 22%, transparent); }
+    .lg-opt .lg-av { width: 24px; height: 24px; font-size: 0.62rem; }
+    .lg-eye { width: 34px; height: 34px; border-radius: 9px; border: 0; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .lg-eye:hover { color: var(--text-primary); background: rgba(128,128,128,0.14); }
+    .lg-caps { display: none; align-items: center; gap: 7px; font-size: 0.78rem; color: var(--warning); margin-top: -10px; }
+    .lg-caps.show { display: flex; }
+    .lg-btn { position: relative; overflow: hidden; width: 100%; height: 52px; border: 0; border-radius: 13px; font: inherit; font-size: 0.95rem; font-weight: 600; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(120deg, var(--accent), #7c5ce0); box-shadow: 0 10px 28px var(--accent-glow); transition: transform .15s, box-shadow .2s; }
+    .lg-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 14px 34px var(--accent-glow); }
+    .lg-btn::after { content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%; background: linear-gradient(100deg, transparent, rgba(255,255,255,0.28), transparent); transform: skewX(-20deg); animation: lgShine 3.6s ease-in-out infinite; }
+    @keyframes lgShine { 0%,60% { left: -60%; } 100% { left: 130%; } }
+    .lg-btn.ok { background: linear-gradient(120deg, #1f9d57, #14b8a6); box-shadow: 0 10px 28px rgba(46,204,113,0.35); }
+    .lg-btn:disabled { cursor: default; }
+    .lg-btn:focus-visible, .lg-eye:focus-visible, .lg-opt:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .lg-card .login-error { margin-bottom: 0; border-radius: 11px; }
+    .lg-foot { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 0.75rem; color: var(--text-muted); }
+    .lg-kbd { font-family: ui-monospace, Consolas, monospace; font-size: 0.7rem; padding: 1px 6px; border-radius: 5px; border: 1px solid var(--border-light); color: var(--text-secondary); }
+    @media (max-width: 760px) { .lg-hero { display: none; } .lg-wrap { padding: 16px; } .lg-card { padding: 28px 22px 22px; } }
+    @media (prefers-reduced-motion: reduce) { .lg-orb, .lg-glow, .lg-btn::after, .lg-live { animation: none; } }
+
+    /* ===== VIEW POR ANALISTA ===== */
+    .analyst-name-link { cursor:pointer; text-decoration:underline dotted; text-underline-offset:3px; }
+    .analyst-name-link:hover { color:var(--accent); }
+    .analyst-view-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:10050; display:flex; align-items:center; justify-content:center; padding:1rem; }
+    .analyst-view-box { background:var(--bg-card); color:var(--text-primary); border:1px solid var(--border-color); border-radius:12px; width:min(760px,100%); max-height:85vh; display:flex; flex-direction:column; }
+    .analyst-view-head { display:flex; align-items:center; gap:0.6rem; padding:0.9rem 1rem; border-bottom:1px solid var(--border-color); }
+    .analyst-view-head h3 { flex:1; margin:0; font-size:1.05rem; }
+    .analyst-view-head input { padding:0.3rem 0.5rem; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); color:var(--text-primary); }
+    .analyst-view-body { padding:1rem; overflow:auto; display:flex; flex-direction:column; gap:0.8rem; }
+    .analyst-view-close { border:none; background:transparent; color:var(--text-secondary); cursor:pointer; font-size:1.1rem; }
+    /* ===== ESCALA DE TURNOS ===== */
+    .escala-tabs { display:flex; gap:0.4rem; flex-wrap:wrap; }
+    .escala-tab { padding:0.4rem 0.9rem; border-radius:9px; border:1px solid var(--border-color); background:transparent; color:var(--text-secondary); cursor:pointer; font-size:0.8rem; font-weight:600; font-family:inherit; }
+    .escala-tab:hover { color:var(--text-primary); }
+    .escala-tab.active { background:color-mix(in srgb, var(--accent) 22%, transparent); border-color:var(--accent); color:var(--text-primary); }
+    .escala-sec-title { font-size:0.72rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-muted); margin-bottom:0.5rem; }
+    .escala-grid { display:flex; flex-wrap:wrap; gap:1.2rem; align-items:flex-start; margin-bottom:1.2rem; }
+    .escala-col-slots { flex:1 1 440px; min-width:0; display:flex; flex-direction:column; gap:0.5rem; }
+    .escala-prob { flex:1 1 340px; min-width:0; border:1px solid var(--border-color); border-radius:14px; padding:1.1rem; background:var(--bg-card-hover); display:flex; flex-direction:column; gap:0.9rem; }
+    .escala-row { display:flex; align-items:center; gap:0.7rem; padding:0.6rem 0.75rem; border-radius:12px; border:1px solid var(--border-color); background:var(--bg-card-hover); }
+    .escala-row.prim { border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 28%, transparent); }
+    .escala-row.free { border-style:dashed; }
+    .escala-pos { width:18px; text-align:center; font-size:0.75rem; font-weight:700; color:var(--text-muted); }
+    .escala-av { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:700; flex-shrink:0; color:var(--text-primary); background:color-mix(in srgb, var(--c, var(--text-muted)) 24%, transparent); border:2px solid var(--c, var(--text-muted)); }
+    .escala-av.empty { border-style:dashed; background:transparent; color:var(--text-muted); }
+    .escala-info { display:flex; flex-direction:column; flex:1; min-width:0; }
+    .escala-name { font-size:0.9rem; font-weight:600; color:var(--text-primary); }
+    .escala-sub { font-size:0.75rem; color:var(--text-muted); }
+    .escala-bdg { font-size:0.68rem; font-weight:700; padding:0.15rem 0.6rem; border-radius:999px; white-space:nowrap; }
+    .escala-bdg.ok { background:rgba(46,204,113,0.16); color:var(--success); }
+    .escala-bdg.acc { background:color-mix(in srgb, var(--accent) 25%, transparent); color:var(--text-primary); }
+    .escala-bdg.mut { border:1px solid var(--border-color); color:var(--text-secondary); }
+    .escala-btn { font-family:inherit; font-size:0.75rem; font-weight:600; padding:0.35rem 0.7rem; border-radius:8px; border:1px solid var(--border-color); background:transparent; color:var(--text-primary); cursor:pointer; }
+    .escala-btn:hover { border-color:var(--accent); }
+    .escala-ib { width:28px; height:28px; border-radius:8px; border:1px solid var(--border-color); background:transparent; color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; }
+    .escala-ib:hover:not(:disabled) { color:var(--text-primary); border-color:var(--accent); }
+    .escala-ib:disabled { opacity:0.3; cursor:not-allowed; }
+    .escala-pick { display:flex; flex-wrap:wrap; gap:6px; padding:10px; border-radius:12px; border:1px solid var(--accent); background:var(--bg-card-hover); }
+    .escala-pk { font-family:inherit; font-size:0.75rem; font-weight:600; padding:0.3rem 0.65rem; border-radius:999px; border:1px solid color-mix(in srgb, var(--c, var(--text-muted)) 55%, transparent); background:color-mix(in srgb, var(--c, var(--text-muted)) 16%, transparent); color:var(--text-primary); cursor:pointer; display:inline-flex; gap:6px; align-items:center; }
+    .escala-pk.on { background:color-mix(in srgb, var(--c) 40%, transparent); border-color:var(--c); }
+    .escala-pk.free { border-style:dashed; background:transparent; }
+    .escala-pk small { font-size:0.62rem; color:var(--text-muted); font-weight:700; }
+    .escala-prob-main { display:flex; align-items:center; gap:0.9rem; }
+    .escala-prob-main .escala-av { width:56px; height:56px; font-size:1.4rem; }
+    .escala-prob-kicker { font-size:0.75rem; font-weight:700; color:var(--accent); }
+    .escala-prob-name { font-size:1.4rem; font-weight:800; letter-spacing:-0.01em; color:var(--text-primary); }
+    .escala-muted { color:var(--text-muted); font-size:0.78rem; }
+    .escala-line { display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; font-size:0.78rem; color:var(--text-secondary); }
+    .escala-dots { display:flex; gap:6px; flex-wrap:wrap; }
+    .escala-dot { width:12px; height:12px; border-radius:50%; border:1px solid var(--text-muted); box-sizing:border-box; }
+    .escala-dot.on { background:var(--c); border-color:var(--c); }
+    .escala-strip { display:flex; flex-wrap:wrap; gap:8px; }
+    .escala-sbox { flex:1 1 84px; min-width:84px; border:1px solid var(--border-color); border-radius:12px; padding:8px; display:flex; flex-direction:column; gap:6px; background:var(--bg-card-hover); box-sizing:border-box; }
+    .escala-sbox.today { border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 28%, transparent); }
+    .escala-sbox-h { display:flex; justify-content:space-between; font-size:0.68rem; font-weight:600; color:var(--text-secondary); }
+    .ech { display:flex; align-items:center; gap:6px; padding:3px 7px; border-radius:7px; font-size:0.7rem; font-weight:600; line-height:1.35; color:var(--text-primary); background:color-mix(in srgb, var(--c) 26%, transparent); border:1px solid color-mix(in srgb, var(--c) 50%, transparent); white-space:nowrap; overflow:hidden; box-sizing:border-box; }
+    .ech .shl { font-size:0.58rem; font-weight:800; padding:0 4px; border-radius:4px; background:rgba(128,128,128,0.28); flex-shrink:0; }
+    .ech .nm { overflow:hidden; text-overflow:ellipsis; }
+    .ech.ghost, .fc-event.event-ghost { background-color:transparent !important; border:1px dashed var(--c) !important; background-image:linear-gradient(100deg,transparent 30%,color-mix(in srgb, var(--c) 30%, transparent) 50%,transparent 70%) !important; background-size:220% 100%; animation:ghostSweep 2.8s linear infinite, ghostBreathe 2.4s ease-in-out infinite; }
+    .ech.ghost.now, .fc-event.event-ghost.ghost-now { animation:ghostSweep 2.8s linear infinite, ghostRing 1.8s ease-out infinite; }
+    .fc-event.event-ghost { color:var(--text-primary) !important; cursor:default !important; box-shadow:none; }
+    .fc-event.event-ghost .fc-event-title { font-weight:600; }
+    @keyframes ghostSweep { from { background-position:120% 0; } to { background-position:-120% 0; } }
+    @keyframes ghostBreathe { 0%,100% { opacity:0.6; } 50% { opacity:1; } }
+    @keyframes ghostRing { 0% { box-shadow:0 0 0 0 color-mix(in srgb, var(--c) 60%, transparent); } 100% { box-shadow:0 0 0 8px transparent; } }
+    @media (prefers-reduced-motion:reduce) { .ech.ghost, .fc-event.event-ghost { animation:none; } }
+    .calendar-shift-filter { display:flex; gap:0.4rem; flex-wrap:wrap; margin-bottom:0.7rem; align-items:center; }
+    .calendar-legend { display:flex; flex-wrap:wrap; gap:1.2rem; align-items:center; font-size:0.78rem; color:var(--text-secondary); margin-bottom:0.7rem; }
+    .calendar-legend span.lg { display:flex; align-items:center; gap:0.5rem; }
+
     /* CORES DOS EVENTOS */
     .event-delano {
       background: rgba(101, 163, 13, var(--event-opacity)) !important;
@@ -1085,6 +1152,11 @@
       border-color: rgba(16, 185, 129, var(--event-border-opacity)) !important;
       color: var(--text-primary) !important;
     }
+    .event-joao {
+      background: rgba(25, 22, 111, var(--event-opacity)) !important;
+      border-color: rgba(16, 185, 110, var(--event-border-opacity)) !important;
+      color: var(--text-primary) !important;
+    }
 
     .event-admin {
       background: rgba(241, 196, 15, 0.15) !important;
@@ -1162,6 +1234,10 @@
     body[data-theme="light"] .event-gustavo {
       background: rgba(25, 229, 161, 0.3) !important;
       border-color: rgba(16, 185, 129, 0.5) !important;
+    }
+    body[data-theme="light"] .event-joao {
+      background: rgba(233, 10, 10, 0.3) !important;
+      border-color: rgba(144, 66, 80, 0.5) !important;
     }
 
     body[data-theme="light"] .event-admin {
@@ -1585,6 +1661,20 @@
       box-shadow: 0 4px 16px var(--accent-glow);
     }
 
+    .audit-log-item {
+      background: rgba(255, 255, 255, 0.02);
+      border-left: 3px solid var(--accent);
+      padding: 0.7rem 1rem;
+      margin-bottom: 0.3rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+    }
+
+    .audit-log-item.admin-action {
+      border-left-color: var(--gold);
+      background: rgba(241, 196, 15, 0.03);
+    }
+
     .toast {
       position: fixed;
       right: 16px;
@@ -1671,7 +1761,7 @@
         grid-template-columns: 1fr 1fr;
       }
 
-      .editor-content .ql-editor {
+      .editor-content {
         min-height: 200px;
       }
 
@@ -2350,6 +2440,70 @@
       overflow-y: auto;
     }
 
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .switch .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-color);
+      transition: var(--transition);
+      border-radius: 22px;
+    }
+
+    .switch .slider::before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 2px;
+      bottom: 2px;
+      background: var(--text-muted);
+      transition: var(--transition);
+      border-radius: 50%;
+    }
+
+    .switch input:checked+.slider {
+      background: var(--success);
+      border-color: var(--success);
+    }
+
+    .switch input:checked+.slider::before {
+      transform: translateX(18px);
+      background: #fff;
+    }
+
+    .audit-toggle-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-right: 1rem;
+      padding-right: 1rem;
+      border-right: 1px solid var(--border-color);
+    }
+
+    .audit-toggle-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
     .inc-link {
       color: var(--accent) !important;
       font-weight: 600;
@@ -2476,30 +2630,63 @@
       }
     }
   </style>
+
+  <!-- ESTILOS NOVOS (somente para a área de Administração e as tags de diamante) -->
+  <style>
+    .admin-diamond { font-size: 0.72em; margin-left: 0.35rem; cursor: help; }
+    .admin-diamond.gold { color: #f1c40f; }
+    .admin-diamond.green { color: #2ecc71; }
+    .fc-event .admin-diamond { margin-left: 0; }
+    .adm-email-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .adm-suffix { color: var(--text-secondary); font-weight: 600; font-size: 0.9rem; }
+    .adm-list { display: flex; flex-direction: column; gap: 0.5rem; }
+  </style>
 </head>
 
 <body>
   <div id="splash-screen">
-    <div class="loader-container">
+    <canvas id="splash-fx" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
+    <div class="lg-orb o1"></div>
+    <div class="lg-orb o2"></div>
+    <div class="loader-container" style="z-index:2;">
       <div class="icon-center"><img src="./logobacklog.png" alt="Logo Backlog" /></div>
       <div class="orbital-ring"></div>
     </div>
-    <div class="loading-text">Carregando sistema...</div>
+    <div class="loading-text" style="position:relative;z-index:2;">Carregando sistema...</div>
   </div>
 
   <div id="login-screen" style="display: none;">
-    <div class="login-container">
-      <div class="login-header">
-        <div class="login-logo"><i class="fa fa-file" aria-hidden="true"></i><span>Backlog NOC</span></div>
-        <h2 class="login-title">Acesso ao Sistema</h2>
-        <p class="login-subtitle">Gerencie seus backlogs com segurança</p>
+    <div class="lg-net" id="login-net"></div>
+    <div class="lg-orb o1"></div>
+    <div class="lg-orb o2"></div>
+    <div class="lg-wrap">
+      <div class="lg-hero">
+        <div class="lg-brand">
+          <span class="lg-logo"><i class="fas fa-file-lines" aria-hidden="true"></i></span>
+          <span class="t">Backlog NOC</span>
+        </div>
+        <div class="lg-status"><span class="lg-live"></span><span>Sistema operacional</span><span style="opacity:0.4">·</span><span class="lg-mono" id="lg-clock">--:--:--</span><span style="opacity:0.4">·</span><span>Fortaleza</span></div>
       </div>
-      <form class="login-form" id="login-form">
-        <div class="form-group">
-          <label class="form-label">USUÁRIO</label>
-          <select class="form-control form-select" id="login-email" required>
+
+      <div class="lg-cardwrap">
+        <div class="lg-glow" id="lg-glow">
+          <form class="lg-card login-form" id="login-form" novalidate>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <span class="lg-kicker" id="lg-greeting">Olá</span>
+              <h2 class="lg-title">Acesso ao Sistema</h2>
+              <p class="lg-date" id="lg-date"></p>
+            </div>
+
+            <div class="lg-group">
+              <span class="lg-lbl">Usuário</span>
+              <button type="button" class="lg-field" id="lg-user-btn" aria-haspopup="listbox" aria-expanded="false">
+                <span class="lg-av none" id="lg-user-av">?</span>
+                <span style="flex:1;font-weight:500;" id="lg-user-name">Selecione seu usuário</span>
+                <i class="fas fa-chevron-down" style="color:var(--text-muted);font-size:0.8rem;" aria-hidden="true"></i>
+              </button>
+              <div class="lg-list" id="lg-user-list" role="listbox"></div>
+              <select id="login-email" style="display:none;" tabindex="-1" aria-hidden="true">
                         <option value="">Selecione seu usuário</option>
-                        <option value="delano@noctelecom.com">DELANO</option>
                         <option value="herbeth@noctelecom.com">HERBETH</option>
                         <option value="welligton@noctelecom.com">WELLIGTON</option>
                         <option value="edmundo@noctelecom.com">EDMUNDO</option>
@@ -2513,20 +2700,37 @@
                         <option value="lynna@noctelecom.com">LYNNA</option>
                         <option value="joelze@noctelecom.com">JOELZE</option>
                         <option value="gustavo@noctelecom.com">GUSTAVO</option>
-                    </select>
+                        <option value="joao@noctelecom.com">JOAO</option>
+              </select>
+            </div>
+
+            <div class="lg-group">
+              <label class="lg-lbl" for="login-password">Senha</label>
+              <div class="lg-field" style="cursor:text;">
+                <i class="fas fa-lock" style="color:var(--text-muted);font-size:0.95rem;" aria-hidden="true"></i>
+                <input type="password" id="login-password" placeholder="Digite sua senha" autocomplete="current-password" />
+                <button type="button" class="lg-eye" id="lg-eye" aria-label="Mostrar senha"><i class="fas fa-eye" aria-hidden="true"></i></button>
+              </div>
+            </div>
+
+            <div class="lg-caps" id="lg-caps"><i class="fas fa-arrow-up" aria-hidden="true"></i>Caps Lock está ativado</div>
+
+            <div class="login-error" id="login-error">
+              <i class="fas fa-exclamation-circle"></i>
+              <span id="error-message">Credenciais inválidas</span>
+            </div>
+
+            <button type="submit" class="lg-btn" id="login-btn">
+              <i class="fas fa-sign-in-alt"></i> Entrar
+            </button>
+
+            <div class="lg-foot">
+              <span>Acesso restrito à equipe NOC</span>
+              <span><span class="lg-kbd">Enter</span> para entrar</span>
+            </div>
+          </form>
         </div>
-        <div class="form-group">
-          <label class="form-label">SENHA</label>
-          <input type="password" class="form-control" id="login-password" placeholder="Digite sua senha" required />
-        </div>
-        <div class="login-error" id="login-error">
-          <i class="fas fa-exclamation-circle"></i>
-          <span id="error-message">Credenciais inválidas</span>
-        </div>
-        <button type="submit" class="btn btn-primary" id="login-btn" style="width:100%; padding:0.8rem;">
-                    <i class="fas fa-sign-in-alt"></i> Entrar
-                </button>
-      </form>
+      </div>
     </div>
   </div>
 
@@ -2545,6 +2749,9 @@
         </div>
         <div class="nav-item" data-section="mural">
           <a href="#" class="nav-link"><i class="fas fa-users nav-icon"></i><span>Mural</span></a>
+        </div>
+        <div class="nav-item" data-section="admin" id="nav-admin" style="display:none;">
+          <a href="#" class="nav-link"><i class="fas fa-user-shield nav-icon"></i><span>Administração</span></a>
         </div>
       </div>
 
@@ -2612,47 +2819,28 @@
                 <div class="form-group">
                   <label class="form-label">Backlog Validado</label>
                   <div class="editor-container">
-                    <div class="toolbar" id="main-toolbar">
-                      <div class="seg">
-                        <button type="button" class="glyph" data-format="bold" title="Negrito (Ctrl+B)">B</button>
-                        <button type="button" class="glyph i" data-format="italic" title="Itálico (Ctrl+I)">I</button>
-                        <button type="button" class="glyph u" data-format="underline" title="Sublinhado (Ctrl+U)">U</button>
+                    <div class="toolbar">
+                      <div class="toolbar-group">
+                        <button type="button" class="toolbar-btn" data-command="bold" title="Negrito (Ctrl+B)"><i class="fas fa-bold"></i></button>
+                        <button type="button" class="toolbar-btn" data-command="italic" title="Itálico (Ctrl+I)"><i class="fas fa-italic"></i></button>
+                        <button type="button" class="toolbar-btn" data-command="underline" title="Sublinhado (Ctrl+U)"><i class="fas fa-underline"></i></button>
                       </div>
-                      <div class="seg">
-                        <button type="button" data-format="list" data-value="bullet" title="Lista não ordenada">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="4.5" cy="6" r="1.1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.1" fill="currentColor" stroke="none"/><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/></svg>
-                        </button>
-                        <button type="button" data-format="list" data-value="ordered" title="Lista ordenada">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><text x="1" y="8" font-size="6.5" fill="currentColor" stroke="none" font-family="-apple-system">1</text><text x="1" y="15" font-size="6.5" fill="currentColor" stroke="none" font-family="-apple-system">2</text><text x="1" y="22" font-size="6.5" fill="currentColor" stroke="none" font-family="-apple-system">3</text><line x1="9" y1="6" x2="21" y2="6"/><line x1="9" y1="13" x2="21" y2="13"/><line x1="9" y1="20" x2="21" y2="20"/></svg>
-                        </button>
+                      <div class="toolbar-group">
+                        <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="Lista não ordenada"><i class="fas fa-list-ul"></i></button>
+                        <button type="button" class="toolbar-btn" data-command="insertOrderedList" title="Lista ordenada"><i class="fas fa-list-ol"></i></button>
                       </div>
-                      <div class="seg">
-                        <button type="button" data-format="background" data-value="#FFD60A" title="Marcador de texto">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3l7 7-8.5 8.5-7-7L13 3z"/><path d="M3.5 20.5l3-1 6-6-2-2-6 6-1 3z"/></svg>
-                        </button>
-                        <label class="swatch text-swatch" title="Cor do texto">
-                          <input type="color" id="text-color" value="#e8edf5" />
-                        </label>
-                        <label class="swatch bg-swatch" title="Cor de fundo">
-                          <input type="color" id="bg-color" value="#0f1724" />
-                        </label>
+                      <div class="toolbar-group">
+                        <button type="button" class="toolbar-btn" data-command="hiliteColor" data-value="yellow" title="Marcador de texto"><i class="fas fa-highlighter"></i></button>
+                        <input type="color" class="color-picker" id="text-color" value="#e8edf5" title="Cor do texto" />
+                        <input type="color" class="color-picker" id="bg-color" value="#0f1724" title="Cor de fundo" />
                       </div>
-                      <div class="seg">
-                        <button type="button" data-cmd="undo" title="Desfazer">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7 3 12l5 5"/><path d="M3 12h11a6 6 0 0 1 0 12h-2"/></svg>
-                        </button>
-                        <button type="button" data-cmd="redo" title="Refazer">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 7l5 5-5 5"/><path d="M21 12H10a6 6 0 0 0 0 12h2"/></svg>
-                        </button>
-                      </div>
-                      <div class="seg reorder-seg">
-                        <button type="button" data-cmd="reorder" title="Renumerar INCs sequencialmente">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><text x="1.5" y="9" font-size="7" fill="currentColor" stroke="none" font-weight="700" font-family="-apple-system">1</text><text x="1.5" y="16" font-size="7" fill="currentColor" stroke="none" font-weight="700" font-family="-apple-system">2</text><text x="1.5" y="23" font-size="7" fill="currentColor" stroke="none" font-weight="700" font-family="-apple-system">3</text><line x1="9" y1="6.5" x2="18" y2="6.5"/><line x1="9" y1="13.5" x2="18" y2="13.5"/><line x1="9" y1="20.5" x2="18" y2="20.5"/><path d="M20 4v6m0 0 2-2m-2 2-2-2" /></svg>
-                          Reordenar INCs
-                        </button>
+                      <div class="toolbar-group">
+                        <button type="button" class="toolbar-btn" data-command="undo" title="Desfazer"><i class="fas fa-undo"></i></button>
+                        <button type="button" class="toolbar-btn" data-command="redo" title="Refazer"><i class="fas fa-redo"></i></button>
                       </div>
                     </div>
-                    <div class="editor-content" id="backlog-text"></div>
+                    <div class="editor-content" id="backlog-text" contenteditable="true"
+                      placeholder="Descreva detalhadamente o backlog validado..."></div>
                   </div>
                 </div>
                 <div class="action-buttons">
@@ -2672,6 +2860,29 @@
               </div>
               <div class="card-body">
                 <div id="calendar"></div>
+              </div>
+            </div>
+            <div class="card" id="escala-card">
+              <div class="card-header" style="flex-wrap:wrap;gap:0.8rem;">
+                <div>
+                  <h3 class="card-title"><i class="fas fa-people-arrows"></i> Escala de Turnos</h3>
+                  <div class="escala-muted" style="margin-top:2px;">T1 e T2 têm 5 vagas, T3 tem 4. Vagas livres ficam disponíveis para novos analistas. Qualquer analista pode escolher e reordenar.</div>
+                </div>
+                <div class="card-tools" style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center;">
+                  <div class="escala-tabs" id="escala-tabs"></div>
+                  <button type="button" class="btn btn-outline btn-sm" onclick="openTodayMultiview()"><i class="fas fa-eye"></i> Multiview de hoje</button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="escala-grid">
+                  <div class="escala-col-slots">
+                    <div class="escala-sec-title" id="escala-slots-title"></div>
+                    <div id="escala-slots" style="display:flex;flex-direction:column;gap:0.5rem;"></div>
+                  </div>
+                  <div class="escala-prob" id="escala-prob"></div>
+                </div>
+                <div class="escala-sec-title" id="escala-strip-title"></div>
+                <div class="escala-strip" id="escala-strip"></div>
               </div>
             </div>
             <div class="month-filter">
@@ -2736,6 +2947,77 @@
           </div>
         </div>
 
+        <div class="section-content" id="admin-section" style="display: none;">
+          <div class="card">
+            <div class="card-header" style="flex-wrap:wrap;gap:0.8rem;">
+              <div>
+                <h3 class="card-title"><i class="fas fa-user-shield"></i> Administração</h3>
+                <div class="escala-muted" style="margin-top:2px;">Área exclusiva do admin principal.</div>
+              </div>
+              <div class="escala-tabs" id="adm-tabs"></div>
+            </div>
+            <div class="card-body">
+              <div id="adm-tab-admins">
+                <div class="escala-sec-title">6 vagas de admin secundário</div>
+                <div class="escala-muted" style="margin-bottom:0.8rem;">Admins secundários podem apenas inserir validações (pelo calendário) de analistas que esqueceram de salvar o backlog. Não podem excluir, gerenciar vagas nem criar usuários.</div>
+                <div id="adm-slots" class="adm-list"></div>
+              </div>
+
+              <div id="adm-tab-validacoes" style="display:none;">
+                <div class="month-filter">
+                  <label for="adm-val-month">Mês:</label>
+                  <input type="month" id="adm-val-month" class="form-control" style="max-width:200px;" />
+                  <label for="adm-val-analyst">Analista:</label>
+                  <select id="adm-val-analyst" class="form-control form-select" style="max-width:220px;"><option value="">Todos</option></select>
+                  <button type="button" class="btn btn-outline btn-sm" id="adm-val-refresh"><i class="fas fa-sync-alt"></i> Atualizar</button>
+                </div>
+                <div id="adm-val-list" class="adm-list"></div>
+              </div>
+
+              <div id="adm-tab-criar" style="display:none;">
+                <form id="adm-create-form" novalidate>
+                  <div class="form-group">
+                    <label class="form-label" for="adm-new-name">Nome do usuário</label>
+                    <div class="adm-email-row">
+                      <input type="text" class="form-control" id="adm-new-name" placeholder="fulano" autocomplete="off" maxlength="30" style="max-width:260px;" />
+                      <span class="adm-suffix">@noctelecom.com</span>
+                    </div>
+                  </div>
+                  <div class="action-buttons" style="justify-content:flex-start;">
+                    <button type="submit" class="btn btn-primary" id="adm-create-btn"><i class="fas fa-user-plus"></i> Cadastrar usuário</button>
+                  </div>
+                </form>
+                <div id="adm-create-notice" class="mural-info mural-warning" style="display:none;margin-top:1rem;"></div>
+              </div>
+
+              <div id="adm-tab-usuarios" style="display:none;">
+                <div class="escala-muted" style="margin-bottom:0.8rem;">Remover aqui só tira o nome das listas do sistema. A conta no Firebase Authentication e os backlogs já registrados não são apagados.</div>
+                <div id="adm-users-list" class="adm-list"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-content" id="auditoria-section" style="display: none;">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-history"></i> Logs de Auditoria</h3>
+              <div class="card-tools">
+                <div class="audit-toggle-wrapper" id="audit-toggle-wrapper" style="display: none;">
+                  <span class="audit-toggle-label">Logs ativos</span>
+                  <label class="switch"><input type="checkbox" id="audit-toggle-switch" checked><span class="slider"></span></label>
+                </div>
+                <button class="btn btn-outline btn-sm" id="refresh-audit-logs"><i class="fas fa-sync-alt"></i> Atualizar</button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div id="audit-logs-container">
+                <p style="text-align: center; color: var(--text-muted);">Carregando logs...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="toast" id="toast">
           <div class="toast-icon" id="toast-icon"><i class="fa-solid fa-circle-info"></i></div>
           <div id="toast-message">OK</div>
@@ -2748,7 +3030,7 @@
     <div class="admin-modal-content">
       <div class="admin-modal-header">
         <h3><i class="fas fa-crown"></i> Admin: Inserir Backlog
-          <span class="admin-badge-large"><i class="fas fa-star"></i> SIDNEY</span>
+          <span class="admin-badge-large" id="admin-modal-badge"><i class="fas fa-star"></i> SIDNEY</span>
         </h3>
         <button class="admin-modal-close" id="admin-modal-close"><i class="fas fa-times"></i></button>
       </div>
@@ -2766,7 +3048,6 @@
           <label class="form-label">Selecione o Analista</label>
           <select class="form-control form-select" id="admin-analista-select" required>
                         <option value="">Selecione o analista</option>
-                        <option value="DELANO">DELANO</option>
                         <option value="HERBETH">HERBETH</option>
                         <option value="WELLIGTON">WELLIGTON</option>
                         <option value="EDMUNDO">EDMUNDO</option>
@@ -2779,38 +3060,28 @@
                         <option value="LYNNA">LYNNA</option>
                         <option value="JOELZE">JOELZE</option>
                         <option value="GUSTAVO">GUSTAVO</option>
+                        <option value="JOAO">JOAO</option>
                     </select>
         </div>
         <div class="form-group">
           <label class="form-label">Backlog Validado</label>
           <div class="editor-container">
-            <div class="toolbar" id="admin-toolbar">
-              <div class="seg">
-                <button type="button" class="glyph" data-format="bold">B</button>
-                <button type="button" class="glyph i" data-format="italic">I</button>
-                <button type="button" class="glyph u" data-format="underline">U</button>
+            <div class="toolbar">
+              <div class="toolbar-group">
+                <button type="button" class="toolbar-btn" data-command="bold"><i class="fas fa-bold"></i></button>
+                <button type="button" class="toolbar-btn" data-command="italic"><i class="fas fa-italic"></i></button>
+                <button type="button" class="toolbar-btn" data-command="underline"><i class="fas fa-underline"></i></button>
               </div>
-              <div class="seg">
-                <button type="button" data-format="list" data-value="bullet">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="4.5" cy="6" r="1.1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.1" fill="currentColor" stroke="none"/><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/></svg>
-                </button>
-                <button type="button" data-format="list" data-value="ordered">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><text x="1" y="8" font-size="6.5" fill="currentColor" stroke="none" font-family="-apple-system">1</text><text x="1" y="15" font-size="6.5" fill="currentColor" stroke="none" font-family="-apple-system">2</text><text x="1" y="22" font-size="6.5" fill="currentColor" stroke="none" font-family="-apple-system">3</text><line x1="9" y1="6" x2="21" y2="6"/><line x1="9" y1="13" x2="21" y2="13"/><line x1="9" y1="20" x2="21" y2="20"/></svg>
-                </button>
+              <div class="toolbar-group">
+                <button type="button" class="toolbar-btn" data-command="insertUnorderedList"><i class="fas fa-list-ul"></i></button>
+                <button type="button" class="toolbar-btn" data-command="insertOrderedList"><i class="fas fa-list-ol"></i></button>
               </div>
-              <div class="seg">
-                <button type="button" data-format="background" data-value="#FFD60A" title="Marcador de texto">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3l7 7-8.5 8.5-7-7L13 3z"/><path d="M3.5 20.5l3-1 6-6-2-2-6 6-1 3z"/></svg>
-                </button>
-              </div>
-              <div class="seg reorder-seg">
-                <button type="button" data-cmd="reorder" title="Renumerar INCs sequencialmente">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><text x="1.5" y="9" font-size="7" fill="currentColor" stroke="none" font-weight="700" font-family="-apple-system">1</text><text x="1.5" y="16" font-size="7" fill="currentColor" stroke="none" font-weight="700" font-family="-apple-system">2</text><text x="1.5" y="23" font-size="7" fill="currentColor" stroke="none" font-weight="700" font-family="-apple-system">3</text><line x1="9" y1="6.5" x2="18" y2="6.5"/><line x1="9" y1="13.5" x2="18" y2="13.5"/><line x1="9" y1="20.5" x2="18" y2="20.5"/><path d="M20 4v6m0 0 2-2m-2 2-2-2" /></svg>
-                  Reordenar INCs
-                </button>
+              <div class="toolbar-group">
+                <button type="button" class="toolbar-btn" data-command="hiliteColor" data-value="yellow"><i class="fas fa-highlighter"></i></button>
               </div>
             </div>
-            <div class="editor-content" id="admin-backlog-text"></div>
+            <div class="editor-content" id="admin-backlog-text" contenteditable="true"
+              placeholder="Descreva detalhadamente o backlog validado..."></div>
           </div>
         </div>
       </div>
@@ -2902,10 +3173,13 @@
         // ============================================================
         const BACKLOG_EDIT_WINDOW_MS = 60 * 60 * 1000;
         const MAX_BACKLOG_SAVES = 5;
+        const MAX_ANALYSTS_PER_DAY = 4;
         const RATE_LIMIT_MS = 1000;
         const CACHE_TTL_MS = 5 * 60 * 1000;
         const DRAFT_TTL_MS = 20 * 60 * 1000;
         const DRAFT_SAVE_DEBOUNCE_MS = 1000;
+        const ADMIN_SLOT_COUNT = 6;
+        const USER_EMAIL_DOMAIN = '@noctelecom.com';
 
         let currentUser = null;
         let userAnalystName = null;
@@ -2916,9 +3190,13 @@
         let muralUnsubscribe = null;
         let backlogUnsubscribe = null;
         let mesAtualEscutado = null;
+        let auditLogsEnabled = false;
         let draftSaveTimer = null;
-        let quillBacklog = null;
-        let quillAdmin = null;
+        // Administração: admins secundários e usuários cadastrados pelo painel
+        let adminSlots = ['', '', '', '', '', ''];
+        let extraUsers = [];
+        let adminSlotsUnsub = null;
+        let systemUsersUnsub = null;
 
         // ============================================================
         // LOADING MANAGER
@@ -3078,16 +3356,8 @@
             setTimeout(() => { toastEl.classList.remove('show'); }, duration);
         }
 
-        function swalDark(opts) {
-            const isDark = currentTheme === 'dark';
-            return Swal.fire(Object.assign({
-                background: isDark ? '#141d2b' : '#ffffff',
-                color: isDark ? '#e8edf5' : '#1a2332',
-                confirmButtonColor: '#3b6fd4',
-                cancelButtonColor: isDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.12)',
-                buttonsStyling: true
-            }, opts));
-        }
+        // Auditoria desativada: função mantida como no-op para não quebrar as chamadas existentes
+        async function logAudit(action, details) { return; }
 
         function getFortalezaDateString() {
             return new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Fortaleza' }).split('/').reverse().join('-');
@@ -3109,14 +3379,30 @@
             return `${meses[mes]}${ano.slice(2)}`;
         }
 
+        const ANALYST_COLORS = {
+            'DELANO': '#65a30d', 'HERBETH': '#dc2626', 'WELLIGTON': '#ea580c', 'EDMUNDO': '#8b5cf6',
+            'SIDNEY': '#14b8a6', 'HELIELTON': '#3b82f6', 'ROBSON': '#f59e0b',
+            'CARLA': '#fc0fc0', 'WYLLAME': '#059669', 'DARLYSON': '#d946ef',
+            'ONOFRE': '#f97316', 'LYNNA': '#be185d', 'JOELZE': '#2563eb', 'GUSTAVO': '#2163eb', 'JOAO': '#7af0a5'
+        };
+
+        function hslToHex(h, s, l) {
+            s /= 100; l /= 100;
+            const k = n => (n + h / 30) % 12;
+            const a = s * Math.min(l, 1 - l);
+            const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+            const x = n => Math.round(255 * f(n)).toString(16).padStart(2, '0');
+            return '#' + x(0) + x(8) + x(4);
+        }
+
+        // Analistas novos (cadastrados pelo painel) ganham uma cor gerada a partir do nome
         function getAnalystColor(analista) {
-            const colors = {
-                'DELANO': '#65a30d', 'HERBETH': '#dc2626', 'WELLIGTON': '#ea580c', 'EDMUNDO': '#8b5cf6',
-                'SIDNEY': '#14b8a6', 'HELIELTON': '#3b82f6', 'ROBSON': '#f59e0b',
-                'CARLA': '#fc0fc0', 'WYLLAME': '#059669', 'DARLYSON': '#d946ef',
-                'ONOFRE': '#f97316', 'LYNNA': '#be185d', 'JOELZE': '#2563eb', 'GUSTAVO': '#2163eb'
-            };
-            return colors[analista] || '#3b82f6';
+            if (ANALYST_COLORS[analista]) return ANALYST_COLORS[analista];
+            const key = String(analista || '');
+            if (!key) return '#3b82f6';
+            let hash = 0;
+            for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
+            return hslToHex(hash % 360, 65, 55);
         }
 
         function formatIncLinks(text) {
@@ -3157,9 +3443,7 @@
         function cleanBacklogText(text) {
             if (!text) return '';
             return text
-                .replace(/<br\s*\/?>/gi, '\n')
-                .replace(/<\/p>/gi, '\n').replace(/<p[^>]*>/gi, '')
-                .replace(/<div>/gi, '').replace(/<\/div>/gi, '\n')
+                .replace(/<br\s*\/?>/gi, '\n').replace(/<div>/gi, '').replace(/<\/div>/gi, '\n')
                 .replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<')
                 .replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/\*\*/g, '')
                 .replace(/\*{2,}/g, '').replace(/^\*|\*$/gm, '').replace(/\n\s*\n/g, '\n\n')
@@ -3199,8 +3483,9 @@
 
         function saveDraftLocal() {
             try {
-                if (!quillBacklog) return;
-                const texto = quillBacklog.root.innerHTML;
+                const textoEl = document.getElementById('backlog-text');
+                if (!textoEl) return;
+                const texto = textoEl.innerHTML;
                 const data = document.getElementById('data-backlog').value;
                 if (!cleanBacklogText(texto)) { localStorage.removeItem(getDraftKey()); return; }
                 localStorage.setItem(getDraftKey(), JSON.stringify({ texto, data, savedAt: Date.now() }));
@@ -3231,8 +3516,7 @@
                 bannerText.textContent = `Encontramos um rascunho não salvo de ${horaSalvo} (expira em ${minutosRestantes} min).`;
                 banner.style.display = 'flex';
                 document.getElementById('draft-restore-btn').onclick = () => {
-                    quillBacklog.root.innerHTML = draft.texto;
-                    quillBacklog.update('silent');
+                    document.getElementById('backlog-text').innerHTML = draft.texto;
                     if (draft.data) document.getElementById('data-backlog').value = draft.data;
                     banner.style.display = 'none';
                     showToast('Rascunho restaurado!', 'success');
@@ -3242,9 +3526,29 @@
         }
 
         // ============================================================
+        // PERMISSÕES DE ADMIN + TAG DE DIAMANTE
+        // ============================================================
+        function isPrimaryAdmin() { return userAnalystName === 'SIDNEY'; }
+        function isSecondaryAdmin() { return !!userAnalystName && userAnalystName !== 'SIDNEY' && adminSlots.includes(userAnalystName); }
+        function canInsertAsAdmin() { return isPrimaryAdmin() || isSecondaryAdmin(); }
+
+        // Diamante dourado = SIDNEY (admin principal); verde = admin secundário
+        function isMainAdminName(adminName) { return !adminName || String(adminName).toUpperCase() === 'SIDNEY'; }
+        function adminDiamondClass(adminName) { return 'fas fa-gem admin-diamond ' + (isMainAdminName(adminName) ? 'gold' : 'green'); }
+        function adminDiamondTitle(adminName) { return 'Inserido por ' + (adminName || 'SIDNEY') + (isMainAdminName(adminName) ? ' (admin)' : ' (admin secundário)'); }
+        function buildAdminDiamond(adminName) {
+            const i = document.createElement('i');
+            i.className = adminDiamondClass(adminName);
+            i.title = adminDiamondTitle(adminName);
+            return i;
+        }
+
+        // ============================================================
         // AUTENTICAÇÃO E INICIALIZAÇÃO
         // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
+            loadLoginUsers();
+            startSplashGraph(document.getElementById('splash-screen'), document.getElementById('splash-fx'));
             setTimeout(function() {
                 const splash = document.getElementById('splash-screen');
                 splash.style.opacity = '0';
@@ -3258,11 +3562,222 @@
                             initApplication();
                         } else {
                             document.getElementById('login-screen').style.display = 'flex';
+                            if (window.startLoginFx) window.startLoginFx();
                         }
                     });
                 }, 200);
             }, 3000);
         });
+
+        // Usuários cadastrados pelo painel de administração aparecem também na tela de login
+        async function loadLoginUsers() {
+            try {
+                const snap = await db.collection('system_users').get();
+                const users = [];
+                snap.forEach(d => {
+                    const v = d.data() || {};
+                    const name = String(v.name || d.id).toUpperCase();
+                    users.push({ name, email: v.email || (name.toLowerCase() + USER_EMAIL_DOMAIN) });
+                });
+                if (window.syncLoginUsers) window.syncLoginUsers(users);
+            } catch (error) { console.warn('Lista extra de usuários indisponível na tela de login:', error.code || error.message); }
+        }
+
+        // Fundo de rede NOC (splash e login): topologia fixa animada só com CSS
+        function buildNetworkBg(el) {
+            if (!el || el.firstChild) return;
+            const nodes = [[90, 120], [260, 60], [420, 150], [610, 70], [820, 130], [1010, 60], [1190, 150], [150, 330], [330, 260], [520, 360], [760, 300], [960, 380], [1170, 330], [100, 560], [300, 640], [480, 560], [700, 690], [900, 600], [1100, 700], [1220, 540], [200, 770], [560, 780], [860, 770], [1230, 760]];
+            const edges = [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [0, 7], [7, 8], [8, 2], [8, 9], [9, 10], [10, 4], [10, 11], [11, 12], [12, 6], [7, 13], [13, 14], [14, 15], [15, 9], [15, 16], [16, 17], [17, 11], [17, 18], [18, 19], [19, 12], [14, 20], [16, 21], [17, 22], [18, 23]];
+            let svg = '<svg viewBox="0 0 1280 820" preserveAspectRatio="xMidYMid slice" aria-hidden="true">';
+            svg += '<g>' + edges.map(e => '<line class="lk" x1="' + nodes[e[0]][0] + '" y1="' + nodes[e[0]][1] + '" x2="' + nodes[e[1]][0] + '" y2="' + nodes[e[1]][1] + '"></line>').join('') + '</g>';
+            svg += '<g>' + edges.map(e => '<line class="pk" x1="' + nodes[e[0]][0] + '" y1="' + nodes[e[0]][1] + '" x2="' + nodes[e[1]][0] + '" y2="' + nodes[e[1]][1] + '"></line>').join('') + '</g>';
+            svg += '<g>' + nodes.map((n, i) => '<circle class="nh" cx="' + n[0] + '" cy="' + n[1] + '" r="' + (i % 3 === 0 ? 10 : 7) + '"></circle>').join('') + '</g>';
+            svg += '<g>' + nodes.map((n, i) => '<circle class="nd" cx="' + n[0] + '" cy="' + n[1] + '" r="' + (i % 3 === 0 ? 4.5 : 3.2) + '"></circle>').join('') + '</g>';
+            el.innerHTML = svg + '</svg>';
+        }
+
+        // Splash: grafo que explode a partir do logo central e pulsa em ondas ("carregando de dentro")
+        function startSplashGraph(screen, cv) {
+            if (!screen || !cv) return;
+            const ctx = cv.getContext('2d');
+            const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            let W = 0, H = 0, cx = 0, cy = 0, maxR = 1, nodes = [], links = [], parts = [], packets = [], t0 = 0, raf = null;
+            const ease = x => 1 - Math.pow(1 - x, 3);
+            function build() {
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                W = screen.clientWidth; H = screen.clientHeight;
+                cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                const logo = screen.querySelector('.icon-center');
+                const rc = logo ? logo.getBoundingClientRect() : null;
+                cx = rc ? rc.left + rc.width / 2 : W / 2; cy = rc ? rc.top + rc.height / 2 : H / 2;
+                maxR = Math.hypot(Math.max(cx, W - cx), Math.max(cy, H - cy));
+                const N = Math.max(60, Math.min(130, Math.round(W * H / 9000)));
+                nodes = [];
+                for (let i = 0; i < N; i++) {
+                    // distribuição em espiral com ruído: cobre a tela inteira a partir do centro
+                    const f = Math.sqrt((i + 0.5) / N);
+                    const ang = i * 2.399963 + (Math.random() - 0.5) * 0.5;
+                    const r = (0.14 + f * 0.95) * maxR * (0.9 + Math.random() * 0.2);
+                    const tx = cx + Math.cos(ang) * r, ty = cy + Math.sin(ang) * r * 0.92;
+                    const d = Math.hypot(tx - cx, ty - cy);
+                    nodes.push({ tx, ty, d, delay: (d / maxR) * 0.9 + Math.random() * 0.12, dur: 0.9 + Math.random() * 0.4, r: 1.6 + Math.random() * 2.4, ph: Math.random() * 6.28, big: Math.random() < 0.12, x: cx, y: cy, p: 0 });
+                }
+                links = [];
+                const seen = {};
+                nodes.forEach((a, i) => {
+                    nodes.map((b, j) => ({ j, d: Math.hypot(a.tx - b.tx, a.ty - b.ty) })).filter(o => o.j !== i).sort((u, v) => u.d - v.d).slice(0, 3).forEach(o => {
+                        const k = i < o.j ? i + '-' + o.j : o.j + '-' + i;
+                        if (seen[k]) return; seen[k] = 1;
+                        const b = nodes[o.j];
+                        links.push(a.d <= b.d ? [a, b] : [b, a]); // sempre de dentro para fora
+                    });
+                });
+                // hub: liga os nós mais internos ao centro
+                nodes.slice().sort((u, v) => u.d - v.d).slice(0, 7).forEach(n => links.push([{ x: cx, y: cy, p: 1, d: 0, tx: cx, ty: cy, hub: true }, n]));
+                parts = Array.from({ length: 70 }, () => { const a = Math.random() * 6.283, v = 260 + Math.random() * 620; return { a, v, life: 0.7 + Math.random() * 0.9, r: 1 + Math.random() * 2 }; });
+                packets = [];
+            }
+            function frame(now) {
+                if (screen.style.display === 'none') { raf = null; return; }
+                raf = requestAnimationFrame(frame);
+                if (document.hidden) return;
+                if (!t0) t0 = now;
+                const t = (now - t0) / 1000;
+                const col = '#4f7be0', hot = '#9bbcf7', teal = '#2dd4bf';
+                ctx.clearRect(0, 0, W, H);
+                // posições (explosão + deriva leve)
+                nodes.forEach(n => {
+                    n.p = reduce ? 1 : Math.max(0, Math.min(1, (t - n.delay) / n.dur));
+                    const e = ease(n.p);
+                    const dr = n.p >= 1 && !reduce ? 1 : 0;
+                    n.x = cx + (n.tx - cx) * e + dr * Math.sin(t * 0.6 + n.ph) * 5;
+                    n.y = cy + (n.ty - cy) * e + dr * Math.cos(t * 0.5 + n.ph) * 5;
+                });
+                // ondas a partir do centro
+                const waveT = t - 1.1, wavePeriod = 2.2, waveSpeed = 560;
+                const wr = waveT > 0 ? ((waveT % wavePeriod) * waveSpeed) : -1;
+                const wAlpha = wr >= 0 ? Math.max(0, 1 - wr / maxR) : 0;
+                // onda de choque da explosão
+                if (t < 1.6) { const k = t / 1.6; ctx.globalAlpha = (1 - k) * 0.6; ctx.strokeStyle = hot; ctx.lineWidth = 3 * (1 - k) + 1; ctx.beginPath(); ctx.arc(cx, cy, ease(k) * maxR * 0.8, 0, 6.283); ctx.stroke(); }
+                // links
+                ctx.lineWidth = 1;
+                links.forEach(l => {
+                    const a = l[0], b = l[1], pa = a.hub ? b.p : Math.min(a.p, b.p);
+                    if (pa <= 0) return;
+                    const mid = (Math.hypot(((a.x + b.x) / 2) - cx, ((a.y + b.y) / 2) - cy));
+                    const glow = wr >= 0 ? Math.max(0, 1 - Math.abs(mid - wr) / 90) : 0;
+                    ctx.globalAlpha = Math.min(1, pa * 1.5) * (0.22 + glow * 0.6);
+                    ctx.strokeStyle = glow > 0.3 ? hot : col;
+                    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+                });
+                // pacotes saindo do centro
+                if (!reduce && t > 0.9 && packets.length < 26 && Math.random() < 0.35) { const l = links[Math.floor(Math.random() * links.length)]; if ((l[0].hub || l[0].p >= 1) && l[1].p >= 1) packets.push({ l, p: 0, s: 0.012 + Math.random() * 0.016, c: Math.random() < 0.25 ? teal : hot }); }
+                packets = packets.filter(k => (k.p += k.s) < 1);
+                packets.forEach(k => { const a = k.l[0], b = k.l[1]; ctx.globalAlpha = 0.95; ctx.fillStyle = k.c; ctx.shadowColor = k.c; ctx.shadowBlur = 12; ctx.beginPath(); ctx.arc(a.x + (b.x - a.x) * k.p, a.y + (b.y - a.y) * k.p, 2.4, 0, 6.283); ctx.fill(); ctx.shadowBlur = 0; });
+                // nós
+                nodes.forEach(n => {
+                    if (n.p <= 0) return;
+                    const glow = wr >= 0 ? Math.max(0, 1 - Math.abs(n.d - wr) / 80) : 0;
+                    const pulse = reduce ? 0 : (Math.sin(t * 1.6 + n.ph) + 1) / 2;
+                    const a = Math.min(1, n.p * 3);
+                    ctx.fillStyle = glow > 0.35 ? hot : col;
+                    ctx.globalAlpha = a * (0.1 + pulse * 0.1 + glow * 0.5);
+                    ctx.beginPath(); ctx.arc(n.x, n.y, n.r * (n.big ? 4.5 : 3) + glow * 9, 0, 6.283); ctx.fill();
+                    ctx.globalAlpha = a * (0.75 + glow * 0.25);
+                    ctx.beginPath(); ctx.arc(n.x, n.y, n.r * (1 + glow * 0.8), 0, 6.283); ctx.fill();
+                });
+                // fagulhas da explosão
+                if (!reduce) parts.forEach(q => {
+                    if (t > q.life) return;
+                    const k = t / q.life, dist = q.v * (1 - Math.pow(1 - k, 2)) * 0.9;
+                    ctx.globalAlpha = (1 - k) * 0.9; ctx.fillStyle = k < 0.4 ? '#fff' : hot;
+                    ctx.beginPath(); ctx.arc(cx + Math.cos(q.a) * dist, cy + Math.sin(q.a) * dist, q.r * (1 - k * 0.5), 0, 6.283); ctx.fill();
+                });
+                ctx.globalAlpha = 1;
+            }
+            window.addEventListener('resize', () => { if (screen.style.display !== 'none') { build(); } });
+            build();
+            raf = requestAnimationFrame(frame);
+        }
+
+        // ============================================================
+        // TELA DE LOGIN (efeitos visuais; a autenticação continua a mesma)
+        // ============================================================
+        (function setupLoginUI() {
+            const screen = document.getElementById('login-screen');
+            const select = document.getElementById('login-email');
+            const list = document.getElementById('lg-user-list');
+            const userBtn = document.getElementById('lg-user-btn');
+            const userAv = document.getElementById('lg-user-av');
+            const userName = document.getElementById('lg-user-name');
+            const pwd = document.getElementById('login-password');
+            const eye = document.getElementById('lg-eye');
+            const caps = document.getElementById('lg-caps');
+            const tz = { timeZone: 'America/Fortaleza' };
+
+            function setUser(opt) {
+                select.value = opt ? opt.value : '';
+                const name = opt ? opt.textContent.trim() : '';
+                userName.textContent = name || 'Selecione seu usuário';
+                userAv.textContent = name ? name.charAt(0) : '?';
+                userAv.className = 'lg-av' + (name ? '' : ' none');
+                userAv.style.setProperty('--c', name ? getAnalystColor(name) : '');
+                list.querySelectorAll('.lg-opt').forEach(b => b.classList.toggle('on', b.dataset.value === select.value));
+            }
+            function addUserButton(o) {
+                const name = o.textContent.trim();
+                const b = document.createElement('button');
+                b.type = 'button'; b.className = 'lg-opt'; b.dataset.value = o.value;
+                b.style.setProperty('--c', getAnalystColor(name));
+                const av = document.createElement('span'); av.className = 'lg-av'; av.textContent = name.charAt(0);
+                const tx = document.createElement('span'); tx.textContent = name;
+                b.appendChild(av); b.appendChild(tx);
+                b.onclick = () => { setUser(o); toggleList(false); pwd.focus(); };
+                list.appendChild(b);
+            }
+            Array.from(select.options).filter(o => o.value).forEach(addUserButton);
+            // Chamada pelo carregamento de usuários cadastrados (system_users)
+            window.syncLoginUsers = function (users) {
+                users.forEach(u => {
+                    if (!u || !u.email || !u.name) return;
+                    if (Array.from(select.options).some(o => o.value === u.email)) return;
+                    const o = document.createElement('option');
+                    o.value = u.email; o.textContent = u.name;
+                    select.appendChild(o);
+                    addUserButton(o);
+                });
+            };
+            function toggleList(force) {
+                const open = typeof force === 'boolean' ? force : !list.classList.contains('open');
+                list.classList.toggle('open', open);
+                userBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            }
+            userBtn.onclick = () => toggleList();
+            eye.onclick = () => {
+                const show = pwd.type === 'password';
+                pwd.type = show ? 'text' : 'password';
+                eye.innerHTML = '<i class="fas ' + (show ? 'fa-eye-slash' : 'fa-eye') + '" aria-hidden="true"></i>';
+                eye.setAttribute('aria-label', show ? 'Ocultar senha' : 'Mostrar senha');
+            };
+            pwd.addEventListener('keyup', e => { caps.classList.toggle('show', !!(e.getModifierState && e.getModifierState('CapsLock'))); });
+            pwd.addEventListener('blur', () => caps.classList.remove('show'));
+
+            buildNetworkBg(document.getElementById('login-net'));
+
+            // Saudação e relógio (só atualiza com a tela visível)
+            function tick() {
+                if (screen.style.display === 'none') return;
+                const now = new Date();
+                const h = parseInt(now.toLocaleTimeString('pt-BR', { ...tz, hour: '2-digit', hour12: false }), 10);
+                document.getElementById('lg-greeting').textContent = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
+                document.getElementById('lg-clock').textContent = now.toLocaleTimeString('pt-BR', { ...tz, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                document.getElementById('lg-date').textContent = now.toLocaleDateString('pt-BR', { ...tz, weekday: 'long', day: '2-digit', month: 'long' });
+            }
+            tick();
+            setInterval(tick, 1000);
+
+            window.startLoginFx = function () { tick(); };
+        })();
 
         document.getElementById('login-form').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -3273,6 +3788,7 @@
 
             if (!email || !password) {
                 loginError.classList.add('show');
+                loginShake();
                 document.getElementById('error-message').textContent = 'Por favor, selecione o email e digite a senha';
                 setTimeout(() => loginError.classList.remove('show'), 3000);
                 return;
@@ -3285,11 +3801,18 @@
                 const userCredential = await auth.signInWithEmailAndPassword(email, password);
                 currentUser = userCredential.user;
                 userAnalystName = email.split('@')[0].toUpperCase();
+                await logAudit('LOGIN', `Usuário ${userAnalystName} fez login`);
+                // Confirmação visual rápida antes de entrar
+                document.getElementById('lg-glow').classList.add('ok');
+                loginBtn.classList.add('ok');
+                loginBtn.innerHTML = '<i class="fas fa-check"></i> Bem-vindo, ' + userAnalystName;
+                await new Promise(r => setTimeout(r, 700));
                 document.getElementById('login-screen').style.display = 'none';
                 initApplication();
             } catch (error) {
                 console.error('Erro de autenticação:', error);
                 loginError.classList.add('show');
+                loginShake();
                 switch (error.code) {
                     case 'auth/invalid-email': document.getElementById('error-message').textContent = 'Email inválido'; break;
                     case 'auth/user-disabled': document.getElementById('error-message').textContent = 'Usuário desativado'; break;
@@ -3300,12 +3823,20 @@
                 }
                 setTimeout(() => loginError.classList.remove('show'), 5000);
                 loginBtn.disabled = false;
+                loginBtn.classList.remove('ok');
                 loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
             }
         });
 
+        function loginShake() {
+            const g = document.getElementById('lg-glow');
+            g.classList.remove('err'); void g.offsetWidth; g.classList.add('err');
+            setTimeout(() => g.classList.remove('err'), 700);
+        }
+
         async function handleLogout() {
             try {
+                await logAudit('LOGOUT', `Usuário ${userAnalystName} fez logout`);
                 await auth.signOut();
                 currentUser = null;
                 userAnalystName = null;
@@ -3322,12 +3853,21 @@
             document.getElementById('user-avatar').textContent = userAnalystName.charAt(0);
             document.getElementById('analista-display').value = userAnalystName;
 
+            if (userAnalystName === 'SIDNEY') {
+                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+                document.getElementById('nav-admin').style.display = 'block';
+            }
+
             setupNavigation();
             setupLogout();
             setupFullscreen();
             setupEditor();
             setupBacklogForm();
             loadInitialData();
+            initEscala();
+            initSystemUsers();
+            initAdminSlots();
+            if (userAnalystName === 'SIDNEY') setupAdminPanel();
             initializeMural();
             scheduleMidnightCleanup();
         }
@@ -3368,9 +3908,10 @@
             navItems.forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.preventDefault();
+                    const section = this.getAttribute('data-section');
+                    if (section === 'admin' && userAnalystName !== 'SIDNEY') return;
                     navItems.forEach(nav => nav.classList.remove('active'));
                     this.classList.add('active');
-                    const section = this.getAttribute('data-section');
                     sectionContents.forEach(content => content.style.display = 'none');
                     document.getElementById(`${section}-section`).style.display = 'block';
                     pageTitle.textContent = this.querySelector('span').textContent;
@@ -3385,133 +3926,171 @@
             });
         }
 
-        // ============================================================
-        // EDITOR (Quill.js + toolbar iOS + reorder INCs)
-        // ============================================================
-        function wireIosToolbar(toolbarEl, quill, opts) {
-            opts = opts || {};
-            toolbarEl.querySelectorAll('[data-format]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    quill.focus();
-                    const fmt = btn.dataset.format;
-                    const val = btn.dataset.value;
-                    const sel = quill.getSelection(true);
-                    const current = quill.getFormat(sel);
-                    if (fmt === 'list') {
-                        quill.format('list', current.list === val ? false : val);
-                    } else if (fmt === 'background' && val) {
-                        quill.format('background', current.background === val ? false : val);
-                    } else {
-                        quill.format(fmt, !current[fmt]);
-                    }
-                });
-            });
+        // ===== Histórico próprio (desfazer/refazer) do editor de anotações =====
+        // O histórico nativo é apagado quando o texto é reformatado (links INC), por isso usamos snapshots.
+        const editorHistory = { stack: [], index: -1, timer: null, max: 100, restoring: false };
 
-            if (opts.withColors) {
-                const textColorInput = toolbarEl.querySelector('.text-swatch input');
-                const bgColorInput = toolbarEl.querySelector('.bg-swatch input');
-                if (textColorInput) textColorInput.addEventListener('input', e => { quill.focus(); quill.format('color', e.target.value); });
-                if (bgColorInput) bgColorInput.addEventListener('input', e => { quill.focus(); quill.format('background', e.target.value); });
+        function editorGetOffset(el) {
+            const sel = window.getSelection();
+            if (!sel.rangeCount || !el.contains(sel.anchorNode)) return null;
+            const pre = sel.getRangeAt(0).cloneRange();
+            pre.selectNodeContents(el);
+            pre.setEnd(sel.getRangeAt(0).startContainer, sel.getRangeAt(0).startOffset);
+            return pre.toString().length;
+        }
+        function editorSetOffset(el, offset) {
+            if (offset === null || offset === undefined) return;
+            const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
+            let node, count = 0, target = null, off = 0;
+            while ((node = walker.nextNode())) {
+                const len = node.nodeValue.length;
+                if (count + len >= offset) { target = node; off = offset - count; break; }
+                count += len;
             }
-
-            if (opts.withUndo) {
-                const undoBtn = toolbarEl.querySelector('[data-cmd="undo"]');
-                const redoBtn = toolbarEl.querySelector('[data-cmd="redo"]');
-                if (undoBtn) undoBtn.addEventListener('click', () => quill.history.undo());
-                if (redoBtn) redoBtn.addEventListener('click', () => quill.history.redo());
-            }
-
-            const reorderBtn = toolbarEl.querySelector('[data-cmd="reorder"]');
-            if (reorderBtn) reorderBtn.addEventListener('click', () => reorderIncs(quill));
+            const sel = window.getSelection();
+            const r = document.createRange();
+            if (target) { r.setStart(target, off); } else { r.selectNodeContents(el); r.collapse(false); }
+            r.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(r);
+        }
+        function editorPushSnapshot() {
+            const el = document.getElementById('backlog-text');
+            if (!el || editorHistory.restoring) return;
+            const html = el.innerHTML;
+            const cur = editorHistory.stack[editorHistory.index];
+            if (cur && cur.html === html) { cur.offset = editorGetOffset(el); return; }
+            editorHistory.stack = editorHistory.stack.slice(0, editorHistory.index + 1);
+            editorHistory.stack.push({ html: html, offset: editorGetOffset(el) });
+            if (editorHistory.stack.length > editorHistory.max) editorHistory.stack.shift();
+            editorHistory.index = editorHistory.stack.length - 1;
+        }
+        function editorFlushHistory() {
+            if (editorHistory.timer) { clearTimeout(editorHistory.timer); editorHistory.timer = null; }
+            editorPushSnapshot();
+        }
+        function editorApplySnapshot(snap) {
+            const el = document.getElementById('backlog-text');
+            editorHistory.restoring = true;
+            el.innerHTML = snap.html;
+            el.focus();
+            editorSetOffset(el, snap.offset);
+            editorHistory.restoring = false;
+            if (typeof scheduleDraftSave === 'function') scheduleDraftSave();
+        }
+        function editorUndo() {
+            editorFlushHistory();
+            if (editorHistory.index > 0) { editorHistory.index--; editorApplySnapshot(editorHistory.stack[editorHistory.index]); }
+        }
+        function editorRedo() {
+            editorFlushHistory();
+            if (editorHistory.index < editorHistory.stack.length - 1) { editorHistory.index++; editorApplySnapshot(editorHistory.stack[editorHistory.index]); }
         }
 
-        function reorderIncs(quill) {
-            let counter = 0;
-            const html = quill.root.innerHTML.replace(
-                /(\d+)\.(?=(?:<span[^>]*>)?INC\d+)/g,
-                () => `${++counter}.`
-            );
-            if (counter === 0) {
-                showToast('Nenhum INC numerado encontrado para reordenar', 'info');
-                return;
-            }
-            quill.root.innerHTML = html;
-            quill.update('silent');
-            showToast(`${counter} INC${counter === 1 ? '' : 's'} renumerado${counter === 1 ? '' : 's'}`, 'success');
-        }
+        function setupEditor() {
+            const backlogText = document.getElementById('backlog-text');
 
-        function attachIncFormatting(quill, opts) {
-            opts = opts || {};
-            quill.on('text-change', (delta, oldDelta, source) => {
-                if (source !== 'user') return;
-                if (opts.onUserChange) opts.onUserChange();
-                const selection = quill.getSelection();
-                const currentHtml = quill.root.innerHTML;
-                const formattedHtml = formatIncLinks(currentHtml);
-                if (formattedHtml !== currentHtml) {
-                    quill.root.innerHTML = formattedHtml;
-                    quill.update('silent');
-                    if (selection) {
-                        try { quill.setSelection(selection.index, selection.length, 'silent'); } catch (err) { /* ignore */ }
-                    }
-                }
+            // Base do histórico: captura o conteúdo atual ao focar (cobre conteúdo carregado/limpo por código)
+            backlogText.addEventListener('focus', () => { if (!editorHistory.timer) editorPushSnapshot(); });
+            backlogText.addEventListener('input', () => {
+                if (editorHistory.restoring) return;
+                if (editorHistory.timer) clearTimeout(editorHistory.timer);
+                editorHistory.timer = setTimeout(() => { editorHistory.timer = null; editorPushSnapshot(); }, 400);
             });
 
-            quill.root.addEventListener('keydown', function(e) {
-                const sel = window.getSelection();
-                if (!sel.rangeCount) return;
-                const r = sel.getRangeAt(0);
-                const node = r.startContainer;
-                const incLink = node.parentNode && node.parentNode.closest ? node.parentNode.closest('.inc-link') : null;
+            backlogText.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'b') { e.preventDefault(); document.execCommand('bold', false, null); }
+                else if (e.ctrlKey && e.key === 'i') { e.preventDefault(); document.execCommand('italic', false, null); }
+                else if (e.ctrlKey && e.key === 'u') { e.preventDefault(); document.execCommand('underline', false, null); }
+                else if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === 'z') { e.preventDefault(); editorUndo(); }
+                else if (e.ctrlKey && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) { e.preventDefault(); editorRedo(); }
+                else if (e.ctrlKey && e.key === 's') { e.preventDefault(); document.getElementById('save-backlog').click(); }
+            });
+
+            backlogText.addEventListener('input', scheduleDraftSave);
+
+            backlogText.addEventListener('input', () => {
+                setTimeout(() => {
+                    const selection = window.getSelection();
+                    const range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+                    let cursorOffset = 0;
+                    if (range) {
+                        const preRange = range.cloneRange();
+                        preRange.selectNodeContents(backlogText);
+                        preRange.setEnd(range.startContainer, range.startOffset);
+                        cursorOffset = preRange.toString().length;
+                    }
+                    const currentHtml = backlogText.innerHTML;
+                    const formattedHtml = formatIncLinks(currentHtml);
+                    if (formattedHtml !== currentHtml) {
+                        backlogText.innerHTML = formattedHtml;
+                        if (range) {
+                            const newRange = document.createRange();
+                            let charCount = 0, foundNode = null, foundOffset = 0;
+                            const walker = document.createTreeWalker(backlogText, NodeFilter.SHOW_TEXT, null, false);
+                            let node;
+                            while (node = walker.nextNode()) {
+                                const length = node.nodeValue.length;
+                                if (charCount + length >= cursorOffset) { foundNode = node; foundOffset = cursorOffset - charCount; break; }
+                                charCount += length;
+                            }
+                            if (foundNode) {
+                                newRange.setStart(foundNode, foundOffset);
+                                newRange.collapse(true);
+                                selection.removeAllRanges();
+                                selection.addRange(newRange);
+                            }
+                        }
+                    }
+                }, 0);
+            });
+
+            backlogText.addEventListener('keydown', function(e) {
+                const selection = window.getSelection();
+                if (!selection.rangeCount) return;
+                const range = selection.getRangeAt(0);
+                const node = range.startContainer;
+                const incLink = node.parentNode.closest ? node.parentNode.closest('.inc-link') : null;
                 if (!incLink) return;
                 if (['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', 'End', 'Home', 'Escape'].includes(e.key)) {
                     e.preventDefault();
                     let newRange = document.createRange();
                     let spaceNode;
-                    if (e.key === 'ArrowRight' || e.key === 'End' || e.key === 'Escape') {
-                        spaceNode = document.createTextNode('\u00A0');
+                    if (e.key === 'ArrowRight' || e.key === 'End') {
+                        spaceNode = document.createTextNode('   ');
                         incLink.parentNode.insertBefore(spaceNode, incLink.nextSibling);
                         newRange.setStartAfter(spaceNode);
                     } else if (e.key === 'ArrowLeft' || e.key === 'Home') {
                         newRange.setStartBefore(incLink);
+                    } else if (e.key === 'Escape') {
+                        spaceNode = document.createTextNode('   ');
+                        incLink.parentNode.insertBefore(spaceNode, incLink.nextSibling);
+                        newRange.setStartAfter(spaceNode);
                     }
                     newRange.collapse(true);
-                    sel.removeAllRanges();
-                    sel.addRange(newRange);
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
                 }
             });
 
-            quill.root.addEventListener('dblclick', function(e) {
+            backlogText.addEventListener('dblclick', function(e) {
                 const incLink = e.target.closest('.inc-link');
                 if (incLink) { e.preventDefault(); window.open(incLink.getAttribute('data-url'), '_blank'); }
             });
-        }
 
-        function attachSaveShortcut(quill) {
-            quill.root.addEventListener('keydown', function(e) {
-                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-                    e.preventDefault();
-                    const saveBtn = document.getElementById('save-backlog');
-                    if (saveBtn) saveBtn.click();
-                }
+            document.querySelectorAll('.toolbar-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const command = this.dataset.command;
+                    const value = this.dataset.value;
+                    if (command === 'undo') { editorUndo(); return; }
+                    if (command === 'redo') { editorRedo(); return; }
+                    if (command === 'hiliteColor') { document.execCommand('hiliteColor', false, value || 'yellow'); }
+                    else { document.execCommand(command, false, null); }
+                });
             });
-        }
 
-        function initQuillEditor(mountId, toolbarId, opts) {
-            const quill = new Quill('#' + mountId, {
-                modules: { toolbar: false, history: { delay: 800, maxStack: 100, userOnly: true } },
-                placeholder: 'Descreva detalhadamente o backlog validado...'
-            });
-            const toolbarEl = document.getElementById(toolbarId);
-            wireIosToolbar(toolbarEl, quill, opts);
-            attachIncFormatting(quill, opts);
-            attachSaveShortcut(quill);
-            return quill;
-        }
-
-        function setupEditor() {
-            quillBacklog = initQuillEditor('backlog-text', 'main-toolbar', { withColors: true, withUndo: true, onUserChange: scheduleDraftSave });
-            quillAdmin = initQuillEditor('admin-backlog-text', 'admin-toolbar', { withColors: false, withUndo: false });
+            document.getElementById('text-color').addEventListener('change', function() { document.execCommand('foreColor', false, this.value); });
+            document.getElementById('bg-color').addEventListener('change', function() { document.execCommand('hiliteColor', false, this.value); });
         }
 
         function setupBacklogForm() {
@@ -3523,21 +4102,10 @@
             dataBacklog.value = getFortalezaDateString();
             checkDraftRecovery();
 
-            clearFormBtn.addEventListener('click', async function() {
-                const hasContent = quillBacklog.getText().trim() !== '';
-                if (hasContent) {
-                    const result = await swalDark({
-                        icon: 'warning',
-                        title: 'Limpar o formulário?',
-                        text: 'Todo conteúdo não salvo será perdido.',
-                        showCancelButton: true,
-                        confirmButtonText: 'Limpar',
-                        cancelButtonText: 'Cancelar'
-                    });
-                    if (!result.isConfirmed) return;
-                }
+            clearFormBtn.addEventListener('click', function() {
+                if (document.getElementById('backlog-text').innerHTML.trim() !== '' && !confirm('Limpar o formulário? Todo conteúdo não salvo será perdido.')) return;
                 dataBacklog.value = getFortalezaDateString();
-                quillBacklog.setText('');
+                document.getElementById('backlog-text').innerHTML = '';
                 clearDraftLocal();
                 document.getElementById('draft-recovery-banner').style.display = 'none';
                 showToast('Formulário limpo com sucesso!');
@@ -3550,8 +4118,8 @@
                     return;
                 }
                 const data = dataBacklog.value;
-                let texto = quillBacklog.root.innerHTML.trim();
-                if (!data || quillBacklog.getText().trim() === '') {
+                let texto = document.getElementById('backlog-text').innerHTML.trim();
+                if (!data || !texto) {
                     showToast('Por favor, preencha todos os campos obrigatórios!', 'error');
                     return;
                 }
@@ -3563,6 +4131,7 @@
                     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
 
                     const op = await saveBacklogRecord(userAnalystName, data, texto, false);
+                    await logAudit('BACKLOG_SAVE', `Analista ${userAnalystName} ${op === 'updated' ? 'atualizou' : 'criou'} backlog na data ${data}`);
 
                     const msg = op === 'updated' ? 'Backlog atualizado com sucesso!' : 'Backlog salvo com sucesso!';
                     saveButton.innerHTML = '<i class="fas fa-check"></i> Salvo!';
@@ -3575,7 +4144,7 @@
                         saveButton.disabled = false;
                     }, 2000);
 
-                    quillBacklog.setText('');
+                    document.getElementById('backlog-text').innerHTML = '';
                     clearDraftLocal();
                     document.getElementById('draft-recovery-banner').style.display = 'none';
 
@@ -3589,8 +4158,8 @@
                         showToast('O backlog só pode ser alterado dentro de 1 hora após o primeiro registro.', 'error');
                     } else if (error.message === 'BACKLOG_SAVE_LIMIT_REACHED') {
                         showToast('Limite de 4 sobrescritas atingido para este backlog.', 'error');
-                    } else if (error.message === 'BACKLOG_MAX_ANALYSTS_REACHED') {
-                        showToast('Limite máximo de 3 analistas diferentes por dia atingido.', 'error');
+                    } else if (error.message === 'BACKLOG_MAX_ANALYSTS_REACHED'){
+                      showToast(`Limite máximo de ${MAX_ANALYSTS_PER_DAY} analistas por dia atingido.`, 'error');
                     } else {
                         showToast('Erro ao salvar os dados. Verifique o console.', 'error');
                     }
@@ -3602,7 +4171,8 @@
             });
         }
 
-        async function saveBacklogRecord(analista, data, texto, isAdmin = false) {
+        // onlyCreate = true: usado pelos admins secundários (só inserem para quem ainda não tem validação no dia)
+        async function saveBacklogRecord(analista, data, texto, isAdmin = false, onlyCreate = false) {
             const docId = getBacklogDocId(data);
             const docRef = db.collection('backlog').doc(docId);
             const metadataRef = db.collection('backlog').doc('metadata');
@@ -3619,6 +4189,7 @@
                     if (doc.exists && doc.data().registros) { registros = [...doc.data().registros]; }
                     const idx = registros.findIndex(r => r.analista === analista && r.data === data);
                     if (idx >= 0) {
+                        if (onlyCreate) throw new Error('BACKLOG_ALREADY_EXISTS');
                         const existing = registros[idx];
                         let createdAt;
                         if (existing.createdAt && typeof existing.createdAt.toDate === 'function') { createdAt = existing.createdAt.toDate(); }
@@ -3634,7 +4205,7 @@
                         return 'updated';
                     } else {
                         const analistasDiaSet = new Set(registros.filter(r => r.data === data).map(r => r.analista));
-                        if (!analistasDiaSet.has(analista) && analistasDiaSet.size >= 3) throw new Error('BACKLOG_MAX_ANALYSTS_REACHED');
+                        if (!analistasDiaSet.has(analista) && analistasDiaSet.size >= MAX_ANALYSTS_PER_DAY) throw new Error('BACKLOG_MAX_ANALYSTS_REACHED');
                         const nextId = registros.reduce((max, r) => { const idVal = typeof r.id === 'number' ? r.id : parseInt(r.id || 0, 10) || 0; return Math.max(max, idVal); }, 0) + 1;
                         const newRecord = { id: nextId, analista, data, texto, timestamp: recordTimestamp, createdAt: nowFirestoreTs, updatedAt: nowFirestoreTs, saveCount: 1, insertedByAdmin: isAdmin ? true : false, adminName: isAdmin ? userAnalystName : null };
                         registros.push(newRecord);
@@ -3654,6 +4225,25 @@
 
                 return operationType;
             });
+        }
+
+        // Exclusão de uma validação (somente SIDNEY): remove apenas o registro daquele analista naquela data
+        async function deleteBacklogRecord(analista, data) {
+            if (!isPrimaryAdmin()) throw new Error('NOT_PRIMARY_ADMIN');
+            const docRef = db.collection('backlog').doc(getBacklogDocId(data));
+            await retryFirebaseOperation(async () => {
+                await db.runTransaction(async (transaction) => {
+                    const doc = await transaction.get(docRef);
+                    if (!doc.exists) throw new Error('BACKLOG_NOT_FOUND');
+                    const regs = doc.data().registros || [];
+                    const novos = regs.filter(r => !(r.analista === analista && r.data === data));
+                    if (novos.length === regs.length) throw new Error('BACKLOG_NOT_FOUND');
+                    transaction.update(docRef, { registros: novos });
+                });
+            }, { maxRetries: 1, initialDelay: 800 });
+            firebaseRecords = firebaseRecords.filter(r => !(r.analista === analista && r.data === data));
+            sessionStorage.removeItem('backlog_cache');
+            await logAudit('ADMIN_BACKLOG_DELETE', `Admin ${userAnalystName} excluiu o backlog de ${analista} na data ${data}`);
         }
 
         async function loadFirebaseData() {
@@ -3699,6 +4289,370 @@
         }
 
         // ============================================================
+        // AUDITORIA - CORREÇÃO DO TOGGLE
+        // ============================================================
+        async function loadAuditConfig() {
+            try {
+                const doc = await retryFirebaseOperation(async () => {
+                    return await db.collection('system_settings').doc('audit_config').get();
+                });
+                // Carrega o estado salvo
+                auditLogsEnabled = doc.exists ? (doc.data().enabled !== false) : true;
+
+                // ✅ CORREÇÃO: Atualiza o toggle com o estado carregado
+                const toggle = document.getElementById('audit-toggle-switch');
+                if (toggle) {
+                    toggle.checked = auditLogsEnabled;
+                }
+
+                console.log(`[Audit] Configuração carregada: ${auditLogsEnabled ? 'ATIVADO' : 'DESATIVADO'}`);
+            } catch (error) {
+                console.error('Erro ao carregar configuração de auditoria:', error);
+                auditLogsEnabled = true;
+                const toggle = document.getElementById('audit-toggle-switch');
+                if (toggle) toggle.checked = true;
+            }
+        }
+
+        async function setAuditLogsEnabled(enabled) {
+            try {
+                await retryFirebaseOperation(async () => {
+                    await db.collection('system_settings').doc('audit_config').set({
+                        enabled: enabled,
+                        updatedBy: userAnalystName,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                });
+                auditLogsEnabled = enabled;
+
+                // ✅ CORREÇÃO: Garante que o toggle reflita o estado
+                const toggle = document.getElementById('audit-toggle-switch');
+                if (toggle) toggle.checked = enabled;
+
+                await retryFirebaseOperation(async () => {
+                    await db.collection('audit_logs').add({
+                        action: 'ADMIN_AUDIT_TOGGLE',
+                        details: `Admin ${userAnalystName} ${enabled ? 'ativou' : 'desativou'} os logs de auditoria`,
+                        analyst: userAnalystName,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                        date: getFortalezaDateString()
+                    });
+                });
+                showToast(enabled ? 'Logs de auditoria ativados' : 'Logs de auditoria desativados', 'info');
+            } catch (error) {
+                console.error('Erro ao alterar configuração de auditoria:', error);
+                showToast('Erro ao alterar configuração de auditoria', 'error');
+                // Reverte o toggle em caso de erro
+                const toggle = document.getElementById('audit-toggle-switch');
+                if (toggle) toggle.checked = auditLogsEnabled;
+            }
+        }
+
+        function setupAuditToggle() {
+            const toggle = document.getElementById('audit-toggle-switch');
+            if (!toggle) return;
+
+            // Remove event listeners anteriores para evitar duplicação
+            const newToggle = toggle.cloneNode(true);
+            toggle.parentNode.replaceChild(newToggle, toggle);
+
+            newToggle.addEventListener('change', function() {
+                if (userAnalystName !== 'SIDNEY') {
+                    this.checked = !this.checked;
+                    showToast('Apenas SIDNEY pode alterar essa configuração!', 'error');
+                    return;
+                }
+                setAuditLogsEnabled(this.checked);
+            });
+        }
+
+        // ============================================================
+        // ESCALA DE TURNOS (ordem do ciclo + provável analista)
+        // ============================================================
+        const ESCALA_SHIFTS = ['T1', 'T2', 'T3'];
+        const ESCALA_LABEL = { 'T1': 'T1', 'T2': 'T2', 'T3': 'T3' };
+        const ESCALA_CAPACITY = { 'T1': 5, 'T2': 5, 'T3': 4 };
+        const ESCALA_LETTER = { 'T1': '1', 'T2': '2', 'T3': '3' };
+        const ESCALA_PROJECTION_DAYS = 7;
+        const ROSTER_ANALYSTS = ['HERBETH','WELLIGTON','EDMUNDO','SIDNEY','HELIELTON','ROBSON','CARLA','WYLLAME','DARLYSON','ONOFRE','LYNNA','JOELZE','GUSTAVO','JOAO'];
+        // Lista completa: analistas atuais + usuários cadastrados pelo painel de administração
+        function getRoster() {
+            return ROSTER_ANALYSTS.concat(extraUsers.map(u => u.name).filter(n => !ROSTER_ANALYSTS.includes(n)));
+        }
+        let escalaData = { 'T1': [], 'T2': [], 'T3': [] };
+        let escalaActiveShift = 'T1';
+        let escalaCalendarFilter = 'all';
+        let escalaUnsub = null;
+
+        function escalaOrder(shift) { return (escalaData[shift] || []).filter(n => n); }
+
+        // Ciclo em loop: quem já validou no ciclo atual sai da lista até todos validarem
+        function escalaNext(order, hist) {
+            const h = hist.filter(a => order.includes(a));
+            let set = [], last = null;
+            h.forEach(a => { if (set.includes(a)) set = [a]; else set.push(a); if (set.length >= order.length) set = []; last = a; });
+            const cands = order.filter(x => !set.includes(x));
+            let primary = cands[0];
+            if (last) { const li = order.indexOf(last); for (let k = 1; k <= order.length; k++) { const c = order[(li + k) % order.length]; if (cands.includes(c)) { primary = c; break; } } }
+            return { primary, alts: cands.filter(x => x !== primary), done: set };
+        }
+
+        function escalaHistory(shift) {
+            const order = escalaOrder(shift);
+            return firebaseRecords.filter(r => order.includes(r.analista)).slice().sort((a, b) => (a.data < b.data ? -1 : a.data > b.data ? 1 : 0)).map(r => ({ a: r.analista, d: r.data }));
+        }
+
+        // Projeção dos próximos dias para um turno: [{date, primary, alts}]
+        function escalaProject(shift) {
+            const order = escalaOrder(shift);
+            if (order.length === 0) return [];
+            const hist = escalaHistory(shift);
+            const names = hist.map(x => x.a);
+            const out = [];
+            const base = new Date(getFortalezaDateString() + 'T12:00:00');
+            for (let i = 0; i < ESCALA_PROJECTION_DAYS; i++) {
+                const dt = new Date(base.getTime() + i * 86400000);
+                const ds = dt.toISOString().split('T')[0];
+                if (hist.some(x => x.d === ds)) continue; // já validado: não mexe
+                const nx = escalaNext(order, names);
+                if (!nx.primary) break;
+                out.push({ date: ds, primary: nx.primary, alts: nx.alts });
+                names.push(nx.primary);
+            }
+            return out;
+        }
+
+        function escalaGhostEvents() {
+            const events = [];
+            ESCALA_SHIFTS.forEach(shift => {
+                if (escalaCalendarFilter !== 'all' && escalaCalendarFilter !== shift) return;
+                escalaProject(shift).forEach(p => {
+                    events.push({
+                        title: 'ZZZZ' + ESCALA_LETTER[shift] + ' ' + p.primary,
+                        start: p.date,
+                        classNames: ['event-ghost'].concat(p.date === getFortalezaDateString() ? ['ghost-now'] : []),
+                        extendedProps: { ghost: true, analista: p.primary, shift, shiftLetter: ESCALA_LETTER[shift], tip: 'Provável: ' + p.primary + (p.alts.length ? ' (ou ' + p.alts.join(', ') + ')' : '') + ' · ' + ESCALA_LABEL[shift] }
+                    });
+                });
+            });
+            return events;
+        }
+
+        function escalaSave() {
+            return retryFirebaseOperation(async () => {
+                await db.collection('system_settings').doc('escala').set({ ...escalaData, updatedBy: userAnalystName || '', updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+            }).catch(err => { console.error('Erro ao salvar escala:', err); showToast('Erro ao salvar a escala (verifique as permissões)', 'error'); });
+        }
+
+        function escalaNormalize(shift, arr) {
+            const cap = ESCALA_CAPACITY[shift];
+            const out = Array.isArray(arr) ? arr.slice(0, cap).map(x => x || '') : [];
+            while (out.length < cap) out.push('');
+            return out;
+        }
+
+        function escalaSetSlot(shift, idx, name) {
+            if (name) { ESCALA_SHIFTS.forEach(s => { escalaData[s] = escalaData[s].map((n, i) => (n === name && !(s === shift && i === idx)) ? '' : n); }); }
+            escalaData[shift][idx] = name;
+            escalaChanged();
+        }
+        function escalaMoveSlot(shift, idx, dir) {
+            const j = idx + dir;
+            if (j < 0 || j >= escalaData[shift].length) return;
+            const arr = escalaData[shift];
+            [arr[idx], arr[j]] = [arr[j], arr[idx]];
+            escalaChanged();
+        }
+        function escalaChanged() {
+            renderEscala();
+            refreshCalendarEvents();
+            escalaSave();
+        }
+
+        function refreshCalendarEvents() { if (calendarInstance && document.getElementById('dashboard-section').style.display !== 'none') initCalendar(); }
+
+        let escalaOpenSlot = null;
+        const escalaInitial = n => (n || '?').charAt(0).toUpperCase();
+        function escalaFmt(ds) { const p = ds.split('-'); return p[2] + '/' + p[1]; }
+        function escalaChip(name, cls, letter, tip) {
+            const c = document.createElement('div');
+            c.className = 'ech' + (cls ? ' ' + cls : '');
+            c.style.setProperty('--c', getAnalystColor(name));
+            if (tip) c.title = tip;
+            if (letter) { const l = document.createElement('span'); l.className = 'shl'; l.textContent = letter; c.appendChild(l); }
+            const n = document.createElement('span'); n.className = 'nm'; n.textContent = name; c.appendChild(n);
+            return c;
+        }
+
+        function renderEscala() {
+            const tabsEl = document.getElementById('escala-tabs');
+            const slotsEl = document.getElementById('escala-slots');
+            const probEl = document.getElementById('escala-prob');
+            const stripEl = document.getElementById('escala-strip');
+            if (!tabsEl || !slotsEl || !probEl || !stripEl) return;
+            const shift = escalaActiveShift;
+            tabsEl.innerHTML = '';
+            ESCALA_SHIFTS.forEach(s => {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'escala-tab' + (s === shift ? ' active' : '');
+                b.textContent = ESCALA_LABEL[s] + ' (' + escalaOrder(s).length + '/' + ESCALA_CAPACITY[s] + ')';
+                b.onclick = () => { escalaActiveShift = s; escalaOpenSlot = null; renderEscala(); };
+                tabsEl.appendChild(b);
+            });
+            document.getElementById('escala-slots-title').textContent = 'Vagas do ' + ESCALA_LABEL[shift] + ' · ordem do rodízio';
+            document.getElementById('escala-strip-title').textContent = 'Marcações da semana e projeção · ' + ESCALA_LABEL[shift];
+
+            const order = escalaOrder(shift);
+            const hist = escalaHistory(shift);
+            const nx = order.length ? escalaNext(order, hist.map(x => x.a)) : null;
+            const today = getFortalezaDateString();
+            const validatedToday = hist.filter(x => x.d === today).map(x => x.a);
+            const lastOf = {}; hist.forEach(x => { lastOf[x.a] = x.d; });
+            const assignedElsewhere = {};
+            ESCALA_SHIFTS.forEach(s => { if (s !== shift) escalaData[s].forEach(n => { if (n) assignedElsewhere[n] = s; }); });
+
+            slotsEl.innerHTML = '';
+            escalaData[shift].forEach((name, idx) => {
+                const wrap = document.createElement('div'); wrap.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+                const isPrim = !!(name && nx && nx.primary === name && !validatedToday.length);
+                const row = document.createElement('div');
+                row.className = 'escala-row' + (isPrim ? ' prim' : '') + (name ? '' : ' free');
+                const pos = document.createElement('span'); pos.className = 'escala-pos'; pos.textContent = idx + 1;
+                const av = document.createElement('span'); av.className = 'escala-av' + (name ? '' : ' empty');
+                if (name) av.style.setProperty('--c', getAnalystColor(name));
+                av.textContent = name ? escalaInitial(name) : '+';
+                const info = document.createElement('div'); info.className = 'escala-info';
+                const nm = document.createElement('span'); nm.className = 'escala-name'; nm.textContent = name || 'Vaga livre';
+                const sub = document.createElement('span'); sub.className = 'escala-sub';
+                sub.textContent = name ? (lastOf[name] ? 'Última validação: ' + escalaFmt(lastOf[name]) : 'Sem validação registrada') : 'Disponível para novo analista';
+                info.appendChild(nm); info.appendChild(sub);
+                const bd = document.createElement('span');
+                if (!name) { bd.className = 'escala-bdg mut'; bd.textContent = 'Disponível'; }
+                else if (validatedToday.includes(name)) { bd.className = 'escala-bdg ok'; bd.textContent = 'Validou hoje'; }
+                else if (isPrim) { bd.className = 'escala-bdg acc'; bd.textContent = 'Provável hoje'; }
+                else if (nx && nx.done.includes(name)) { bd.className = 'escala-bdg ok'; bd.textContent = 'Já validou no ciclo'; }
+                else { bd.className = 'escala-bdg mut'; bd.textContent = 'Aguardando'; }
+                const tg = document.createElement('button'); tg.type = 'button'; tg.className = 'escala-btn';
+                tg.textContent = escalaOpenSlot === idx ? 'Fechar' : (name ? 'Trocar' : 'Escolher');
+                tg.onclick = () => { escalaOpenSlot = escalaOpenSlot === idx ? null : idx; renderEscala(); };
+                const arrows = document.createElement('div'); arrows.style.cssText = 'display:flex;gap:4px;';
+                const up = document.createElement('button'); up.type = 'button'; up.className = 'escala-ib'; up.title = 'Subir'; up.disabled = idx === 0; up.innerHTML = '<i class="fas fa-arrow-up"></i>'; up.onclick = () => escalaMoveSlot(shift, idx, -1);
+                const dn = document.createElement('button'); dn.type = 'button'; dn.className = 'escala-ib'; dn.title = 'Descer'; dn.disabled = idx === escalaData[shift].length - 1; dn.innerHTML = '<i class="fas fa-arrow-down"></i>'; dn.onclick = () => escalaMoveSlot(shift, idx, 1);
+                arrows.appendChild(up); arrows.appendChild(dn);
+                [pos, av, info, bd, tg, arrows].forEach(x => row.appendChild(x));
+                wrap.appendChild(row);
+                if (escalaOpenSlot === idx) {
+                    const box = document.createElement('div'); box.className = 'escala-pick';
+                    const free = document.createElement('button'); free.type = 'button'; free.className = 'escala-pk free'; free.textContent = 'Deixar vaga livre';
+                    free.onclick = () => { escalaOpenSlot = null; escalaSetSlot(shift, idx, ''); };
+                    box.appendChild(free);
+                    getRoster().forEach(n => {
+                        const p = document.createElement('button'); p.type = 'button'; p.className = 'escala-pk' + (n === name ? ' on' : '');
+                        p.style.setProperty('--c', getAnalystColor(n));
+                        p.appendChild(document.createTextNode(n));
+                        if (assignedElsewhere[n]) { const t = document.createElement('small'); t.textContent = 'em ' + ESCALA_LABEL[assignedElsewhere[n]]; p.appendChild(t); }
+                        p.onclick = () => { escalaOpenSlot = null; escalaSetSlot(shift, idx, n); };
+                        box.appendChild(p);
+                    });
+                    wrap.appendChild(box);
+                }
+                slotsEl.appendChild(wrap);
+            });
+
+            // Painel "hoje"
+            probEl.innerHTML = '';
+            const kick = document.createElement('div'); kick.className = 'escala-sec-title'; kick.style.marginBottom = '0';
+            kick.textContent = 'Hoje · ' + escalaFmt(today) + ' · ' + ESCALA_LABEL[shift];
+            probEl.appendChild(kick);
+            if (!nx) {
+                const m = document.createElement('div'); m.className = 'escala-muted'; m.textContent = 'Defina os analistas deste turno para ver o provável analista do dia.';
+                probEl.appendChild(m);
+                stripEl.innerHTML = '';
+                return;
+            }
+            const proj = escalaProject(shift);
+            const todayP = proj.find(p => p.date === today);
+            const mainName = validatedToday.length ? validatedToday[0] : (todayP ? todayP.primary : nx.primary);
+            const main = document.createElement('div'); main.className = 'escala-prob-main';
+            const mav = document.createElement('span'); mav.className = 'escala-av'; mav.style.setProperty('--c', getAnalystColor(mainName)); mav.textContent = escalaInitial(mainName);
+            const mi = document.createElement('div'); mi.style.cssText = 'display:flex;flex-direction:column;min-width:0;';
+            const k = document.createElement('span'); k.className = 'escala-prob-kicker'; k.textContent = validatedToday.length ? 'Já validou hoje' : 'Provável analista de hoje';
+            const pn = document.createElement('span'); pn.className = 'escala-prob-name'; pn.textContent = mainName;
+            const ps = document.createElement('span'); ps.className = 'escala-muted';
+            ps.textContent = validatedToday.length ? 'Validação registrada no calendário' : 'Próximo da ordem entre quem ainda não validou no ciclo';
+            [k, pn, ps].forEach(x => mi.appendChild(x)); main.appendChild(mav); main.appendChild(mi);
+            probEl.appendChild(main);
+            const alts = validatedToday.length ? [] : (todayP ? todayP.alts : nx.alts);
+            if (alts.length) {
+                const l = document.createElement('div'); l.className = 'escala-line'; l.appendChild(document.createTextNode('Também possível:'));
+                alts.forEach(n => l.appendChild(escalaChip(n, '', '', '')));
+                probEl.appendChild(l);
+            }
+            const up = proj.filter(p => p.date !== today).slice(0, 5);
+            if (up.length) {
+                const box = document.createElement('div'); box.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+                const t = document.createElement('span'); t.className = 'escala-muted'; t.textContent = 'Próximos dias';
+                const r = document.createElement('div'); r.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;';
+                up.forEach(p => r.appendChild(escalaChip(p.primary, 'ghost', escalaFmt(p.date), 'Provável em ' + escalaFmt(p.date))));
+                box.appendChild(t); box.appendChild(r); probEl.appendChild(box);
+            }
+            const cyc = document.createElement('div'); cyc.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+            const ct = document.createElement('span'); ct.className = 'escala-muted'; ct.textContent = 'Ciclo atual: ' + nx.done.length + ' de ' + order.length + ' já validaram';
+            const dots = document.createElement('div'); dots.className = 'escala-dots';
+            order.forEach(n => { const d = document.createElement('span'); d.className = 'escala-dot' + (nx.done.includes(n) ? ' on' : ''); d.style.setProperty('--c', getAnalystColor(n)); d.title = n; dots.appendChild(d); });
+            cyc.appendChild(ct); cyc.appendChild(dots); probEl.appendChild(cyc);
+
+            // Faixa da semana + projeção
+            stripEl.innerHTML = '';
+            const dows = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+            const base = new Date(today + 'T12:00:00');
+            for (let i = -3; i < ESCALA_PROJECTION_DAYS; i++) {
+                const ds = new Date(base.getTime() + i * 86400000).toISOString().split('T')[0];
+                const box = document.createElement('div'); box.className = 'escala-sbox' + (ds === today ? ' today' : '');
+                const h = document.createElement('div'); h.className = 'escala-sbox-h';
+                h.innerHTML = '<span>' + dows[new Date(ds + 'T12:00:00').getDay()] + '</span><span>' + escalaFmt(ds) + '</span>';
+                box.appendChild(h);
+                const reals = hist.filter(x => x.d === ds);
+                const pr = proj.find(p => p.date === ds);
+                if (reals.length) reals.forEach(x => box.appendChild(escalaChip(x.a, '', '', 'Validou')));
+                else if (pr) box.appendChild(escalaChip(pr.primary, 'ghost' + (ds === today ? ' now' : ''), '', 'Provável'));
+                else { const e = document.createElement('span'); e.className = 'escala-muted'; e.textContent = 'sem registro'; box.appendChild(e); }
+                stripEl.appendChild(box);
+            }
+        }
+
+        function renderCalendarShiftFilter() {
+            const cal = document.getElementById('calendar');
+            if (!cal || document.getElementById('calendar-shift-filter')) return;
+            const wrap = document.createElement('div');
+            wrap.id = 'calendar-shift-filter';
+            wrap.className = 'calendar-shift-filter';
+            const lbl = document.createElement('span'); lbl.className = 'escala-muted'; lbl.textContent = 'Provável do turno:'; wrap.appendChild(lbl);
+            [['all', 'Todos'], ['T1', 'T1'], ['T2', 'T2'], ['T3', 'T3']].forEach(([val, text]) => {
+                const b = document.createElement('button'); b.type = 'button'; b.className = 'escala-tab' + (escalaCalendarFilter === val ? ' active' : ''); b.textContent = text; b.dataset.val = val;
+                b.onclick = () => { escalaCalendarFilter = val; wrap.querySelectorAll('.escala-tab').forEach(x => x.classList.toggle('active', x.dataset.val === val)); refreshCalendarEvents(); };
+                wrap.appendChild(b);
+            });
+            const leg = document.createElement('div'); leg.className = 'calendar-legend';
+            leg.innerHTML = '<span class="lg"><span class="ech" style="--c:#8b5cf6;width:64px"><span class="nm">Validou</span></span>validação já registrada (não muda)</span><span class="lg"><span class="ech ghost" style="--c:#8b5cf6;width:64px"><span class="nm">Provável</span></span>provável do turno, conforme a escala · 1 = T1 · 2 = T2 · 3 = T3</span><span class="lg"><i class="fas fa-gem admin-diamond gold" style="margin-left:0"></i> admin <i class="fas fa-gem admin-diamond green" style="margin-left:0.6rem"></i> admin secundário</span>';
+            cal.parentNode.insertBefore(wrap, cal);
+            cal.parentNode.insertBefore(leg, cal);
+        }
+
+        function initEscala() {
+            ESCALA_SHIFTS.forEach(s => { escalaData[s] = escalaNormalize(s, escalaData[s]); });
+            renderEscala();
+            if (escalaUnsub) return;
+            escalaUnsub = db.collection('system_settings').doc('escala').onSnapshot(doc => {
+                const d = doc.exists ? doc.data() : {};
+                ESCALA_SHIFTS.forEach(s => { escalaData[s] = escalaNormalize(s, d[s]); });
+                renderEscala();
+                refreshCalendarEvents();
+            }, err => { console.error('Erro ao ouvir escala:', err); });
+        }
+
+        // ============================================================
         // FUNÇÕES DO CALENDÁRIO
         // ============================================================
         function openComparisonModal(date, analysts) {
@@ -3716,16 +4670,16 @@
         function createComparisonCard(analyst) {
             const card = document.createElement('div');
             card.className = 'fc-event-analyst-item';
-            if (analyst.insertedByAdmin) { card.style.border = '2px solid var(--gold)'; card.style.background = 'rgba(241,196,15,0.04)'; }
             const analystName = document.createElement('div');
             analystName.className = 'fc-event-analyst-name';
-            analystName.innerHTML = `<i class="fas fa-user-tie" style="color: ${getAnalystColor(analyst.analista)}"></i> ${analyst.analista}`;
-            if (analyst.insertedByAdmin) {
-                const adminSpan = document.createElement('span');
-                adminSpan.className = 'admin-badge';
-                adminSpan.innerHTML = `<i class="fas fa-crown"></i> ADM (${analyst.adminName || 'Admin'})`;
-                analystName.appendChild(adminSpan);
-            }
+            analystName.innerHTML = `<i class="fas fa-user-tie" style="color: ${getAnalystColor(analyst.analista)}"></i> `;
+            const nameLink = document.createElement('span');
+            nameLink.className = 'analyst-name-link';
+            nameLink.title = 'Ver backlogs inseridos por ' + analyst.analista;
+            nameLink.textContent = analyst.analista;
+            nameLink.onclick = (e) => { e.stopPropagation(); openAnalystBacklogModal(analyst.analista); };
+            analystName.appendChild(nameLink);
+            if (analyst.insertedByAdmin) { analystName.appendChild(buildAdminDiamond(analyst.adminName)); }
             const analystDate = document.createElement('div');
             analystDate.style.fontSize = '0.8rem';
             analystDate.style.color = 'var(--text-muted)';
@@ -3733,11 +4687,46 @@
             analystDate.innerHTML = `<i class="far fa-calendar-alt"></i> ${new Date(analyst.data + 'T12:00:00').toLocaleDateString('pt-BR')}`;
             const analystContent = document.createElement('div');
             analystContent.className = 'fc-event-analyst-content';
-            analystContent.innerHTML = DOMPurify.sanitize(formatWhatsAppText(analyst.texto || ''));
+            analystContent.innerHTML = formatWhatsAppText(analyst.texto || '');
             card.appendChild(analystName);
             card.appendChild(analystDate);
             card.appendChild(analystContent);
             return card;
+        }
+
+        // View dinâmica: backlogs inseridos por um analista (ao clicar no nome)
+        function openAnalystBacklogModal(name) {
+            const ov = document.createElement('div');
+            ov.className = 'analyst-view-overlay';
+            const box = document.createElement('div'); box.className = 'analyst-view-box';
+            const head = document.createElement('div'); head.className = 'analyst-view-head';
+            const h = document.createElement('h3'); h.innerHTML = `<i class="fas fa-user-tie" style="color:${getAnalystColor(name)}"></i> `; h.appendChild(document.createTextNode(name));
+            const dateInp = document.createElement('input'); dateInp.type = 'month'; dateInp.title = 'Filtrar por mês';
+            const close = document.createElement('button'); close.className = 'analyst-view-close'; close.innerHTML = '<i class="fas fa-times"></i>';
+            head.appendChild(h); head.appendChild(dateInp); head.appendChild(close);
+            const body = document.createElement('div'); body.className = 'analyst-view-body';
+            box.appendChild(head); box.appendChild(body); ov.appendChild(box);
+            const shut = () => { if (ov.parentNode) ov.parentNode.removeChild(ov); };
+            close.onclick = shut;
+            ov.addEventListener('click', e => { if (e.target === ov) shut(); });
+            const render = () => {
+                body.innerHTML = '';
+                let list = firebaseRecords.filter(r => r.analista === name).sort((a, b) => (a.data < b.data ? 1 : -1));
+                if (dateInp.value) list = list.filter(r => r.data.startsWith(dateInp.value));
+                if (!list.length) { body.innerHTML = '<p style="color:var(--text-muted);text-align:center;">Nenhum backlog encontrado.</p>'; return; }
+                list.forEach(r => { const c = createComparisonCard(r); const nm = c.querySelector('.analyst-name-link'); if (nm) { nm.onclick = null; nm.style.cursor = 'default'; nm.style.textDecoration = 'none'; } body.appendChild(c); });
+            };
+            dateInp.onchange = render;
+            render();
+            document.body.appendChild(ov);
+        }
+
+        // Multiview de hoje (todas as validações do dia lado a lado)
+        function openTodayMultiview() {
+            const today = getFortalezaDateString();
+            const list = firebaseRecords.filter(r => r.data === today);
+            if (!list.length) { showToast('Nenhuma validação registrada hoje', 'info'); return; }
+            openComparisonModal(today, list);
         }
 
         function closeComparisonModal() { document.getElementById('comparisonModal').style.display = 'none'; }
@@ -3749,50 +4738,66 @@
             firebaseRecords.forEach(entry => { if (!analystsByDate[entry.data]) { analystsByDate[entry.data] = []; } analystsByDate[entry.data].push(entry); });
             const events = firebaseRecords.map(entry => {
                 let eventClass = `event-${entry.analista.toLowerCase()} fc-event-analyst has-tooltip`;
-                if (entry.insertedByAdmin) eventClass += ' event-admin';
-                return { title: entry.analista, start: entry.data, extendedProps: { texto: entry.texto, analista: entry.analista, fonte: entry.fonte || 'firebase', insertedByAdmin: entry.insertedByAdmin || false, adminName: entry.adminName || null, analystsForDate: analystsByDate[entry.data] || [] }, className: eventClass };
+                return { title: entry.analista, start: entry.data, extendedProps: { texto: entry.texto, analista: entry.analista, data: entry.data, fonte: entry.fonte || 'firebase', insertedByAdmin: entry.insertedByAdmin || false, adminName: entry.adminName || null, analystsForDate: analystsByDate[entry.data] || [] }, className: eventClass };
             });
-            if (calendarInstance) { calendarInstance.removeAllEvents(); calendarInstance.addEventSource(events); return; }
+            const allEvents = events.concat(escalaGhostEvents());
+            if (calendarInstance) { calendarInstance.removeAllEvents(); calendarInstance.addEventSource(allEvents); return; }
             calendarInstance = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth', locale: 'pt-br',
                 headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,dayGridWeek,dayGridDay' },
-                events,
+                events: allEvents,
                 eventContent: function(arg) {
+                    if (arg.event.extendedProps.ghost) {
+                        const g = document.createElement('div');
+                        g.style.cssText = 'display:flex;align-items:center;padding:0.2rem 0.4rem;gap:0.4rem;';
+                        g.title = arg.event.extendedProps.tip || '';
+                        g.innerHTML = '';
+                        const t = document.createElement('span'); t.className = 'fc-event-title';
+                        const sh = document.createElement('span'); sh.textContent = arg.event.extendedProps.shiftLetter; sh.style.cssText = 'font-size:0.6rem;font-weight:800;padding:0 4px;border-radius:4px;background:rgba(128,128,128,0.28);'; g.appendChild(sh);
+                        t.textContent = arg.event.extendedProps.analista;
+                        g.appendChild(t);
+                        return { domNodes: [g] };
+                    }
                     const eventEl = document.createElement('div');
                     eventEl.style.cssText = 'display:flex;align-items:center;padding:0.2rem 0.4rem;gap:0.4rem;flex-wrap:wrap;position:relative;';
                     const iconEl = document.createElement('i');
-                    iconEl.className = arg.event.extendedProps.insertedByAdmin ? 'fas fa-crown' : 'fas fa-user-check';
-                    iconEl.style.fontSize = '0.7em';
-                    if (arg.event.extendedProps.insertedByAdmin) iconEl.style.color = 'var(--gold)';
+                    if (arg.event.extendedProps.insertedByAdmin) {
+                        iconEl.className = adminDiamondClass(arg.event.extendedProps.adminName);
+                        iconEl.title = adminDiamondTitle(arg.event.extendedProps.adminName);
+                    } else {
+                        iconEl.className = 'fas fa-user-check';
+                        iconEl.style.fontSize = '0.7em';
+                    }
                     const titleEl = document.createElement('span');
                     titleEl.className = 'fc-event-title';
                     titleEl.textContent = arg.event.title;
                     const tooltipEl = document.createElement('div');
                     tooltipEl.className = 'tooltip';
-                    tooltipEl.textContent = arg.event.extendedProps.insertedByAdmin ? `Admin` : `Analista: ${arg.event.extendedProps.analista}`;
+                    tooltipEl.textContent = arg.event.extendedProps.insertedByAdmin ? `Inserido por ${arg.event.extendedProps.adminName || 'SIDNEY'}` : `Analista: ${arg.event.extendedProps.analista}`;
                     eventEl.appendChild(iconEl);
                     eventEl.appendChild(titleEl);
                     eventEl.appendChild(tooltipEl);
                     return { domNodes: [eventEl] };
                 },
-                eventClick: function(info) { showEventDetails(info.event); },
-                dateClick: async function(info) {
-                    if (userAnalystName === 'SIDNEY') {
-                        const result = await swalDark({
-                            icon: 'question',
-                            title: 'Inserir backlog como admin?',
-                            text: `Data selecionada: ${info.dateStr}`,
-                            showCancelButton: true,
-                            confirmButtonText: 'Inserir',
-                            cancelButtonText: 'Cancelar'
-                        });
-                        if (result.isConfirmed) openAdminModal(info.dateStr);
+                eventDidMount: function(info) {
+                    if (info.event.extendedProps.ghost) { info.el.style.setProperty('--c', getAnalystColor(info.event.extendedProps.analista)); return; }
+                    // Analistas novos (sem classe de cor no CSS) recebem a cor gerada
+                    const nm = String(info.event.extendedProps.analista || '').toUpperCase();
+                    if (nm && !ANALYST_COLORS[nm]) {
+                        const c = getAnalystColor(nm);
+                        const dark = currentTheme === 'dark';
+                        info.el.style.setProperty('background-color', hexToRgba(c, dark ? 0.15 : 0.3), 'important');
+                        info.el.style.setProperty('border-color', hexToRgba(c, dark ? 0.25 : 0.4), 'important');
+                        info.el.style.setProperty('color', 'var(--text-primary)', 'important');
                     }
                 },
+                eventClick: function(info) { if (info.event.extendedProps.ghost) return; showEventDetails(info.event); },
+                dateClick: function(info) { if (canInsertAsAdmin()) { if (confirm('Deseja inserir um backlog como admin para esta data?')) { openAdminModal(info.dateStr); } } },
                 viewDidMount: function(view) { setTimeout(addCompareButtonsToCalendar, 100); },
                 datesSet: function(info) { const mesVisivel = getBacklogDocId(info.view.currentStart.toISOString().split('T')[0]); escutarMesBacklog(mesVisivel); setTimeout(addCompareButtonsToCalendar, 100); }
             });
             calendarInstance.render();
+            renderCalendarShiftFilter();
             setTimeout(addCompareButtonsToCalendar, 200);
         }
 
@@ -3807,14 +4812,18 @@
                     if (dayCell) {
                         const dayNumber = dayCell.querySelector('.fc-daygrid-day-number');
                         if (dayNumber && !dayCell.querySelector('.fc-compare-btn')) {
-                            const flexContainer = document.createElement('div');
-                            flexContainer.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:2px;';
-                            dayNumber.parentNode.insertBefore(flexContainer, dayNumber);
-                            flexContainer.appendChild(dayNumber);
-                            dayNumber.style.cssText = 'flex-shrink:0;margin:0;padding:0;';
+                            let flexContainer = dayNumber.parentNode.classList.contains('fc-compare-wrap') ? dayNumber.parentNode : null;
+                            if (!flexContainer) {
+                                flexContainer = document.createElement('div');
+                                flexContainer.className = 'fc-compare-wrap';
+                                flexContainer.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:2px;';
+                                dayNumber.parentNode.insertBefore(flexContainer, dayNumber);
+                                flexContainer.appendChild(dayNumber);
+                                dayNumber.style.cssText = 'flex-shrink:0;margin:0;padding:0;';
+                            }
                             const compareBtn = document.createElement('button');
                             compareBtn.className = 'fc-compare-btn';
-                            compareBtn.innerHTML = '<i class="fas fa-code-compare"></i>';
+                            compareBtn.innerHTML = '<i class="fas fa-eye"></i>';
                             compareBtn.setAttribute('data-tooltip', `Comparar ${analysts.length} backlog${analysts.length !== 1 ? 's' : ''}`);
                             compareBtn.onclick = (e) => { e.stopPropagation(); openComparisonModal(date, analysts); };
                             flexContainer.appendChild(compareBtn);
@@ -3837,7 +4846,8 @@
             const closeButton = document.createElement('button');
             closeButton.className = 'fc-event-modal-close';
             closeButton.innerHTML = '<i class="fas fa-times"></i>';
-            closeButton.addEventListener('click', () => document.body.removeChild(modal));
+            const closeModal = () => { if (modal.parentNode) modal.parentNode.removeChild(modal); };
+            closeButton.addEventListener('click', closeModal);
             modalHeader.appendChild(modalTitle);
             modalHeader.appendChild(closeButton);
             const modalBody = document.createElement('div');
@@ -3846,24 +4856,46 @@
             dateEl.innerHTML = `<i class="far fa-calendar-alt" style="margin-right:0.5rem;"></i>${new Date(event.start).toLocaleDateString('pt-BR')}`;
             const analystItem = document.createElement('div');
             analystItem.className = 'fc-event-analyst-item';
-            if (event.extendedProps.insertedByAdmin) { analystItem.style.border = '2px solid var(--gold)'; analystItem.style.background = 'rgba(241,196,15,0.04)'; }
             const analystName = document.createElement('div');
             analystName.className = 'fc-event-analyst-name';
-            analystName.innerHTML = `<i class="fas fa-user-tie" style="color:${getAnalystColor(event.extendedProps.analista)}"></i> ${event.extendedProps.analista}`;
-            if (event.extendedProps.insertedByAdmin) {
-                const adminSpan = document.createElement('span');
-                adminSpan.className = 'admin-badge';
-                adminSpan.style.marginLeft = '0.5rem';
-                adminSpan.textContent = `Adm ${event.extendedProps.adminName}`;
-                analystName.appendChild(adminSpan);
-            }
+            analystName.innerHTML = `<i class="fas fa-user-tie" style="color:${getAnalystColor(event.extendedProps.analista)}"></i> `;
+            { const nl = document.createElement('span'); nl.className = 'analyst-name-link'; nl.title = 'Ver backlogs inseridos'; nl.textContent = event.extendedProps.analista; nl.onclick = () => openAnalystBacklogModal(event.extendedProps.analista); analystName.appendChild(nl); }
+            if (event.extendedProps.insertedByAdmin) { analystName.appendChild(buildAdminDiamond(event.extendedProps.adminName)); }
             const analystContent = document.createElement('div');
             analystContent.className = 'fc-event-analyst-content';
-            analystContent.innerHTML = DOMPurify.sanitize(formatWhatsAppText(event.extendedProps.texto || ''));
+            analystContent.innerHTML = formatWhatsAppText(event.extendedProps.texto || '');
             analystItem.appendChild(analystName);
             analystItem.appendChild(analystContent);
             modalBody.appendChild(dateEl);
             modalBody.appendChild(analystItem);
+
+            // Exclusão direto pelo calendário (somente SIDNEY)
+            if (isPrimaryAdmin()) {
+                const actions = document.createElement('div');
+                actions.className = 'action-buttons';
+                const delBtn = document.createElement('button');
+                delBtn.type = 'button';
+                delBtn.className = 'btn btn-danger btn-sm';
+                delBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Excluir validação';
+                delBtn.addEventListener('click', async () => {
+                    const analista = event.extendedProps.analista;
+                    const data = event.extendedProps.data || String(event.startStr).split('T')[0];
+                    if (!confirm(`Excluir a validação de ${analista} em ${new Date(data + 'T12:00:00').toLocaleDateString('pt-BR')}? Esta ação não pode ser desfeita.`)) return;
+                    try {
+                        loading.show('Excluindo validação...', analista);
+                        await deleteBacklogRecord(analista, data);
+                        showToast('Validação excluída!', 'success');
+                        closeModal();
+                        if (document.getElementById('dashboard-section').style.display !== 'none') { initCalendar(); updateDashboardStats(); setTimeout(addCompareButtonsToCalendar, 100); }
+                    } catch (error) {
+                        console.error('Erro ao excluir validação:', error);
+                        showToast(error.message === 'BACKLOG_NOT_FOUND' ? 'Registro não encontrado (já foi excluído?).' : 'Erro ao excluir. Verifique as permissões do Firebase.', 'error');
+                    } finally { loading.hide(); }
+                });
+                actions.appendChild(delBtn);
+                modalBody.appendChild(actions);
+            }
+
             modalContent.appendChild(modalHeader);
             modalContent.appendChild(modalBody);
             modal.appendChild(modalContent);
@@ -3873,6 +4905,9 @@
         // ============================================================
         // DASHBOARD E ESTATÍSTICAS
         // ============================================================
+        // Ex-funcionários: ficam fora de rankings/gráfico/seleções (histórico permanece intacto)
+        const EXCLUDED_ANALYSTS = ['DELANO', 'MARCIO', 'MURILO'];
+
         function updateDashboardStats() {
             const allRecords = firebaseRecords;
             const today = getFortalezaDateString();
@@ -3899,7 +4934,7 @@
             document.getElementById('validations-month').textContent = currentMonthValidations;
             const analystCounts = {};
             filteredRecords.forEach(record => { if (!analystCounts[record.analista]) analystCounts[record.analista] = 0; analystCounts[record.analista]++; });
-            const sortedAnalysts = Object.entries(analystCounts).sort((a, b) => b[1] - a[1]);
+            const sortedAnalysts = Object.entries(analystCounts).filter(([n]) => !EXCLUDED_ANALYSTS.includes(String(n).toUpperCase())).sort((a, b) => b[1] - a[1]);
             if (sortedAnalysts.length > 0) { document.getElementById('top-analyst').textContent = sortedAnalysts[0][0]; document.getElementById('top-analyst-count').textContent = `${sortedAnalysts[0][1]} validações`; }
             else { document.getElementById('top-analyst').textContent = 'N/A'; document.getElementById('top-analyst-count').textContent = '0 validações'; }
             updateAnalystRankings(sortedAnalysts);
@@ -4062,17 +5097,32 @@ function updateAnalystChart(sortedAnalysts) {
         }
 
         // ============================================================
-        // ADMIN MODAL
+        // ADMIN MODAL (SIDNEY e admins secundários)
         // ============================================================
+        function populateAdminAnalystSelect() {
+            const sel = document.getElementById('admin-analista-select');
+            sel.innerHTML = '<option value="">Selecione o analista</option>';
+            getRoster().filter(n => n !== userAnalystName && n !== 'SIDNEY').forEach(n => {
+                const o = document.createElement('option'); o.value = n; o.textContent = n; sel.appendChild(o);
+            });
+        }
+
         function openAdminModal(date) {
-            if (userAnalystName !== 'SIDNEY') return;
+            if (!canInsertAsAdmin()) return;
             window.selectedCalendarDate = date;
             window.clickTimestamp = getFortalezaTimestamp();
             const dateObj = new Date(date + 'T12:00:00');
             document.getElementById('admin-selected-date').textContent = dateObj.toLocaleDateString('pt-BR', { timeZone: 'America/Fortaleza', day: '2-digit', month: '2-digit', year: 'numeric' });
             document.getElementById('admin-click-time').textContent = new Date().toLocaleTimeString('pt-BR', { timeZone: 'America/Fortaleza', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const badge = document.getElementById('admin-modal-badge');
+            badge.textContent = '';
+            const bi = document.createElement('i');
+            bi.className = isPrimaryAdmin() ? 'fas fa-star' : 'fas fa-gem';
+            badge.appendChild(bi);
+            badge.appendChild(document.createTextNode(' ' + userAnalystName));
+            populateAdminAnalystSelect();
             document.getElementById('admin-analista-select').value = '';
-            if (quillAdmin) quillAdmin.setText('');
+            document.getElementById('admin-backlog-text').innerHTML = '';
             document.getElementById('admin-modal').style.display = 'flex';
         }
 
@@ -4086,22 +5136,24 @@ function updateAnalystChart(sortedAnalysts) {
         document.getElementById('admin-modal-cancel').addEventListener('click', closeAdminModal);
 
         document.getElementById('admin-modal-save').addEventListener('click', async function() {
-            if (userAnalystName !== 'SIDNEY') { showToast('Apenas SIDNEY pode usar esta funcionalidade!', 'error'); closeAdminModal(); return; }
+            if (!canInsertAsAdmin()) { showToast('Você não tem permissão para usar esta funcionalidade!', 'error'); closeAdminModal(); return; }
             if (!checkRateLimit('admin_save')) { showToast('Por favor, aguarde um momento antes de salvar novamente', 'error'); return; }
 
             const analista = document.getElementById('admin-analista-select').value;
             const data = window.selectedCalendarDate;
-            let texto = quillAdmin.root.innerHTML.trim();
+            let texto = document.getElementById('admin-backlog-text').innerHTML.trim();
 
-            if (!analista || !data || quillAdmin.getText().trim() === '') { showToast('Por favor, selecione um analista e preencha o backlog!', 'error'); return; }
-            texto = cleanBacklogText(texto) + ' <span class="admin-badge">ADM</span>';
+            if (!analista || !data || !texto) { showToast('Por favor, selecione um analista e preencha o backlog!', 'error'); return; }
+            texto = cleanBacklogText(texto);
 
             try {
                 loading.show('Salvando como Admin...', `Inserindo backlog para ${analista}`);
                 this.disabled = true;
                 this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
 
-                const op = await saveBacklogRecord(analista, data, texto, true);
+                // Admin secundário só insere para quem ainda não tem validação no dia
+                const op = await saveBacklogRecord(analista, data, texto, true, !isPrimaryAdmin());
+                await logAudit('ADMIN_BACKLOG_SAVE', `Admin ${userAnalystName} ${op === 'updated' ? 'atualizou' : 'criou'} backlog para ${analista} na data ${data}`);
 
                 const firebaseData = await loadFirebaseData();
                 firebaseRecords = firebaseData.registros.map(r => ({ ...r, fonte: 'firebase' }));
@@ -4114,7 +5166,8 @@ function updateAnalystChart(sortedAnalysts) {
                 console.error('Erro ao salvar como admin:', error);
                 if (error.message === 'BACKLOG_EDIT_TIME_EXCEEDED') showToast('O backlog só pode ser alterado dentro de 1 hora.', 'error');
                 else if (error.message === 'BACKLOG_SAVE_LIMIT_REACHED') showToast('Limite de 4 sobrescritas atingido.', 'error');
-                else if (error.message === 'BACKLOG_MAX_ANALYSTS_REACHED') showToast('Limite máximo de 3 analistas por dia atingido.', 'error');
+                else if (error.message === 'BACKLOG_MAX_ANALYSTS_REACHED') showToast(`Limite máximo de ${MAX_ANALYSTS_PER_DAY} analistas por dia atingido.`, 'error');
+                else if (error.message === 'BACKLOG_ALREADY_EXISTS') showToast('Este analista já possui validação neste dia.', 'error');
                 else showToast('Erro ao salvar os dados.', 'error');
             } finally {
                 loading.hide();
@@ -4255,6 +5308,7 @@ function updateAnalystChart(sortedAnalysts) {
                     });
                 });
 
+                await logAudit('MURAL_MESSAGE', `Analista ${userAnalystName} enviou mensagem no mural`);
                 chatInput.value = '';
                 chatInput.style.height = '24px';
                 showToast('Mensagem enviada!', 'success');
@@ -4294,6 +5348,7 @@ function updateAnalystChart(sortedAnalysts) {
                                 await retryFirebaseOperation(async () => {
                                     await db.collection('mural_messages').doc(msgId).delete();
                                 });
+                                await logAudit('MURAL_DELETE', `Analista ${userAnalystName} deletou mensagem do mural`);
                                 showToast('Mensagem apagada!', 'success');
                             } catch (error) { console.error('Erro detalhado ao apagar:', error); showToast(`Erro: ${error.message}`, 'error'); messageDiv.classList.remove('deleting'); }
                         }, 220);
@@ -4352,6 +5407,7 @@ function updateAnalystChart(sortedAnalysts) {
                             timestamp: firebase.firestore.FieldValue.serverTimestamp()
                         });
                     });
+                    await logAudit('MURAL_EDIT', `Analista ${userAnalystName} editou mensagem do mural`);
                     showToast('Mensagem editada', 'success');
                 } catch (error) { console.error('Erro ao editar:', error); showToast('Erro ao editar', 'error'); }
             });
@@ -4373,6 +5429,40 @@ function updateAnalystChart(sortedAnalysts) {
             setTimeout(() => { checkAndClearOldMessages(); scheduleMidnightCleanup(); }, msToMidnight);
         }
 
+        // ============================================================
+        // AUDITORIA - LOAD LOGS
+        // ============================================================
+        async function loadAuditLogs() {
+            const container = document.getElementById('audit-logs-container');
+            if (!container) return;
+            container.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Carregando logs...</p>';
+            try {
+                const snapshot = await retryFirebaseOperation(async () => {
+                    return await db.collection('audit_logs').orderBy('timestamp', 'desc').limit(100).get();
+                });
+                if (snapshot.empty) { container.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Nenhum log de auditoria encontrado.</p>'; return; }
+                let html = '';
+                snapshot.forEach(doc => {
+                    const log = doc.data();
+                    const timestamp = log.timestamp?.toDate ? log.timestamp.toDate() : new Date();
+                    const timeStr = timestamp.toLocaleString('pt-BR');
+                    const isAdminAction = log.action.includes('ADMIN');
+                    html += `
+                    <div class="audit-log-item ${isAdminAction ? 'admin-action' : ''}">
+                        <div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;flex-wrap:wrap;gap:0.3rem;">
+                            <strong style="color:var(--accent);font-size:0.85rem;">${log.action}</strong>
+                            <span style="color:var(--text-muted);font-size:0.75rem;">${timeStr}</span>
+                        </div>
+                        <div style="margin-bottom:0.2rem;font-size:0.85rem;">${log.details}</div>
+                        <div style="font-size:0.75rem;color:var(--text-muted);"><i class="fas fa-user"></i> ${log.analyst || 'Sistema'}</div>
+                    </div>
+                `;
+                });
+                container.innerHTML = html;
+            } catch (error) { console.error('Erro ao carregar logs de auditoria:', error); container.innerHTML = '<p style="text-align: center; color: var(--danger);">Erro ao carregar logs de auditoria.</p>'; }
+        }
+
+        document.getElementById('refresh-audit-logs').addEventListener('click', loadAuditLogs);
         document.getElementById('closeComparisonModal').addEventListener('click', closeComparisonModal);
         document.getElementById('comparisonModal').addEventListener('click', function(e) { if (e.target === this) closeComparisonModal(); });
 
@@ -4388,6 +5478,262 @@ function updateAnalystChart(sortedAnalysts) {
                 populateMonthSelect();
             } catch (error) { console.error('Erro ao carregar dados iniciais:', error); showToast('Erro ao carregar dados. Verifique o console.', 'error'); }
             finally { loading.hide(); }
+        }
+
+        // ============================================================
+        // ADMINISTRAÇÃO: usuários cadastrados + admins secundários
+        // ============================================================
+        function normalizeAdminSlots(arr) {
+            const out = Array.isArray(arr) ? arr.slice(0, ADMIN_SLOT_COUNT).map(x => x || '') : [];
+            while (out.length < ADMIN_SLOT_COUNT) out.push('');
+            return out;
+        }
+
+        // Atualiza tudo que depende da lista de analistas
+        function onRosterChanged() {
+            renderEscala();
+            if (isPrimaryAdmin()) { renderAdminSlots(); renderAdminUsers(); populateAdminFilters(); }
+        }
+
+        function initSystemUsers() {
+            if (systemUsersUnsub) return;
+            systemUsersUnsub = db.collection('system_users').onSnapshot(snap => {
+                extraUsers = [];
+                snap.forEach(d => {
+                    const v = d.data() || {};
+                    const name = String(v.name || d.id).toUpperCase();
+                    extraUsers.push({
+                        name,
+                        email: v.email || (name.toLowerCase() + USER_EMAIL_DOMAIN),
+                        createdBy: v.createdBy || '',
+                        createdAt: v.createdAt && v.createdAt.toDate ? v.createdAt.toDate() : null
+                    });
+                });
+                extraUsers.sort((a, b) => a.name.localeCompare(b.name));
+                onRosterChanged();
+            }, err => { console.error('Erro ao ouvir usuários cadastrados:', err); });
+        }
+
+        function initAdminSlots() {
+            if (adminSlotsUnsub) return;
+            adminSlotsUnsub = db.collection('system_settings').doc('admins').onSnapshot(doc => {
+                adminSlots = normalizeAdminSlots(doc.exists ? doc.data().slots : []);
+                if (isPrimaryAdmin()) renderAdminSlots();
+            }, err => { console.error('Erro ao ouvir admins secundários:', err); });
+        }
+
+        let admActiveTab = 'admins';
+        let admOpenSlot = null;
+
+        function setupAdminPanel() {
+            const tabsEl = document.getElementById('adm-tabs');
+            [['admins', 'Admins secundários'], ['validacoes', 'Gerenciar validações'], ['criar', 'Criar usuário'], ['usuarios', 'Usuários cadastrados']].forEach(([key, label]) => {
+                const b = document.createElement('button');
+                b.type = 'button'; b.className = 'escala-tab' + (key === admActiveTab ? ' active' : ''); b.dataset.tab = key; b.textContent = label;
+                b.onclick = () => showAdminTab(key);
+                tabsEl.appendChild(b);
+            });
+            document.getElementById('adm-val-month').value = getFortalezaDateString().slice(0, 7);
+            document.getElementById('adm-val-month').addEventListener('change', loadAdminValidations);
+            document.getElementById('adm-val-analyst').addEventListener('change', loadAdminValidations);
+            document.getElementById('adm-val-refresh').addEventListener('click', loadAdminValidations);
+            document.getElementById('adm-create-form').addEventListener('submit', createSystemUser);
+            renderAdminSlots();
+            renderAdminUsers();
+            populateAdminFilters();
+        }
+
+        function showAdminTab(key) {
+            admActiveTab = key;
+            document.querySelectorAll('#adm-tabs .escala-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === key));
+            ['admins', 'validacoes', 'criar', 'usuarios'].forEach(k => { document.getElementById('adm-tab-' + k).style.display = k === key ? 'block' : 'none'; });
+            if (key === 'validacoes') loadAdminValidations();
+        }
+
+        // ----- Admins secundários (6 slots) -----
+        function adminSlotsSave() {
+            return retryFirebaseOperation(async () => {
+                await db.collection('system_settings').doc('admins').set({ slots: adminSlots, updatedBy: userAnalystName || '', updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+            }, { maxRetries: 1, initialDelay: 800 })
+                .then(() => showToast('Admins secundários atualizados', 'success'))
+                .catch(err => { console.error('Erro ao salvar admins secundários:', err); showToast('Erro ao salvar (verifique as permissões)', 'error'); });
+        }
+
+        function adminSetSlot(idx, name) {
+            if (!isPrimaryAdmin()) return;
+            if (name) adminSlots = adminSlots.map((n, i) => (n === name && i !== idx) ? '' : n);
+            adminSlots[idx] = name;
+            admOpenSlot = null;
+            renderAdminSlots();
+            adminSlotsSave();
+        }
+
+        function renderAdminSlots() {
+            const el = document.getElementById('adm-slots');
+            if (!el) return;
+            el.innerHTML = '';
+            adminSlots.forEach((name, idx) => {
+                const wrap = document.createElement('div'); wrap.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+                const row = document.createElement('div'); row.className = 'escala-row' + (name ? '' : ' free');
+                const pos = document.createElement('span'); pos.className = 'escala-pos'; pos.textContent = idx + 1;
+                const av = document.createElement('span'); av.className = 'escala-av' + (name ? '' : ' empty');
+                if (name) av.style.setProperty('--c', getAnalystColor(name));
+                av.textContent = name ? escalaInitial(name) : '+';
+                const info = document.createElement('div'); info.className = 'escala-info';
+                const nm = document.createElement('span'); nm.className = 'escala-name'; nm.textContent = name || 'Vaga livre';
+                const sub = document.createElement('span'); sub.className = 'escala-sub'; sub.textContent = name ? 'Pode inserir validações de quem esqueceu' : 'Disponível para um admin secundário';
+                info.appendChild(nm); info.appendChild(sub);
+                row.appendChild(pos); row.appendChild(av); row.appendChild(info);
+                if (name) { const d = buildAdminDiamond(name === 'SIDNEY' ? 'X' : name); d.title = 'Admin secundário'; row.appendChild(d); }
+                const tg = document.createElement('button'); tg.type = 'button'; tg.className = 'escala-btn';
+                tg.textContent = admOpenSlot === idx ? 'Fechar' : (name ? 'Trocar' : 'Escolher');
+                tg.onclick = () => { admOpenSlot = admOpenSlot === idx ? null : idx; renderAdminSlots(); };
+                row.appendChild(tg);
+                if (name) {
+                    const clr = document.createElement('button'); clr.type = 'button'; clr.className = 'escala-btn'; clr.textContent = 'Esvaziar';
+                    clr.onclick = () => adminSetSlot(idx, '');
+                    row.appendChild(clr);
+                }
+                wrap.appendChild(row);
+                if (admOpenSlot === idx) {
+                    const box = document.createElement('div'); box.className = 'escala-pick';
+                    getRoster().filter(n => n !== 'SIDNEY').forEach(n => {
+                        const p = document.createElement('button'); p.type = 'button'; p.className = 'escala-pk' + (n === name ? ' on' : '');
+                        p.style.setProperty('--c', getAnalystColor(n));
+                        p.appendChild(document.createTextNode(n));
+                        const other = adminSlots.indexOf(n);
+                        if (other >= 0 && other !== idx) { const s = document.createElement('small'); s.textContent = 'vaga ' + (other + 1); p.appendChild(s); }
+                        p.onclick = () => adminSetSlot(idx, n);
+                        box.appendChild(p);
+                    });
+                    wrap.appendChild(box);
+                }
+                el.appendChild(wrap);
+            });
+        }
+
+        // ----- Gerenciar validações (excluir) -----
+        function populateAdminFilters() {
+            const sel = document.getElementById('adm-val-analyst');
+            if (!sel) return;
+            const cur = sel.value;
+            sel.innerHTML = '<option value="">Todos</option>';
+            getRoster().slice().sort().forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n; sel.appendChild(o); });
+            sel.value = cur;
+        }
+
+        async function loadAdminValidations() {
+            const list = document.getElementById('adm-val-list');
+            if (!list || !isPrimaryAdmin()) return;
+            const month = document.getElementById('adm-val-month').value || getFortalezaDateString().slice(0, 7);
+            const analyst = document.getElementById('adm-val-analyst').value;
+            list.innerHTML = '<p class="escala-muted">Carregando...</p>';
+            try {
+                const doc = await retryFirebaseOperation(async () => db.collection('backlog').doc(getBacklogDocId(month + '-01')).get(), { maxRetries: 1, initialDelay: 800 });
+                let regs = doc.exists ? (doc.data().registros || []) : [];
+                regs = regs.filter(r => r.data && r.data.startsWith(month) && (!analyst || r.analista === analyst));
+                regs.sort((a, b) => (a.data < b.data ? 1 : a.data > b.data ? -1 : String(a.analista).localeCompare(String(b.analista))));
+                list.innerHTML = '';
+                if (!regs.length) { list.innerHTML = '<p class="escala-muted">Nenhuma validação encontrada neste filtro.</p>'; return; }
+                regs.forEach(r => {
+                    const row = document.createElement('div'); row.className = 'escala-row';
+                    const av = document.createElement('span'); av.className = 'escala-av'; av.style.setProperty('--c', getAnalystColor(r.analista)); av.textContent = escalaInitial(r.analista);
+                    const info = document.createElement('div'); info.className = 'escala-info';
+                    const nm = document.createElement('span'); nm.className = 'escala-name';
+                    nm.textContent = r.analista + ' · ' + new Date(r.data + 'T12:00:00').toLocaleDateString('pt-BR');
+                    if (r.insertedByAdmin) nm.appendChild(buildAdminDiamond(r.adminName));
+                    const sub = document.createElement('span'); sub.className = 'escala-sub';
+                    const resumo = cleanBacklogText(r.texto || '').replace(/\s+/g, ' ');
+                    sub.textContent = resumo.length > 110 ? resumo.slice(0, 110) + '…' : (resumo || '(sem texto)');
+                    info.appendChild(nm); info.appendChild(sub);
+                    const del = document.createElement('button'); del.type = 'button'; del.className = 'btn btn-danger btn-sm';
+                    del.innerHTML = '<i class="fas fa-trash-alt"></i> Excluir';
+                    del.onclick = async () => {
+                        if (!confirm(`Excluir a validação de ${r.analista} em ${new Date(r.data + 'T12:00:00').toLocaleDateString('pt-BR')}? Esta ação não pode ser desfeita.`)) return;
+                        try {
+                            loading.show('Excluindo validação...', r.analista);
+                            await deleteBacklogRecord(r.analista, r.data);
+                            showToast('Validação excluída!', 'success');
+                        } catch (error) {
+                            console.error('Erro ao excluir validação:', error);
+                            showToast(error.message === 'BACKLOG_NOT_FOUND' ? 'Registro não encontrado (já foi excluído?).' : 'Erro ao excluir. Verifique as permissões do Firebase.', 'error');
+                        } finally { loading.hide(); }
+                        loadAdminValidations();
+                    };
+                    row.appendChild(av); row.appendChild(info); row.appendChild(del);
+                    list.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar validações:', error);
+                list.innerHTML = '<p class="escala-muted" style="color:var(--danger);">Erro ao carregar as validações.</p>';
+            }
+        }
+
+        // ----- Criar usuário -----
+        async function createSystemUser(e) {
+            e.preventDefault();
+            if (!isPrimaryAdmin()) return;
+            const input = document.getElementById('adm-new-name');
+            const raw = input.value.trim();
+            const notice = document.getElementById('adm-create-notice');
+            if (!raw) { showToast('Informe o nome do usuário', 'error'); return; }
+            if (!/^[A-Za-z0-9]+$/.test(raw)) { showToast('Use apenas letras e números, sem espaços ou caracteres especiais', 'error'); return; }
+            const name = raw.toUpperCase();
+            const email = raw.toLowerCase() + USER_EMAIL_DOMAIN;
+            if (name === 'SIDNEY' || getRoster().includes(name)) { showToast('Já existe um usuário com esse nome', 'error'); return; }
+            const btn = document.getElementById('adm-create-btn');
+            try {
+                btn.disabled = true;
+                await retryFirebaseOperation(async () => {
+                    await db.collection('system_users').doc(name).set({ name, email, createdBy: userAnalystName, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                }, { maxRetries: 1, initialDelay: 800 });
+                input.value = '';
+                showToast('Usuário cadastrado!', 'success');
+                notice.innerHTML = '';
+                const t1 = document.createElement('div');
+                t1.appendChild(document.createTextNode('Usuário '));
+                const s1 = document.createElement('strong'); s1.textContent = name; t1.appendChild(s1);
+                t1.appendChild(document.createTextNode(' cadastrado no sistema. Falta criar o login no Firebase Authentication:'));
+                const t2 = document.createElement('div'); t2.style.marginTop = '0.4rem';
+                t2.appendChild(document.createTextNode('Email: '));
+                const s2 = document.createElement('strong'); s2.textContent = email; t2.appendChild(s2);
+                const t3 = document.createElement('div'); t3.style.marginTop = '0.2rem';
+                t3.textContent = 'Senha: defina direto no Firebase Authentication.';
+                notice.appendChild(t1); notice.appendChild(t2); notice.appendChild(t3);
+                notice.style.display = 'block';
+            } catch (error) {
+                console.error('Erro ao cadastrar usuário:', error);
+                showToast('Erro ao cadastrar (verifique as permissões do Firebase)', 'error');
+            } finally { btn.disabled = false; }
+        }
+
+        // ----- Usuários cadastrados -----
+        function renderAdminUsers() {
+            const el = document.getElementById('adm-users-list');
+            if (!el) return;
+            el.innerHTML = '';
+            if (!extraUsers.length) { el.innerHTML = '<p class="escala-muted">Nenhum usuário cadastrado por este painel ainda.</p>'; return; }
+            extraUsers.forEach(u => {
+                const row = document.createElement('div'); row.className = 'escala-row';
+                const av = document.createElement('span'); av.className = 'escala-av'; av.style.setProperty('--c', getAnalystColor(u.name)); av.textContent = escalaInitial(u.name);
+                const info = document.createElement('div'); info.className = 'escala-info';
+                const nm = document.createElement('span'); nm.className = 'escala-name'; nm.textContent = u.name;
+                const sub = document.createElement('span'); sub.className = 'escala-sub';
+                sub.textContent = u.email + (u.createdAt ? ' · cadastrado em ' + u.createdAt.toLocaleDateString('pt-BR') : '') + (u.createdBy ? ' por ' + u.createdBy : '');
+                info.appendChild(nm); info.appendChild(sub);
+                const del = document.createElement('button'); del.type = 'button'; del.className = 'btn btn-danger btn-sm';
+                del.innerHTML = '<i class="fas fa-trash-alt"></i> Remover';
+                del.onclick = async () => {
+                    if (!confirm(`Remover ${u.name} das listas do sistema? A conta no Firebase Authentication e os backlogs já registrados não serão apagados.`)) return;
+                    try {
+                        await retryFirebaseOperation(async () => { await db.collection('system_users').doc(u.name).delete(); }, { maxRetries: 1, initialDelay: 800 });
+                        if (adminSlots.includes(u.name)) { adminSlots = adminSlots.map(n => n === u.name ? '' : n); adminSlotsSave(); }
+                        showToast('Usuário removido das listas', 'success');
+                    } catch (error) { console.error('Erro ao remover usuário:', error); showToast('Erro ao remover (verifique as permissões)', 'error'); }
+                };
+                row.appendChild(av); row.appendChild(info); row.appendChild(del);
+                el.appendChild(row);
+            });
         }
   </script>
 </body>
