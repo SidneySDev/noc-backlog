@@ -2630,6 +2630,30 @@
       }
     }
   </style>
+
+  <!-- ESTILOS NOVOS (somente para a área de Administração e as tags de diamante) -->
+  <style>
+    .admin-diamond { font-size: 0.72em; margin-left: 0.35rem; cursor: help; }
+    .admin-diamond.gold { color: #f1c40f; }
+    .admin-diamond.green { color: #2ecc71; }
+    .fc-event .admin-diamond { margin-left: 0; }
+    .adm-email-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .adm-suffix { color: var(--text-secondary); font-weight: 600; font-size: 0.9rem; }
+    .adm-list { display: flex; flex-direction: column; gap: 0.5rem; }
+
+    /* Comparativo do Dia: grade adaptável (1 a 4 analistas sem cortar nenhum) */
+    .comparison-grid { display: grid; grid-template-columns: 1fr; gap: 1.2rem; overflow-x: visible; align-items: stretch; }
+    .comparison-grid .fc-event-analyst-item { min-width: 0; margin-bottom: 0; }
+    .comparison-grid .fc-event-analyst-content { max-height: 45vh; }
+    @media (min-width: 700px) { .comparison-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (min-width: 700px) and (max-width: 1099px) { .comparison-grid[data-count="3"] .fc-event-analyst-item:last-child { grid-column: 1 / -1; } }
+    @media (min-width: 1100px) {
+      .comparison-grid[data-count="3"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .comparison-grid[data-count="4"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+    .comparison-grid[data-count="1"] { grid-template-columns: 1fr; }
+    .comparison-grid[data-count="n"] { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  </style>
 </head>
 
 <body>
@@ -2738,6 +2762,9 @@
         </div>
         <div class="nav-item" data-section="mural">
           <a href="#" class="nav-link"><i class="fas fa-users nav-icon"></i><span>Mural</span></a>
+        </div>
+        <div class="nav-item" data-section="admin" id="nav-admin" style="display:none;">
+          <a href="#" class="nav-link"><i class="fas fa-user-shield nav-icon"></i><span>Administração</span></a>
         </div>
       </div>
 
@@ -2933,6 +2960,57 @@
           </div>
         </div>
 
+        <div class="section-content" id="admin-section" style="display: none;">
+          <div class="card">
+            <div class="card-header" style="flex-wrap:wrap;gap:0.8rem;">
+              <div>
+                <h3 class="card-title"><i class="fas fa-user-shield"></i> Administração</h3>
+                <div class="escala-muted" style="margin-top:2px;">Área exclusiva do admin principal.</div>
+              </div>
+              <div class="escala-tabs" id="adm-tabs"></div>
+            </div>
+            <div class="card-body">
+              <div id="adm-tab-admins">
+                <div class="escala-sec-title">6 vagas de admin secundário</div>
+                <div class="escala-muted" style="margin-bottom:0.8rem;">Admins secundários podem apenas inserir validações (pelo calendário) de analistas que esqueceram de salvar o backlog. Não podem excluir, gerenciar vagas nem criar usuários.</div>
+                <div id="adm-slots" class="adm-list"></div>
+              </div>
+
+              <div id="adm-tab-validacoes" style="display:none;">
+                <div class="month-filter">
+                  <label for="adm-val-month">Mês:</label>
+                  <input type="month" id="adm-val-month" class="form-control" style="max-width:200px;" />
+                  <label for="adm-val-analyst">Analista:</label>
+                  <select id="adm-val-analyst" class="form-control form-select" style="max-width:220px;"><option value="">Todos</option></select>
+                  <button type="button" class="btn btn-outline btn-sm" id="adm-val-refresh"><i class="fas fa-sync-alt"></i> Atualizar</button>
+                </div>
+                <div id="adm-val-list" class="adm-list"></div>
+              </div>
+
+              <div id="adm-tab-criar" style="display:none;">
+                <form id="adm-create-form" novalidate>
+                  <div class="form-group">
+                    <label class="form-label" for="adm-new-name">Nome do usuário</label>
+                    <div class="adm-email-row">
+                      <input type="text" class="form-control" id="adm-new-name" placeholder="fulano" autocomplete="off" maxlength="30" style="max-width:260px;" />
+                      <span class="adm-suffix">@noctelecom.com</span>
+                    </div>
+                  </div>
+                  <div class="action-buttons" style="justify-content:flex-start;">
+                    <button type="submit" class="btn btn-primary" id="adm-create-btn"><i class="fas fa-user-plus"></i> Cadastrar usuário</button>
+                  </div>
+                </form>
+                <div id="adm-create-notice" class="mural-info mural-warning" style="display:none;margin-top:1rem;"></div>
+              </div>
+
+              <div id="adm-tab-usuarios" style="display:none;">
+                <div class="escala-muted" style="margin-bottom:0.8rem;">Remover aqui só tira o nome das listas do sistema. A conta no Firebase Authentication e os backlogs já registrados não são apagados.</div>
+                <div id="adm-users-list" class="adm-list"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="section-content" id="auditoria-section" style="display: none;">
           <div class="card">
             <div class="card-header">
@@ -2965,7 +3043,7 @@
     <div class="admin-modal-content">
       <div class="admin-modal-header">
         <h3><i class="fas fa-crown"></i> Admin: Inserir Backlog
-          <span class="admin-badge-large"><i class="fas fa-star"></i> SIDNEY</span>
+          <span class="admin-badge-large" id="admin-modal-badge"><i class="fas fa-star"></i> SIDNEY</span>
         </h3>
         <button class="admin-modal-close" id="admin-modal-close"><i class="fas fa-times"></i></button>
       </div>
@@ -3113,6 +3191,8 @@
         const CACHE_TTL_MS = 5 * 60 * 1000;
         const DRAFT_TTL_MS = 20 * 60 * 1000;
         const DRAFT_SAVE_DEBOUNCE_MS = 1000;
+        const ADMIN_SLOT_COUNT = 6;
+        const USER_EMAIL_DOMAIN = '@noctelecom.com';
 
         let currentUser = null;
         let userAnalystName = null;
@@ -3125,6 +3205,11 @@
         let mesAtualEscutado = null;
         let auditLogsEnabled = false;
         let draftSaveTimer = null;
+        // Administração: admins secundários e usuários cadastrados pelo painel
+        let adminSlots = ['', '', '', '', '', ''];
+        let extraUsers = [];
+        let adminSlotsUnsub = null;
+        let systemUsersUnsub = null;
 
         // ============================================================
         // LOADING MANAGER
@@ -3307,14 +3392,30 @@
             return `${meses[mes]}${ano.slice(2)}`;
         }
 
+        const ANALYST_COLORS = {
+            'DELANO': '#65a30d', 'HERBETH': '#dc2626', 'WELLIGTON': '#ea580c', 'EDMUNDO': '#8b5cf6',
+            'SIDNEY': '#14b8a6', 'HELIELTON': '#3b82f6', 'ROBSON': '#f59e0b',
+            'CARLA': '#fc0fc0', 'WYLLAME': '#059669', 'DARLYSON': '#d946ef',
+            'ONOFRE': '#f97316', 'LYNNA': '#be185d', 'JOELZE': '#2563eb', 'GUSTAVO': '#2163eb', 'JOAO': '#7af0a5'
+        };
+
+        function hslToHex(h, s, l) {
+            s /= 100; l /= 100;
+            const k = n => (n + h / 30) % 12;
+            const a = s * Math.min(l, 1 - l);
+            const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+            const x = n => Math.round(255 * f(n)).toString(16).padStart(2, '0');
+            return '#' + x(0) + x(8) + x(4);
+        }
+
+        // Analistas novos (cadastrados pelo painel) ganham uma cor gerada a partir do nome
         function getAnalystColor(analista) {
-            const colors = {
-                'DELANO': '#65a30d', 'HERBETH': '#dc2626', 'WELLIGTON': '#ea580c', 'EDMUNDO': '#8b5cf6',
-                'SIDNEY': '#14b8a6', 'HELIELTON': '#3b82f6', 'ROBSON': '#f59e0b',
-                'CARLA': '#fc0fc0', 'WYLLAME': '#059669', 'DARLYSON': '#d946ef',
-                'ONOFRE': '#f97316', 'LYNNA': '#be185d', 'JOELZE': '#2563eb', 'GUSTAVO': '#2163eb', 'JOAO': '#7af0a5'
-            };
-            return colors[analista] || '#3b82f6';
+            if (ANALYST_COLORS[analista]) return ANALYST_COLORS[analista];
+            const key = String(analista || '');
+            if (!key) return '#3b82f6';
+            let hash = 0;
+            for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
+            return hslToHex(hash % 360, 65, 55);
         }
 
         function formatIncLinks(text) {
@@ -3438,9 +3539,28 @@
         }
 
         // ============================================================
+        // PERMISSÕES DE ADMIN + TAG DE DIAMANTE
+        // ============================================================
+        function isPrimaryAdmin() { return userAnalystName === 'SIDNEY'; }
+        function isSecondaryAdmin() { return !!userAnalystName && userAnalystName !== 'SIDNEY' && adminSlots.includes(userAnalystName); }
+        function canInsertAsAdmin() { return isPrimaryAdmin() || isSecondaryAdmin(); }
+
+        // Diamante dourado = SIDNEY (admin principal); verde = admin secundário
+        function isMainAdminName(adminName) { return !adminName || String(adminName).toUpperCase() === 'SIDNEY'; }
+        function adminDiamondClass(adminName) { return 'fas fa-gem admin-diamond ' + (isMainAdminName(adminName) ? 'gold' : 'green'); }
+        function adminDiamondTitle(adminName) { return 'Inserido por ' + (adminName || 'SIDNEY') + (isMainAdminName(adminName) ? ' (admin)' : ' (admin secundário)'); }
+        function buildAdminDiamond(adminName) {
+            const i = document.createElement('i');
+            i.className = adminDiamondClass(adminName);
+            i.title = adminDiamondTitle(adminName);
+            return i;
+        }
+
+        // ============================================================
         // AUTENTICAÇÃO E INICIALIZAÇÃO
         // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
+            loadLoginUsers();
             startSplashGraph(document.getElementById('splash-screen'), document.getElementById('splash-fx'));
             setTimeout(function() {
                 const splash = document.getElementById('splash-screen');
@@ -3461,6 +3581,20 @@
                 }, 200);
             }, 3000);
         });
+
+        // Usuários cadastrados pelo painel de administração aparecem também na tela de login
+        async function loadLoginUsers() {
+            try {
+                const snap = await db.collection('system_users').get();
+                const users = [];
+                snap.forEach(d => {
+                    const v = d.data() || {};
+                    const name = String(v.name || d.id).toUpperCase();
+                    users.push({ name, email: v.email || (name.toLowerCase() + USER_EMAIL_DOMAIN) });
+                });
+                if (window.syncLoginUsers) window.syncLoginUsers(users);
+            } catch (error) { console.warn('Lista extra de usuários indisponível na tela de login:', error.code || error.message); }
+        }
 
         // Fundo de rede NOC (splash e login): topologia fixa animada só com CSS
         function buildNetworkBg(el) {
@@ -3603,7 +3737,7 @@
                 userAv.style.setProperty('--c', name ? getAnalystColor(name) : '');
                 list.querySelectorAll('.lg-opt').forEach(b => b.classList.toggle('on', b.dataset.value === select.value));
             }
-            Array.from(select.options).filter(o => o.value).forEach(o => {
+            function addUserButton(o) {
                 const name = o.textContent.trim();
                 const b = document.createElement('button');
                 b.type = 'button'; b.className = 'lg-opt'; b.dataset.value = o.value;
@@ -3613,7 +3747,19 @@
                 b.appendChild(av); b.appendChild(tx);
                 b.onclick = () => { setUser(o); toggleList(false); pwd.focus(); };
                 list.appendChild(b);
-            });
+            }
+            Array.from(select.options).filter(o => o.value).forEach(addUserButton);
+            // Chamada pelo carregamento de usuários cadastrados (system_users)
+            window.syncLoginUsers = function (users) {
+                users.forEach(u => {
+                    if (!u || !u.email || !u.name) return;
+                    if (Array.from(select.options).some(o => o.value === u.email)) return;
+                    const o = document.createElement('option');
+                    o.value = u.email; o.textContent = u.name;
+                    select.appendChild(o);
+                    addUserButton(o);
+                });
+            };
             function toggleList(force) {
                 const open = typeof force === 'boolean' ? force : !list.classList.contains('open');
                 list.classList.toggle('open', open);
@@ -3722,6 +3868,7 @@
 
             if (userAnalystName === 'SIDNEY') {
                 document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+                document.getElementById('nav-admin').style.display = 'block';
             }
 
             setupNavigation();
@@ -3731,6 +3878,9 @@
             setupBacklogForm();
             loadInitialData();
             initEscala();
+            initSystemUsers();
+            initAdminSlots();
+            if (userAnalystName === 'SIDNEY') setupAdminPanel();
             initializeMural();
             scheduleMidnightCleanup();
         }
@@ -3771,9 +3921,10 @@
             navItems.forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.preventDefault();
+                    const section = this.getAttribute('data-section');
+                    if (section === 'admin' && userAnalystName !== 'SIDNEY') return;
                     navItems.forEach(nav => nav.classList.remove('active'));
                     this.classList.add('active');
-                    const section = this.getAttribute('data-section');
                     sectionContents.forEach(content => content.style.display = 'none');
                     document.getElementById(`${section}-section`).style.display = 'block';
                     pageTitle.textContent = this.querySelector('span').textContent;
@@ -4033,7 +4184,8 @@
             });
         }
 
-        async function saveBacklogRecord(analista, data, texto, isAdmin = false) {
+        // onlyCreate = true: usado pelos admins secundários (só inserem para quem ainda não tem validação no dia)
+        async function saveBacklogRecord(analista, data, texto, isAdmin = false, onlyCreate = false) {
             const docId = getBacklogDocId(data);
             const docRef = db.collection('backlog').doc(docId);
             const metadataRef = db.collection('backlog').doc('metadata');
@@ -4050,6 +4202,7 @@
                     if (doc.exists && doc.data().registros) { registros = [...doc.data().registros]; }
                     const idx = registros.findIndex(r => r.analista === analista && r.data === data);
                     if (idx >= 0) {
+                        if (onlyCreate) throw new Error('BACKLOG_ALREADY_EXISTS');
                         const existing = registros[idx];
                         let createdAt;
                         if (existing.createdAt && typeof existing.createdAt.toDate === 'function') { createdAt = existing.createdAt.toDate(); }
@@ -4085,6 +4238,25 @@
 
                 return operationType;
             });
+        }
+
+        // Exclusão de uma validação (somente SIDNEY): remove apenas o registro daquele analista naquela data
+        async function deleteBacklogRecord(analista, data) {
+            if (!isPrimaryAdmin()) throw new Error('NOT_PRIMARY_ADMIN');
+            const docRef = db.collection('backlog').doc(getBacklogDocId(data));
+            await retryFirebaseOperation(async () => {
+                await db.runTransaction(async (transaction) => {
+                    const doc = await transaction.get(docRef);
+                    if (!doc.exists) throw new Error('BACKLOG_NOT_FOUND');
+                    const regs = doc.data().registros || [];
+                    const novos = regs.filter(r => !(r.analista === analista && r.data === data));
+                    if (novos.length === regs.length) throw new Error('BACKLOG_NOT_FOUND');
+                    transaction.update(docRef, { registros: novos });
+                });
+            }, { maxRetries: 1, initialDelay: 800 });
+            firebaseRecords = firebaseRecords.filter(r => !(r.analista === analista && r.data === data));
+            sessionStorage.removeItem('backlog_cache');
+            await logAudit('ADMIN_BACKLOG_DELETE', `Admin ${userAnalystName} excluiu o backlog de ${analista} na data ${data}`);
         }
 
         async function loadFirebaseData() {
@@ -4139,16 +4311,16 @@
                 });
                 // Carrega o estado salvo
                 auditLogsEnabled = doc.exists ? (doc.data().enabled !== false) : true;
-                
+
                 // ✅ CORREÇÃO: Atualiza o toggle com o estado carregado
                 const toggle = document.getElementById('audit-toggle-switch');
                 if (toggle) {
                     toggle.checked = auditLogsEnabled;
                 }
-                
+
                 console.log(`[Audit] Configuração carregada: ${auditLogsEnabled ? 'ATIVADO' : 'DESATIVADO'}`);
-            } catch (error) { 
-                console.error('Erro ao carregar configuração de auditoria:', error); 
+            } catch (error) {
+                console.error('Erro ao carregar configuração de auditoria:', error);
                 auditLogsEnabled = true;
                 const toggle = document.getElementById('audit-toggle-switch');
                 if (toggle) toggle.checked = true;
@@ -4165,11 +4337,11 @@
                     }, { merge: true });
                 });
                 auditLogsEnabled = enabled;
-                
+
                 // ✅ CORREÇÃO: Garante que o toggle reflita o estado
                 const toggle = document.getElementById('audit-toggle-switch');
                 if (toggle) toggle.checked = enabled;
-                
+
                 await retryFirebaseOperation(async () => {
                     await db.collection('audit_logs').add({
                         action: 'ADMIN_AUDIT_TOGGLE',
@@ -4180,8 +4352,8 @@
                     });
                 });
                 showToast(enabled ? 'Logs de auditoria ativados' : 'Logs de auditoria desativados', 'info');
-            } catch (error) { 
-                console.error('Erro ao alterar configuração de auditoria:', error); 
+            } catch (error) {
+                console.error('Erro ao alterar configuração de auditoria:', error);
                 showToast('Erro ao alterar configuração de auditoria', 'error');
                 // Reverte o toggle em caso de erro
                 const toggle = document.getElementById('audit-toggle-switch');
@@ -4192,16 +4364,16 @@
         function setupAuditToggle() {
             const toggle = document.getElementById('audit-toggle-switch');
             if (!toggle) return;
-            
+
             // Remove event listeners anteriores para evitar duplicação
             const newToggle = toggle.cloneNode(true);
             toggle.parentNode.replaceChild(newToggle, toggle);
-            
+
             newToggle.addEventListener('change', function() {
-                if (userAnalystName !== 'SIDNEY') { 
-                    this.checked = !this.checked; 
-                    showToast('Apenas SIDNEY pode alterar essa configuração!', 'error'); 
-                    return; 
+                if (userAnalystName !== 'SIDNEY') {
+                    this.checked = !this.checked;
+                    showToast('Apenas SIDNEY pode alterar essa configuração!', 'error');
+                    return;
                 }
                 setAuditLogsEnabled(this.checked);
             });
@@ -4216,6 +4388,10 @@
         const ESCALA_LETTER = { 'T1': '1', 'T2': '2', 'T3': '3' };
         const ESCALA_PROJECTION_DAYS = 7;
         const ROSTER_ANALYSTS = ['HERBETH','WELLIGTON','EDMUNDO','SIDNEY','HELIELTON','ROBSON','CARLA','WYLLAME','DARLYSON','ONOFRE','LYNNA','JOELZE','GUSTAVO','JOAO'];
+        // Lista completa: analistas atuais + usuários cadastrados pelo painel de administração
+        function getRoster() {
+            return ROSTER_ANALYSTS.concat(extraUsers.map(u => u.name).filter(n => !ROSTER_ANALYSTS.includes(n)));
+        }
         let escalaData = { 'T1': [], 'T2': [], 'T3': [] };
         let escalaActiveShift = 'T1';
         let escalaCalendarFilter = 'all';
@@ -4384,7 +4560,7 @@
                     const free = document.createElement('button'); free.type = 'button'; free.className = 'escala-pk free'; free.textContent = 'Deixar vaga livre';
                     free.onclick = () => { escalaOpenSlot = null; escalaSetSlot(shift, idx, ''); };
                     box.appendChild(free);
-                    ROSTER_ANALYSTS.forEach(n => {
+                    getRoster().forEach(n => {
                         const p = document.createElement('button'); p.type = 'button'; p.className = 'escala-pk' + (n === name ? ' on' : '');
                         p.style.setProperty('--c', getAnalystColor(n));
                         p.appendChild(document.createTextNode(n));
@@ -4472,7 +4648,7 @@
                 wrap.appendChild(b);
             });
             const leg = document.createElement('div'); leg.className = 'calendar-legend';
-            leg.innerHTML = '<span class="lg"><span class="ech" style="--c:#8b5cf6;width:64px"><span class="nm">Validou</span></span>validação já registrada (não muda)</span><span class="lg"><span class="ech ghost" style="--c:#8b5cf6;width:64px"><span class="nm">Provável</span></span>provável do turno, conforme a escala · 1 = T1 · 2 = T2 · 3 = T3</span>';
+            leg.innerHTML = '<span class="lg"><span class="ech" style="--c:#8b5cf6;width:64px"><span class="nm">Validou</span></span>validação já registrada (não muda)</span><span class="lg"><span class="ech ghost" style="--c:#8b5cf6;width:64px"><span class="nm">Provável</span></span>provável do turno, conforme a escala · 1 = T1 · 2 = T2 · 3 = T3</span><span class="lg"><i class="fas fa-gem admin-diamond gold" style="margin-left:0"></i> admin <i class="fas fa-gem admin-diamond green" style="margin-left:0.6rem"></i> admin secundário</span>';
             cal.parentNode.insertBefore(wrap, cal);
             cal.parentNode.insertBefore(leg, cal);
         }
@@ -4500,6 +4676,7 @@
             const formattedDate = new Date(date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
             modalDateDisplay.textContent = formattedDate;
             comparisonGrid.innerHTML = '';
+            comparisonGrid.dataset.count = analysts.length > 4 ? 'n' : String(analysts.length);
             analysts.forEach(analyst => { const card = createComparisonCard(analyst); comparisonGrid.appendChild(card); });
             modal.style.display = 'flex';
         }
@@ -4507,7 +4684,6 @@
         function createComparisonCard(analyst) {
             const card = document.createElement('div');
             card.className = 'fc-event-analyst-item';
-            if (analyst.insertedByAdmin) { card.style.border = '2px solid var(--gold)'; card.style.background = 'rgba(241,196,15,0.04)'; }
             const analystName = document.createElement('div');
             analystName.className = 'fc-event-analyst-name';
             analystName.innerHTML = `<i class="fas fa-user-tie" style="color: ${getAnalystColor(analyst.analista)}"></i> `;
@@ -4517,12 +4693,7 @@
             nameLink.textContent = analyst.analista;
             nameLink.onclick = (e) => { e.stopPropagation(); openAnalystBacklogModal(analyst.analista); };
             analystName.appendChild(nameLink);
-            if (analyst.insertedByAdmin) {
-                const adminSpan = document.createElement('span');
-                adminSpan.className = 'admin-badge';
-                adminSpan.innerHTML = `<i class="fas fa-crown"></i> ADM (${analyst.adminName || 'Admin'})`;
-                analystName.appendChild(adminSpan);
-            }
+            if (analyst.insertedByAdmin) { analystName.appendChild(buildAdminDiamond(analyst.adminName)); }
             const analystDate = document.createElement('div');
             analystDate.style.fontSize = '0.8rem';
             analystDate.style.color = 'var(--text-muted)';
@@ -4581,8 +4752,7 @@
             firebaseRecords.forEach(entry => { if (!analystsByDate[entry.data]) { analystsByDate[entry.data] = []; } analystsByDate[entry.data].push(entry); });
             const events = firebaseRecords.map(entry => {
                 let eventClass = `event-${entry.analista.toLowerCase()} fc-event-analyst has-tooltip`;
-                if (entry.insertedByAdmin) eventClass += ' event-admin';
-                return { title: entry.analista, start: entry.data, extendedProps: { texto: entry.texto, analista: entry.analista, fonte: entry.fonte || 'firebase', insertedByAdmin: entry.insertedByAdmin || false, adminName: entry.adminName || null, analystsForDate: analystsByDate[entry.data] || [] }, className: eventClass };
+                return { title: entry.analista, start: entry.data, extendedProps: { texto: entry.texto, analista: entry.analista, data: entry.data, fonte: entry.fonte || 'firebase', insertedByAdmin: entry.insertedByAdmin || false, adminName: entry.adminName || null, analystsForDate: analystsByDate[entry.data] || [] }, className: eventClass };
             });
             const allEvents = events.concat(escalaGhostEvents());
             if (calendarInstance) { calendarInstance.removeAllEvents(); calendarInstance.addEventSource(allEvents); return; }
@@ -4605,23 +4775,38 @@
                     const eventEl = document.createElement('div');
                     eventEl.style.cssText = 'display:flex;align-items:center;padding:0.2rem 0.4rem;gap:0.4rem;flex-wrap:wrap;position:relative;';
                     const iconEl = document.createElement('i');
-                    iconEl.className = arg.event.extendedProps.insertedByAdmin ? 'fas fa-crown' : 'fas fa-user-check';
-                    iconEl.style.fontSize = '0.7em';
-                    if (arg.event.extendedProps.insertedByAdmin) iconEl.style.color = 'var(--gold)';
+                    if (arg.event.extendedProps.insertedByAdmin) {
+                        iconEl.className = adminDiamondClass(arg.event.extendedProps.adminName);
+                        iconEl.title = adminDiamondTitle(arg.event.extendedProps.adminName);
+                    } else {
+                        iconEl.className = 'fas fa-user-check';
+                        iconEl.style.fontSize = '0.7em';
+                    }
                     const titleEl = document.createElement('span');
                     titleEl.className = 'fc-event-title';
                     titleEl.textContent = arg.event.title;
                     const tooltipEl = document.createElement('div');
                     tooltipEl.className = 'tooltip';
-                    tooltipEl.textContent = arg.event.extendedProps.insertedByAdmin ? `Admin` : `Analista: ${arg.event.extendedProps.analista}`;
+                    tooltipEl.textContent = arg.event.extendedProps.insertedByAdmin ? `Inserido por ${arg.event.extendedProps.adminName || 'SIDNEY'}` : `Analista: ${arg.event.extendedProps.analista}`;
                     eventEl.appendChild(iconEl);
                     eventEl.appendChild(titleEl);
                     eventEl.appendChild(tooltipEl);
                     return { domNodes: [eventEl] };
                 },
-                eventDidMount: function(info) { if (info.event.extendedProps.ghost) info.el.style.setProperty('--c', getAnalystColor(info.event.extendedProps.analista)); },
+                eventDidMount: function(info) {
+                    if (info.event.extendedProps.ghost) { info.el.style.setProperty('--c', getAnalystColor(info.event.extendedProps.analista)); return; }
+                    // Analistas novos (sem classe de cor no CSS) recebem a cor gerada
+                    const nm = String(info.event.extendedProps.analista || '').toUpperCase();
+                    if (nm && !ANALYST_COLORS[nm]) {
+                        const c = getAnalystColor(nm);
+                        const dark = currentTheme === 'dark';
+                        info.el.style.setProperty('background-color', hexToRgba(c, dark ? 0.15 : 0.3), 'important');
+                        info.el.style.setProperty('border-color', hexToRgba(c, dark ? 0.25 : 0.4), 'important');
+                        info.el.style.setProperty('color', 'var(--text-primary)', 'important');
+                    }
+                },
                 eventClick: function(info) { if (info.event.extendedProps.ghost) return; showEventDetails(info.event); },
-                dateClick: function(info) { if (userAnalystName === 'SIDNEY') { if (confirm('Deseja inserir um backlog como admin para esta data?')) { openAdminModal(info.dateStr); } } },
+                dateClick: function(info) { if (canInsertAsAdmin()) { if (confirm('Deseja inserir um backlog como admin para esta data?')) { openAdminModal(info.dateStr); } } },
                 viewDidMount: function(view) { setTimeout(addCompareButtonsToCalendar, 100); },
                 datesSet: function(info) { const mesVisivel = getBacklogDocId(info.view.currentStart.toISOString().split('T')[0]); escutarMesBacklog(mesVisivel); setTimeout(addCompareButtonsToCalendar, 100); }
             });
@@ -4675,27 +4860,24 @@
             const closeButton = document.createElement('button');
             closeButton.className = 'fc-event-modal-close';
             closeButton.innerHTML = '<i class="fas fa-times"></i>';
-            closeButton.addEventListener('click', () => document.body.removeChild(modal));
+            const closeModal = () => { if (modal.parentNode) modal.parentNode.removeChild(modal); };
+            closeButton.addEventListener('click', closeModal);
+            const headerActions = document.createElement('div');
+            headerActions.style.cssText = 'display:flex;align-items:center;gap:0.5rem;';
+            headerActions.appendChild(closeButton);
             modalHeader.appendChild(modalTitle);
-            modalHeader.appendChild(closeButton);
+            modalHeader.appendChild(headerActions);
             const modalBody = document.createElement('div');
             const dateEl = document.createElement('div');
             dateEl.style.cssText = 'margin-bottom:1.2rem;font-size:0.9rem;color:var(--text-muted);';
             dateEl.innerHTML = `<i class="far fa-calendar-alt" style="margin-right:0.5rem;"></i>${new Date(event.start).toLocaleDateString('pt-BR')}`;
             const analystItem = document.createElement('div');
             analystItem.className = 'fc-event-analyst-item';
-            if (event.extendedProps.insertedByAdmin) { analystItem.style.border = '2px solid var(--gold)'; analystItem.style.background = 'rgba(241,196,15,0.04)'; }
             const analystName = document.createElement('div');
             analystName.className = 'fc-event-analyst-name';
             analystName.innerHTML = `<i class="fas fa-user-tie" style="color:${getAnalystColor(event.extendedProps.analista)}"></i> `;
             { const nl = document.createElement('span'); nl.className = 'analyst-name-link'; nl.title = 'Ver backlogs inseridos'; nl.textContent = event.extendedProps.analista; nl.onclick = () => openAnalystBacklogModal(event.extendedProps.analista); analystName.appendChild(nl); }
-            if (event.extendedProps.insertedByAdmin) {
-                const adminSpan = document.createElement('span');
-                adminSpan.className = 'admin-badge';
-                adminSpan.style.marginLeft = '0.5rem';
-                adminSpan.textContent = `Adm ${event.extendedProps.adminName}`;
-                analystName.appendChild(adminSpan);
-            }
+            if (event.extendedProps.insertedByAdmin) { analystName.appendChild(buildAdminDiamond(event.extendedProps.adminName)); }
             const analystContent = document.createElement('div');
             analystContent.className = 'fc-event-analyst-content';
             analystContent.innerHTML = formatWhatsAppText(event.extendedProps.texto || '');
@@ -4703,6 +4885,33 @@
             analystItem.appendChild(analystContent);
             modalBody.appendChild(dateEl);
             modalBody.appendChild(analystItem);
+
+            // Exclusão direto pelo calendário (somente SIDNEY)
+            if (isPrimaryAdmin()) {
+                const delBtn = document.createElement('button');
+                delBtn.type = 'button';
+                delBtn.className = 'fc-event-modal-close';
+                delBtn.title = 'Excluir validação';
+                delBtn.style.color = 'var(--danger)';
+                delBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                delBtn.addEventListener('click', async () => {
+                    const analista = event.extendedProps.analista;
+                    const data = event.extendedProps.data || String(event.startStr).split('T')[0];
+                    if (!confirm(`Excluir a validação de ${analista} em ${new Date(data + 'T12:00:00').toLocaleDateString('pt-BR')}? Esta ação não pode ser desfeita.`)) return;
+                    try {
+                        loading.show('Excluindo validação...', analista);
+                        await deleteBacklogRecord(analista, data);
+                        showToast('Validação excluída!', 'success');
+                        closeModal();
+                        if (document.getElementById('dashboard-section').style.display !== 'none') { initCalendar(); updateDashboardStats(); setTimeout(addCompareButtonsToCalendar, 100); }
+                    } catch (error) {
+                        console.error('Erro ao excluir validação:', error);
+                        showToast(error.message === 'BACKLOG_NOT_FOUND' ? 'Registro não encontrado (já foi excluído?).' : 'Erro ao excluir. Verifique as permissões do Firebase.', 'error');
+                    } finally { loading.hide(); }
+                });
+                headerActions.insertBefore(delBtn, closeButton);
+            }
+
             modalContent.appendChild(modalHeader);
             modalContent.appendChild(modalBody);
             modal.appendChild(modalContent);
@@ -4904,15 +5113,30 @@ function updateAnalystChart(sortedAnalysts) {
         }
 
         // ============================================================
-        // ADMIN MODAL
+        // ADMIN MODAL (SIDNEY e admins secundários)
         // ============================================================
+        function populateAdminAnalystSelect() {
+            const sel = document.getElementById('admin-analista-select');
+            sel.innerHTML = '<option value="">Selecione o analista</option>';
+            getRoster().filter(n => n !== userAnalystName && n !== 'SIDNEY').forEach(n => {
+                const o = document.createElement('option'); o.value = n; o.textContent = n; sel.appendChild(o);
+            });
+        }
+
         function openAdminModal(date) {
-            if (userAnalystName !== 'SIDNEY') return;
+            if (!canInsertAsAdmin()) return;
             window.selectedCalendarDate = date;
             window.clickTimestamp = getFortalezaTimestamp();
             const dateObj = new Date(date + 'T12:00:00');
             document.getElementById('admin-selected-date').textContent = dateObj.toLocaleDateString('pt-BR', { timeZone: 'America/Fortaleza', day: '2-digit', month: '2-digit', year: 'numeric' });
             document.getElementById('admin-click-time').textContent = new Date().toLocaleTimeString('pt-BR', { timeZone: 'America/Fortaleza', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const badge = document.getElementById('admin-modal-badge');
+            badge.textContent = '';
+            const bi = document.createElement('i');
+            bi.className = isPrimaryAdmin() ? 'fas fa-star' : 'fas fa-gem';
+            badge.appendChild(bi);
+            badge.appendChild(document.createTextNode(' ' + userAnalystName));
+            populateAdminAnalystSelect();
             document.getElementById('admin-analista-select').value = '';
             document.getElementById('admin-backlog-text').innerHTML = '';
             document.getElementById('admin-modal').style.display = 'flex';
@@ -4928,7 +5152,7 @@ function updateAnalystChart(sortedAnalysts) {
         document.getElementById('admin-modal-cancel').addEventListener('click', closeAdminModal);
 
         document.getElementById('admin-modal-save').addEventListener('click', async function() {
-            if (userAnalystName !== 'SIDNEY') { showToast('Apenas SIDNEY pode usar esta funcionalidade!', 'error'); closeAdminModal(); return; }
+            if (!canInsertAsAdmin()) { showToast('Você não tem permissão para usar esta funcionalidade!', 'error'); closeAdminModal(); return; }
             if (!checkRateLimit('admin_save')) { showToast('Por favor, aguarde um momento antes de salvar novamente', 'error'); return; }
 
             const analista = document.getElementById('admin-analista-select').value;
@@ -4936,14 +5160,15 @@ function updateAnalystChart(sortedAnalysts) {
             let texto = document.getElementById('admin-backlog-text').innerHTML.trim();
 
             if (!analista || !data || !texto) { showToast('Por favor, selecione um analista e preencha o backlog!', 'error'); return; }
-            texto = cleanBacklogText(texto) + ' <span class="admin-badge">ADM</span>';
+            texto = cleanBacklogText(texto);
 
             try {
                 loading.show('Salvando como Admin...', `Inserindo backlog para ${analista}`);
                 this.disabled = true;
                 this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
 
-                const op = await saveBacklogRecord(analista, data, texto, true);
+                // Admin secundário só insere para quem ainda não tem validação no dia
+                const op = await saveBacklogRecord(analista, data, texto, true, !isPrimaryAdmin());
                 await logAudit('ADMIN_BACKLOG_SAVE', `Admin ${userAnalystName} ${op === 'updated' ? 'atualizou' : 'criou'} backlog para ${analista} na data ${data}`);
 
                 const firebaseData = await loadFirebaseData();
@@ -4958,6 +5183,7 @@ function updateAnalystChart(sortedAnalysts) {
                 if (error.message === 'BACKLOG_EDIT_TIME_EXCEEDED') showToast('O backlog só pode ser alterado dentro de 1 hora.', 'error');
                 else if (error.message === 'BACKLOG_SAVE_LIMIT_REACHED') showToast('Limite de 4 sobrescritas atingido.', 'error');
                 else if (error.message === 'BACKLOG_MAX_ANALYSTS_REACHED') showToast(`Limite máximo de ${MAX_ANALYSTS_PER_DAY} analistas por dia atingido.`, 'error');
+                else if (error.message === 'BACKLOG_ALREADY_EXISTS') showToast('Este analista já possui validação neste dia.', 'error');
                 else showToast('Erro ao salvar os dados.', 'error');
             } finally {
                 loading.hide();
@@ -5268,6 +5494,262 @@ function updateAnalystChart(sortedAnalysts) {
                 populateMonthSelect();
             } catch (error) { console.error('Erro ao carregar dados iniciais:', error); showToast('Erro ao carregar dados. Verifique o console.', 'error'); }
             finally { loading.hide(); }
+        }
+
+        // ============================================================
+        // ADMINISTRAÇÃO: usuários cadastrados + admins secundários
+        // ============================================================
+        function normalizeAdminSlots(arr) {
+            const out = Array.isArray(arr) ? arr.slice(0, ADMIN_SLOT_COUNT).map(x => x || '') : [];
+            while (out.length < ADMIN_SLOT_COUNT) out.push('');
+            return out;
+        }
+
+        // Atualiza tudo que depende da lista de analistas
+        function onRosterChanged() {
+            renderEscala();
+            if (isPrimaryAdmin()) { renderAdminSlots(); renderAdminUsers(); populateAdminFilters(); }
+        }
+
+        function initSystemUsers() {
+            if (systemUsersUnsub) return;
+            systemUsersUnsub = db.collection('system_users').onSnapshot(snap => {
+                extraUsers = [];
+                snap.forEach(d => {
+                    const v = d.data() || {};
+                    const name = String(v.name || d.id).toUpperCase();
+                    extraUsers.push({
+                        name,
+                        email: v.email || (name.toLowerCase() + USER_EMAIL_DOMAIN),
+                        createdBy: v.createdBy || '',
+                        createdAt: v.createdAt && v.createdAt.toDate ? v.createdAt.toDate() : null
+                    });
+                });
+                extraUsers.sort((a, b) => a.name.localeCompare(b.name));
+                onRosterChanged();
+            }, err => { console.error('Erro ao ouvir usuários cadastrados:', err); });
+        }
+
+        function initAdminSlots() {
+            if (adminSlotsUnsub) return;
+            adminSlotsUnsub = db.collection('system_settings').doc('admins').onSnapshot(doc => {
+                adminSlots = normalizeAdminSlots(doc.exists ? doc.data().slots : []);
+                if (isPrimaryAdmin()) renderAdminSlots();
+            }, err => { console.error('Erro ao ouvir admins secundários:', err); });
+        }
+
+        let admActiveTab = 'admins';
+        let admOpenSlot = null;
+
+        function setupAdminPanel() {
+            const tabsEl = document.getElementById('adm-tabs');
+            [['admins', 'Admins secundários'], ['validacoes', 'Gerenciar validações'], ['criar', 'Criar usuário'], ['usuarios', 'Usuários cadastrados']].forEach(([key, label]) => {
+                const b = document.createElement('button');
+                b.type = 'button'; b.className = 'escala-tab' + (key === admActiveTab ? ' active' : ''); b.dataset.tab = key; b.textContent = label;
+                b.onclick = () => showAdminTab(key);
+                tabsEl.appendChild(b);
+            });
+            document.getElementById('adm-val-month').value = getFortalezaDateString().slice(0, 7);
+            document.getElementById('adm-val-month').addEventListener('change', loadAdminValidations);
+            document.getElementById('adm-val-analyst').addEventListener('change', loadAdminValidations);
+            document.getElementById('adm-val-refresh').addEventListener('click', loadAdminValidations);
+            document.getElementById('adm-create-form').addEventListener('submit', createSystemUser);
+            renderAdminSlots();
+            renderAdminUsers();
+            populateAdminFilters();
+        }
+
+        function showAdminTab(key) {
+            admActiveTab = key;
+            document.querySelectorAll('#adm-tabs .escala-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === key));
+            ['admins', 'validacoes', 'criar', 'usuarios'].forEach(k => { document.getElementById('adm-tab-' + k).style.display = k === key ? 'block' : 'none'; });
+            if (key === 'validacoes') loadAdminValidations();
+        }
+
+        // ----- Admins secundários (6 slots) -----
+        function adminSlotsSave() {
+            return retryFirebaseOperation(async () => {
+                await db.collection('system_settings').doc('admins').set({ slots: adminSlots, updatedBy: userAnalystName || '', updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+            }, { maxRetries: 1, initialDelay: 800 })
+                .then(() => showToast('Admins secundários atualizados', 'success'))
+                .catch(err => { console.error('Erro ao salvar admins secundários:', err); showToast('Erro ao salvar (verifique as permissões)', 'error'); });
+        }
+
+        function adminSetSlot(idx, name) {
+            if (!isPrimaryAdmin()) return;
+            if (name) adminSlots = adminSlots.map((n, i) => (n === name && i !== idx) ? '' : n);
+            adminSlots[idx] = name;
+            admOpenSlot = null;
+            renderAdminSlots();
+            adminSlotsSave();
+        }
+
+        function renderAdminSlots() {
+            const el = document.getElementById('adm-slots');
+            if (!el) return;
+            el.innerHTML = '';
+            adminSlots.forEach((name, idx) => {
+                const wrap = document.createElement('div'); wrap.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+                const row = document.createElement('div'); row.className = 'escala-row' + (name ? '' : ' free');
+                const pos = document.createElement('span'); pos.className = 'escala-pos'; pos.textContent = idx + 1;
+                const av = document.createElement('span'); av.className = 'escala-av' + (name ? '' : ' empty');
+                if (name) av.style.setProperty('--c', getAnalystColor(name));
+                av.textContent = name ? escalaInitial(name) : '+';
+                const info = document.createElement('div'); info.className = 'escala-info';
+                const nm = document.createElement('span'); nm.className = 'escala-name'; nm.textContent = name || 'Vaga livre';
+                const sub = document.createElement('span'); sub.className = 'escala-sub'; sub.textContent = name ? 'Pode inserir validações de quem esqueceu' : 'Disponível para um admin secundário';
+                info.appendChild(nm); info.appendChild(sub);
+                row.appendChild(pos); row.appendChild(av); row.appendChild(info);
+                if (name) { const d = buildAdminDiamond(name === 'SIDNEY' ? 'X' : name); d.title = 'Admin secundário'; row.appendChild(d); }
+                const tg = document.createElement('button'); tg.type = 'button'; tg.className = 'escala-btn';
+                tg.textContent = admOpenSlot === idx ? 'Fechar' : (name ? 'Trocar' : 'Escolher');
+                tg.onclick = () => { admOpenSlot = admOpenSlot === idx ? null : idx; renderAdminSlots(); };
+                row.appendChild(tg);
+                if (name) {
+                    const clr = document.createElement('button'); clr.type = 'button'; clr.className = 'escala-btn'; clr.textContent = 'Esvaziar';
+                    clr.onclick = () => adminSetSlot(idx, '');
+                    row.appendChild(clr);
+                }
+                wrap.appendChild(row);
+                if (admOpenSlot === idx) {
+                    const box = document.createElement('div'); box.className = 'escala-pick';
+                    getRoster().filter(n => n !== 'SIDNEY').forEach(n => {
+                        const p = document.createElement('button'); p.type = 'button'; p.className = 'escala-pk' + (n === name ? ' on' : '');
+                        p.style.setProperty('--c', getAnalystColor(n));
+                        p.appendChild(document.createTextNode(n));
+                        const other = adminSlots.indexOf(n);
+                        if (other >= 0 && other !== idx) { const s = document.createElement('small'); s.textContent = 'vaga ' + (other + 1); p.appendChild(s); }
+                        p.onclick = () => adminSetSlot(idx, n);
+                        box.appendChild(p);
+                    });
+                    wrap.appendChild(box);
+                }
+                el.appendChild(wrap);
+            });
+        }
+
+        // ----- Gerenciar validações (excluir) -----
+        function populateAdminFilters() {
+            const sel = document.getElementById('adm-val-analyst');
+            if (!sel) return;
+            const cur = sel.value;
+            sel.innerHTML = '<option value="">Todos</option>';
+            getRoster().slice().sort().forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n; sel.appendChild(o); });
+            sel.value = cur;
+        }
+
+        async function loadAdminValidations() {
+            const list = document.getElementById('adm-val-list');
+            if (!list || !isPrimaryAdmin()) return;
+            const month = document.getElementById('adm-val-month').value || getFortalezaDateString().slice(0, 7);
+            const analyst = document.getElementById('adm-val-analyst').value;
+            list.innerHTML = '<p class="escala-muted">Carregando...</p>';
+            try {
+                const doc = await retryFirebaseOperation(async () => db.collection('backlog').doc(getBacklogDocId(month + '-01')).get(), { maxRetries: 1, initialDelay: 800 });
+                let regs = doc.exists ? (doc.data().registros || []) : [];
+                regs = regs.filter(r => r.data && r.data.startsWith(month) && (!analyst || r.analista === analyst));
+                regs.sort((a, b) => (a.data < b.data ? 1 : a.data > b.data ? -1 : String(a.analista).localeCompare(String(b.analista))));
+                list.innerHTML = '';
+                if (!regs.length) { list.innerHTML = '<p class="escala-muted">Nenhuma validação encontrada neste filtro.</p>'; return; }
+                regs.forEach(r => {
+                    const row = document.createElement('div'); row.className = 'escala-row';
+                    const av = document.createElement('span'); av.className = 'escala-av'; av.style.setProperty('--c', getAnalystColor(r.analista)); av.textContent = escalaInitial(r.analista);
+                    const info = document.createElement('div'); info.className = 'escala-info';
+                    const nm = document.createElement('span'); nm.className = 'escala-name';
+                    nm.textContent = r.analista + ' · ' + new Date(r.data + 'T12:00:00').toLocaleDateString('pt-BR');
+                    if (r.insertedByAdmin) nm.appendChild(buildAdminDiamond(r.adminName));
+                    const sub = document.createElement('span'); sub.className = 'escala-sub';
+                    const resumo = cleanBacklogText(r.texto || '').replace(/\s+/g, ' ');
+                    sub.textContent = resumo.length > 110 ? resumo.slice(0, 110) + '…' : (resumo || '(sem texto)');
+                    info.appendChild(nm); info.appendChild(sub);
+                    const del = document.createElement('button'); del.type = 'button'; del.className = 'btn btn-danger btn-sm';
+                    del.innerHTML = '<i class="fas fa-trash-alt"></i> Excluir';
+                    del.onclick = async () => {
+                        if (!confirm(`Excluir a validação de ${r.analista} em ${new Date(r.data + 'T12:00:00').toLocaleDateString('pt-BR')}? Esta ação não pode ser desfeita.`)) return;
+                        try {
+                            loading.show('Excluindo validação...', r.analista);
+                            await deleteBacklogRecord(r.analista, r.data);
+                            showToast('Validação excluída!', 'success');
+                        } catch (error) {
+                            console.error('Erro ao excluir validação:', error);
+                            showToast(error.message === 'BACKLOG_NOT_FOUND' ? 'Registro não encontrado (já foi excluído?).' : 'Erro ao excluir. Verifique as permissões do Firebase.', 'error');
+                        } finally { loading.hide(); }
+                        loadAdminValidations();
+                    };
+                    row.appendChild(av); row.appendChild(info); row.appendChild(del);
+                    list.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar validações:', error);
+                list.innerHTML = '<p class="escala-muted" style="color:var(--danger);">Erro ao carregar as validações.</p>';
+            }
+        }
+
+        // ----- Criar usuário -----
+        async function createSystemUser(e) {
+            e.preventDefault();
+            if (!isPrimaryAdmin()) return;
+            const input = document.getElementById('adm-new-name');
+            const raw = input.value.trim();
+            const notice = document.getElementById('adm-create-notice');
+            if (!raw) { showToast('Informe o nome do usuário', 'error'); return; }
+            if (!/^[A-Za-z0-9]+$/.test(raw)) { showToast('Use apenas letras e números, sem espaços ou caracteres especiais', 'error'); return; }
+            const name = raw.toUpperCase();
+            const email = raw.toLowerCase() + USER_EMAIL_DOMAIN;
+            if (name === 'SIDNEY' || getRoster().includes(name)) { showToast('Já existe um usuário com esse nome', 'error'); return; }
+            const btn = document.getElementById('adm-create-btn');
+            try {
+                btn.disabled = true;
+                await retryFirebaseOperation(async () => {
+                    await db.collection('system_users').doc(name).set({ name, email, createdBy: userAnalystName, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                }, { maxRetries: 1, initialDelay: 800 });
+                input.value = '';
+                showToast('Usuário cadastrado!', 'success');
+                notice.innerHTML = '';
+                const t1 = document.createElement('div');
+                t1.appendChild(document.createTextNode('Usuário '));
+                const s1 = document.createElement('strong'); s1.textContent = name; t1.appendChild(s1);
+                t1.appendChild(document.createTextNode(' cadastrado no sistema. Falta criar o login no Firebase Authentication:'));
+                const t2 = document.createElement('div'); t2.style.marginTop = '0.4rem';
+                t2.appendChild(document.createTextNode('Email: '));
+                const s2 = document.createElement('strong'); s2.textContent = email; t2.appendChild(s2);
+                const t3 = document.createElement('div'); t3.style.marginTop = '0.2rem';
+                t3.textContent = 'Senha: defina direto no Firebase Authentication.';
+                notice.appendChild(t1); notice.appendChild(t2); notice.appendChild(t3);
+                notice.style.display = 'block';
+            } catch (error) {
+                console.error('Erro ao cadastrar usuário:', error);
+                showToast('Erro ao cadastrar (verifique as permissões do Firebase)', 'error');
+            } finally { btn.disabled = false; }
+        }
+
+        // ----- Usuários cadastrados -----
+        function renderAdminUsers() {
+            const el = document.getElementById('adm-users-list');
+            if (!el) return;
+            el.innerHTML = '';
+            if (!extraUsers.length) { el.innerHTML = '<p class="escala-muted">Nenhum usuário cadastrado por este painel ainda.</p>'; return; }
+            extraUsers.forEach(u => {
+                const row = document.createElement('div'); row.className = 'escala-row';
+                const av = document.createElement('span'); av.className = 'escala-av'; av.style.setProperty('--c', getAnalystColor(u.name)); av.textContent = escalaInitial(u.name);
+                const info = document.createElement('div'); info.className = 'escala-info';
+                const nm = document.createElement('span'); nm.className = 'escala-name'; nm.textContent = u.name;
+                const sub = document.createElement('span'); sub.className = 'escala-sub';
+                sub.textContent = u.email + (u.createdAt ? ' · cadastrado em ' + u.createdAt.toLocaleDateString('pt-BR') : '') + (u.createdBy ? ' por ' + u.createdBy : '');
+                info.appendChild(nm); info.appendChild(sub);
+                const del = document.createElement('button'); del.type = 'button'; del.className = 'btn btn-danger btn-sm';
+                del.innerHTML = '<i class="fas fa-trash-alt"></i> Remover';
+                del.onclick = async () => {
+                    if (!confirm(`Remover ${u.name} das listas do sistema? A conta no Firebase Authentication e os backlogs já registrados não serão apagados.`)) return;
+                    try {
+                        await retryFirebaseOperation(async () => { await db.collection('system_users').doc(u.name).delete(); }, { maxRetries: 1, initialDelay: 800 });
+                        if (adminSlots.includes(u.name)) { adminSlots = adminSlots.map(n => n === u.name ? '' : n); adminSlotsSave(); }
+                        showToast('Usuário removido das listas', 'success');
+                    } catch (error) { console.error('Erro ao remover usuário:', error); showToast('Erro ao remover (verifique as permissões)', 'error'); }
+                };
+                row.appendChild(av); row.appendChild(info); row.appendChild(del);
+                el.appendChild(row);
+            });
         }
   </script>
 </body>
